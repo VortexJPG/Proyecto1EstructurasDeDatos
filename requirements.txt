@@ -1,0 +1,3 @@
+requests>=2.31
+# Solo para la ventana con sprites (python main.py --gui). La consola, --replay y --bench no lo usan.
+pygame-ce>=2.5

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Datos generados por el programa: caché persistente, partidas guardadas,
+# tabla de puntajes. Los .log de replay NO se ignoran: conviene versionar
+# los que sirvan para reproducir errores.
+datos_locales/
+*.sav
