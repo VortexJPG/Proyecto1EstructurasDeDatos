@@ -67,4 +67,6 @@ sin avisar):
 
 1. Verificar `specify check` y `/speckit.*` cuando A suba `.specify/`.
 2. Revisar la constitución (7 principios) y proponer ajustes.
-3. Fase 2: `/speckit.specify` de la spec 004 (resolubilidad y llaves).
+3. Fase 2: volcar `docs/borradores/spec-004-resolubilidad.md` con
+   `/speckit.specify`, resolver las 10 preguntas de `clarify` y confirmar la
+   spec en Git **antes** de escribir código.

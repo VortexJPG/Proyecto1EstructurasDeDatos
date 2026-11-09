@@ -503,3 +503,14 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
   > Renombrar a cripta/ (Recommended); Normalizar con .gitattributes (Recommended); Aprobada, seguir Fase 1.
 
 - **Uso:** normalizar los fines de línea con `.gitattributes` (LF), renombrar el paquete `Cripta/` a `cripta/` para que funcione en Linux/WSL, instalar `pygame-ce` en `.venv`, guardar la línea base de P1 (`docs/mediciones/p1_linea_base.txt` y un replay reproducible) y abrir la bitácora `docs/estado-persona-b.md`.
+
+### 45
+
+- **Fecha:** 2026-11-09
+- **Integrante:** Kevin
+- **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
+- **Prompt:**
+  
+  > Puedes continuar
+
+- **Uso:** ante la ausencia de `.specify/` y de spec-kit, redactar el **contenido** de la spec 004 (resolubilidad y llaves) en `docs/borradores/spec-004-resolubilidad.md`: historias, reglas, contrato de `/llaves`, 24 requisitos funcionales, 5 de rendimiento, los 4 escenarios del Apéndice B y 10 preguntas de `clarify` con opciones por defecto. Sin nombrar estructuras, para volcarlo luego con `/speckit.specify`.
