@@ -584,3 +584,16 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
   > Si
 
 - **Uso:** implementar `T030..T034` (US2): verificar antes de montar catálogo, precarga o replay; sin `--forzar` no se inicia la partida y se sale con 3; con `--forzar` se muestra la advertencia y se juega. El reporte se muestra al iniciar y queda en el controlador. Se añadieron `llaves.json` a los paquetes offline de P1 para que `--offline` siga funcionando. Suite en 130/130.
+
+### 52
+
+- **Fecha:** 2026-11-09
+- **Integrante:** Kevin
+- **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
+- **Prompt:**
+  
+  > Si
+  >
+  > Si continua
+
+- **Uso:** implementar `T035..T045`: pruebas de orden válido y determinista, oráculo compartido en `cripta/bench/ingenuo.py`, refactor del verificador a índices por arreglo y adyacencia preparada, `--bench resolubilidad` (incremental vs. ingenuo, K = 5..80, límite de 200 ms) y documentación en README. Evidencia en `docs/mediciones/p2_resolubilidad.txt`. Suite en 134/134.

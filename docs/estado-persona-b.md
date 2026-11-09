@@ -49,11 +49,19 @@ Pendiente: verificar spec-kit cuando la Persona A lo inicialice y revisar
   controlador. `preparar_cripta` reutiliza datos y mapa tras verificar.
 - **Datos offline**: `llaves.json` agregado a las cuatro criptas de
   `datos_ejemplo/` con las ubicaciones del contenido local.
+- **US4 y bench** (`T035..T045`):
+  - orden válido y determinista (dos corridas idénticas, desempate por id);
+  - `--bench resolubilidad` con salas y K crecientes, mediana de 7 repeticiones
+    y límites configurables por entorno;
+  - evidencia en `docs/mediciones/p2_resolubilidad.txt`;
+  - en 5000 salas el incremental se mantiene en ~13–17 ms para K = 5..80,
+    mientras el ingenuo pasa de ~11 a ~59 ms (cruce alrededor de K ≈ 20);
+  - 300 salas: ~0.9 ms, muy por debajo de los 200 ms.
 - **Validación contra el servicio real** (2026-11-09):
   - `cripta-02` → RESOLUBLE (bronce, negra).
   - `cripta-05` → NO RESOLUBLE con ciclo `hierro → negra → hierro`.
   - `cripta-06` (300 salas) → RESOLUBLE; verificación ≈ **1.8 ms** de mediana.
-- **130/130 pruebas en verde**; el replay de la línea base sigue reproduciendo
+- **134/134 pruebas en verde**; el replay de la línea base sigue reproduciendo
   la misma victoria.
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
@@ -107,7 +115,9 @@ sin avisar):
 
 ## Siguiente
 
-1. `T035..T038` (US4): prueba formal de validez del orden y del determinismo.
-2. `T039..T045`: bench de resolubilidad (incremental vs. ingenuo), límites de
-   200 ms y documentación.
-3. `T047..T049`: pendientes de la spec 001 de A (`rango`, `cazador`).
+1. **Fase 4 — Spec 005 (línea de tiempo):** `/speckit.specify` con los 6
+   escenarios del Apéndice B, `historia <t>`/`historia #k`, `--hasta`,
+   `--checkpoint-cada`, persistencia v3 y memoria/tiempo para ≥ 3 valores de K.
+2. `T047..T049`: pendientes de la spec 001 de A (`rango`, `cazador`).
+3. Cuando A confirme su spec 001, implementar el consumo de `costo` y `rango`
+   en el modelo (interfaz ya acordada en `contracts/interfaz-a-b.md`).

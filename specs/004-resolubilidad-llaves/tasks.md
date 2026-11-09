@@ -134,13 +134,13 @@ respetar versión y presupuesto.
 
 ### Pruebas (primero)
 
-- [ ] T035 [P] [US4] Prueba `AC-004-03`: dos verificaciones producen el mismo orden (FR-007).
-- [ ] T036 [P] [US4] Prueba de validez del orden: cada llave aparece después de las necesarias (FR-006).
+- [x] T035 [P] [US4] Prueba `AC-004-03`: dos verificaciones producen el mismo orden (FR-007).
+- [x] T036 [P] [US4] Prueba de validez del orden: cada llave aparece después de las necesarias (FR-006).
 
 ### Implementación
 
-- [ ] T037 [US4] Ordenar los ids de llaves por sala con `ordenamiento.ordenar` y liberar en orden de id (FR-006, FR-007).
-- [ ] T038 [US4] Añadir la comprobación de determinismo al bench o a la prueba de integración (SC-002).
+- [x] T037 [US4] Ordenar los ids de llaves por sala con `ordenamiento.ordenar` y liberar en orden de id (FR-006, FR-007).
+- [x] T038 [US4] Añadir la comprobación de determinismo al bench o a la prueba de integración (SC-002).
 
 **Checkpoint**: el orden es reproducible y válido.
 
@@ -148,13 +148,13 @@ respetar versión y presupuesto.
 
 ## Phase 8: Polish y mediciones
 
-- [ ] T039 [P] Crear `cripta/bench/bench_resolubilidad.py`: incremental vs. ingenuo para K = 5..80 y 100..5000 salas, con semillas fijas y mediana/mínimo (SC-004, NFR-001, NFR-002, NFR-003, NFR-004).
-- [ ] T040 [P] Registrar el bench en `cripta/bench/runner.py` y verificar los límites configurables.
-- [ ] T041 Medir la cripta publicada más grande (300 salas): ≤ 200 ms o desviación documentada (SC-004, NFR-001, NFR-002).
-- [ ] T042 [P] Añadir las pruebas que citan `AC-004-01..04` a la auditoría de trazabilidad (SC-001).
-- [ ] T043 Actualizar `README.md` con `--verificar`, `--forzar`, el reporte y las mediciones (Parte II).
-- [ ] T044 Ejecutar la suite completa y `--bench`; guardar la evidencia en `docs/mediciones/`.
-- [ ] T045 Auditar estructuras prohibidas en `cripta/modelo/verificacion.py`, el generador y el bench (`dict`, `set`, `heapq`, `bisect`, `collections`, `networkx`) (constitución I).
+- [x] T039 [P] Crear `cripta/bench/bench_resolubilidad.py`: incremental vs. ingenuo para K = 5..80 y 100..5000 salas, con semillas fijas y mediana/mínimo (SC-004, NFR-001, NFR-002, NFR-003, NFR-004).
+- [x] T040 [P] Registrar el bench en `cripta/bench/runner.py` y verificar los límites configurables.
+- [x] T041 Medir la cripta publicada más grande (300 salas): ≤ 200 ms o desviación documentada (SC-004, NFR-001, NFR-002).
+- [x] T042 [P] Añadir las pruebas que citan `AC-004-01..04` a la auditoría de trazabilidad (SC-001).
+- [x] T043 Actualizar `README.md` con `--verificar`, `--forzar`, el reporte y las mediciones (Parte II).
+- [x] T044 Ejecutar la suite completa y `--bench`; guardar la evidencia en `docs/mediciones/`.
+- [x] T045 Auditar estructuras prohibidas en `cripta/modelo/verificacion.py`, el generador y el bench (`dict`, `set`, `heapq`, `bisect`, `collections`, `networkx`) (constitución I).
 
 **Checkpoint**: mediciones guardadas, límites verificados y documentación al día.
 
