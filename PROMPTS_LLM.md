@@ -619,3 +619,14 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
   > Si
 
 - **Uso:** ejecutar `/speckit.plan` y `/speckit.tasks` de la spec 005: línea de acciones + contenido nuevo + checkpoints, reconstrucción hacia adelante (≤ K acciones), búsqueda binaria propia del checkpoint, `avanzar_hasta(t)`/`ejecutar_accion(hasta)` como interfaz con A, recorte por pergamino, persistencia v3 y detección de P1. 56 tareas y cobertura completa de FR/NFR/SC.
+
+### 55
+
+- **Fecha:** 2026-11-09
+- **Integrante:** Kevin
+- **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
+- **Prompt:**
+  
+  > Si
+
+- **Uso:** implementar la base de la línea de tiempo (`T003..T015`, `T026..T029`, `T037..T041`): `cripta/modelo/timeline.py`, checkpoints cada K con estado del azar, búsqueda binaria propia, reconstrucción en mapa propio con fichas de solo lectura, resumen histórico, recorte por pergamino, `--checkpoint-cada`, y formato binario/JSON v3 con la línea completa y rechazo explícito de archivos v2/P1. Suite en 143/143.

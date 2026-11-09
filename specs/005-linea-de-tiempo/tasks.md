@@ -19,19 +19,19 @@ implementación).
 
 ## Phase 2: Foundational (bloqueante)
 
-- [ ] T003 [P] Crear `cripta/modelo/timeline.py` con `AccionRegistrada`, `PuntoControl`, `ContenidoNuevo`, `LineaTiempo` y `ResumenHistorico` (FR-001..FR-005).
-- [ ] T004 Implementar el registro de una acción aceptada y su tiempo en el controlador (FR-004, FR-032).
-- [ ] T005 Implementar la captura de contenido nuevo por acción (movimiento y precarga) (FR-017, FR-030, FR-032).
-- [ ] T006 Implementar puntos de control cada K con `EstadoGuardable` completo, incluido el azar (FR-015, FR-018).
-- [ ] T007 [P] Añadir `--checkpoint-cada K` a `OpcionesEjecucion` y `aplicacion.py` (FR-015).
-- [ ] T008 [P] Implementar la búsqueda binaria propia del checkpoint más cercano (sin `bisect`) (FR-016, NFR-004).
-- [ ] T009 Implementar la reconstrucción en un `Mapa` propio con proveedor de fichas de solo lectura (FR-008, FR-017).
-- [ ] T010 [P] Añadir el doble de prueba del conocimiento del mapa (FR-030).
-- [ ] T011 Implementar el oráculo de re-simulación desde cero en `tests/test_timeline.py` (NFR-005, SC-003).
-- [ ] T012 [P] Añadir `linea` y `conocimiento` a `EstadoGuardable` (FR-025, FR-030).
-- [ ] T013 [P] Codificar/decodificar la línea en el formato binario v3 (FR-025..FR-027, FR-026).
-- [ ] T014 [P] Añadir `version_formato` y la línea a la copia JSON (FR-028).
-- [ ] T015 Conectar la línea al controlador: crear al iniciar, registrar tras cada acción y exportar al guardar (FR-001, FR-025, FR-029).
+- [x] T003 [P] Crear `cripta/modelo/timeline.py` con `AccionRegistrada`, `PuntoControl`, `ContenidoNuevo`, `LineaTiempo` y `ResumenHistorico` (FR-001..FR-005).
+- [x] T004 Implementar el registro de una acción aceptada y su tiempo en el controlador (FR-004, FR-032).
+- [x] T005 Implementar la captura de contenido nuevo por acción (movimiento y precarga) (FR-017, FR-030, FR-032).
+- [x] T006 Implementar puntos de control cada K con `EstadoGuardable` completo, incluido el azar (FR-015, FR-018).
+- [x] T007 [P] Añadir `--checkpoint-cada K` a `OpcionesEjecucion` y `aplicacion.py` (FR-015).
+- [x] T008 [P] Implementar la búsqueda binaria propia del checkpoint más cercano (sin `bisect`) (FR-016, NFR-004).
+- [x] T009 Implementar la reconstrucción en un `Mapa` propio con proveedor de fichas de solo lectura (FR-008, FR-017).
+- [x] T010 [P] Añadir el doble de prueba del conocimiento del mapa (FR-030).
+- [x] T011 Implementar el oráculo de re-simulación desde cero en `tests/test_timeline.py` (NFR-005, SC-003).
+- [x] T012 [P] Añadir `linea` y `conocimiento` a `EstadoGuardable` (FR-025, FR-030).
+- [x] T013 [P] Codificar/decodificar la línea en el formato binario v3 (FR-025..FR-027, FR-026).
+- [x] T014 [P] Añadir `version_formato` y la línea a la copia JSON (FR-028).
+- [x] T015 Conectar la línea al controlador: crear al iniciar, registrar tras cada acción y exportar al guardar (FR-001, FR-025, FR-029).
 - [ ] T016 [BLOQUEADA A] Acordar con A `Juego.avanzar_hasta(t)` y `Juego.ejecutar_accion(accion, hasta=...)` (`contracts/interfaz-a-b-timeline.md`).
 
 **Checkpoint**: línea, checkpoints y persistencia listos para las historias.
@@ -69,10 +69,10 @@ la partida.
 
 ## Phase 5: US3 — La línea respeta el pergamino (P1)
 
-- [ ] T026 [P] [US3] Prueba `AC-005-02`: las acciones revertidas no aparecen (FR-011, FR-012).
-- [ ] T027 [P] [US3] Prueba de que se descartan los checkpoints posteriores y se rechaza el futuro (FR-013, FR-014).
-- [ ] T028 [US3] Implementar el recorte por `acciones_ejecutadas` al aceptar un pergamino (FR-011..FR-013).
-- [ ] T029 [US3] Renumerar `#k` sobre la línea vigente (FR-012).
+- [x] T026 [P] [US3] Prueba `AC-005-02`: las acciones revertidas no aparecen (FR-011, FR-012).
+- [x] T027 [P] [US3] Prueba de que se descartan los checkpoints posteriores y se rechaza el futuro (FR-013, FR-014).
+- [x] T028 [US3] Implementar el recorte por `acciones_ejecutadas` al aceptar un pergamino (FR-011..FR-013).
+- [x] T029 [US3] Renumerar `#k` sobre la línea vigente (FR-012).
 
 ---
 
@@ -95,11 +95,11 @@ la partida.
 
 ## Phase 8: US6 — Persistencia de la línea (P1)
 
-- [ ] T037 [P] [US6] Prueba de guardar/cargar conservando la línea y consultas posteriores (FR-025, FR-029).
-- [ ] T038 [P] [US6] Prueba `AC-005-06`: `.sav` v2 y JSON sin versión se rechazan (FR-027, FR-028).
-- [ ] T039 [US6] Terminar la codificación/decodificación v3 de acciones, contenidos y checkpoints (FR-025..FR-027).
-- [ ] T040 [US6] Implementar la detección explícita de P1 en binario y JSON (FR-027, FR-028).
-- [ ] T041 [US6] Reconstruir la línea al cargar y permitir seguir registrando (FR-029).
+- [x] T037 [P] [US6] Prueba de guardar/cargar conservando la línea y consultas posteriores (FR-025, FR-029).
+- [x] T038 [P] [US6] Prueba `AC-005-06`: `.sav` v2 y JSON sin versión se rechazan (FR-027, FR-028).
+- [x] T039 [US6] Terminar la codificación/decodificación v3 de acciones, contenidos y checkpoints (FR-025..FR-027).
+- [x] T040 [US6] Implementar la detección explícita de P1 en binario y JSON (FR-027, FR-028).
+- [x] T041 [US6] Reconstruir la línea al cargar y permitir seguir registrando (FR-029).
 
 ---
 

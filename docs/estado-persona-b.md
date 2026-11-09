@@ -72,6 +72,14 @@ Pendiente: verificar spec-kit cuando la Persona A lo inicialice y revisar
   reconstrucción hacia adelante desde checkpoints (≤ K acciones), búsqueda
   binaria propia, recorte por pergamino, persistencia v3 y detección de P1.
   `analyze` sin huecos de cobertura (FR/NFR/SC mapeados).
+- **Base de la línea de tiempo implementada** (`T003..T015`, `T026..T029`,
+  `T037..T041`): `cripta/modelo/timeline.py` con acciones, contenido nuevo,
+  checkpoints cada K, búsqueda binaria del checkpoint, reconstrucción en mapa
+  propio con fichas de solo lectura y resumen histórico; `--checkpoint-cada`;
+  recorte por pergamino; formato binario/JSON v3 con la línea completa y
+  rechazo explícito de archivos v2/P1.
+- **143/143 pruebas en verde**; guardar/cargar conserva la línea y el replay
+  de P1 sigue idéntico.
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
 - `.venv` con `requests` y `pygame-ce` 2.5.8: **91/91 pruebas en verde**.
@@ -113,6 +121,13 @@ sin avisar):
   hay `--hasta`.
 - `datos_ejemplo/` es de P1: sin `costo`, sin `rango`, sin `llaves.json`, sin
   criptas 05/06 y con versiones viejas de 02/03/04.
+- `historia <t>` con t **entre dos decisiones** necesita `Juego.avanzar_hasta`
+  (interfaz A); hasta entonces se rechaza en vez de devolver un estado
+  incorrecto. `historia #k` y los instantes de decisión sí funcionan.
+- La precarga asíncrona puede incorporar contenido en momentos distintos; el
+  resumen usa salas visitadas, así que la historia jugable no cambia, pero una
+  comparación byte a byte del estado completo puede diferir en
+  `contenido_cargado` de salas no visitadas.
 
 ## Comandos
 
@@ -124,10 +139,10 @@ sin avisar):
 
 ## Siguiente
 
-1. **Fase 5C — implementación de la línea de tiempo** (`T003..T015`):
-   registro de acciones y contenido, checkpoints cada K, reconstrucción y
-   formato v3.
-2. `T016` (interfaz con A): `avanzar_hasta(t)` y `ejecutar_accion(..., hasta)`
-   para consultar instantes entre decisiones.
-3. `T017..T035`: `historia <t>`/`#k`, rechazos, recorte y `--hasta`.
-4. `T047..T049` de la spec 004: pendientes de la spec 001 de A.
+1. `T017..T025`: comando `historia <t>`/`#k` en el controlador y la vista,
+   rechazos y AC-005-01/04.
+2. `T030..T032`: mismo instante; requiere `Juego.avanzar_hasta(t)` (A) para
+   instantes entre decisiones.
+3. `T033..T036`: `--replay … --hasta`.
+4. `T042..T047`: `--bench timeline`, elección de K y documentación.
+5. `T047..T049` de la spec 004: pendientes de la spec 001 de A.
