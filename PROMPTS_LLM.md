@@ -481,3 +481,25 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
   > ok asi como esta la carpeta de cripta, podria subirlo a un github y enviarle el link al profesor, de acuerdo al documento que te envie claro, por si acaso te lo vuelvo a adjuntar
 
 - **Uso:** revisar contra el enunciado si la carpeta está lista para subirla a GitHub y entregarla.
+
+### 43
+
+- **Fecha:** 2026-11-09
+- **Integrante:** Kevin
+- **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
+- **Prompt** (se adjuntó `PROMPT_AGENTE_PERSONA_B_CRIPTA_PARTE_II.md`):
+  
+  > En el escritorio puedes encontrar un md llamado: "PROMPT_AGENTE_PERSONA_B_CRIPTA_PARTE_II" esas son la indicaciones para el desarrollo del proyecto, comentame si lo ubicas y cuando estes listo para empezar.
+
+- **Uso:** localizar el documento de la Persona B, leerlo completo y ejecutar la Fase 1 paso 1 (auditoría del repositorio de P1): módulos, estructuras reutilizables, línea base de pruebas y `--bench`, estado del servicio (Swagger v1.1.0 con `/llaves`, `costo`, `rango`), brechas de P2 y bloqueos.
+
+### 44
+
+- **Fecha:** 2026-11-09
+- **Integrante:** Kevin
+- **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
+- **Prompt** (respuesta a las decisiones de la auditoría):
+  
+  > Renombrar a cripta/ (Recommended); Normalizar con .gitattributes (Recommended); Aprobada, seguir Fase 1.
+
+- **Uso:** normalizar los fines de línea con `.gitattributes` (LF), renombrar el paquete `Cripta/` a `cripta/` para que funcione en Linux/WSL, instalar `pygame-ce` en `.venv`, guardar la línea base de P1 (`docs/mediciones/p1_linea_base.txt` y un replay reproducible) y abrir la bitácora `docs/estado-persona-b.md`.
