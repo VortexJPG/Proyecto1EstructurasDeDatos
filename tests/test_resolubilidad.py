@@ -15,6 +15,8 @@ from cripta.modelo.datos import (
     EstadisticasIniciales,
     UbicacionLlave,
 )
+from cripta.modelo.mapa import Mapa
+from cripta.modelo.verificacion import Verificador, formatear_resultado
 
 
 def _alcanzables(inicio, salas_por_id, obtenidas):
@@ -132,6 +134,130 @@ class PruebaOraculo(unittest.TestCase):
         )
         self.assertTrue(resoluble)
         self.assertEqual(obtenidas, ["itm_salida"])
+
+
+def _verificar(cripta):
+    mapa = Mapa.construir(cripta.datos, cripta.salas)
+    return Verificador(cripta.datos, mapa, cripta.llaves).verificar()
+
+
+def _manual(datos, salas, llaves):
+    return Verificador(datos, Mapa.construir(datos, salas), llaves).verificar()
+
+
+class PruebaVerificador(unittest.TestCase):
+    def test_resoluble(self):
+        cripta = generar_cripta(7, salas=30, llaves=4)
+        resultado = _verificar(cripta)
+        self.assertTrue(resultado.resoluble)
+        self.assertEqual(resultado.orden_llaves, [f"itm_sint_llave_{j}" for j in range(1, 5)])
+        self.assertEqual(resultado.llaves_inobtenibles, [])
+        self.assertEqual(resultado.frontera, [])
+
+    def test_no_resoluble_con_ciclo(self):
+        cripta = generar_cripta(3, salas=20, llaves=3, resoluble=False)
+        resultado = _verificar(cripta)
+        self.assertFalse(resultado.resoluble)
+        self.assertIn("llave de salida", resultado.motivo)
+        self.assertEqual([l.id for l in resultado.llaves_inobtenibles], ["itm_sint_llave_3"])
+        self.assertEqual(resultado.llaves_inobtenibles[0].ubicaciones[0].sala, cripta.datos.sala_salida)
+        self.assertTrue(resultado.frontera)
+        self.assertTrue(resultado.ciclo)
+        self.assertEqual(resultado.ciclo[0].llave, "itm_sint_llave_3")
+        self.assertEqual(resultado.ciclo[0].llave_requerida, "itm_sint_llave_3")
+        texto = formatear_resultado(resultado)
+        self.assertIn("NO RESOLUBLE", texto)
+        self.assertIn("Ciclo:", texto)
+
+    def test_llave_de_enemigo(self):
+        cripta = generar_cripta(9, salas=30, llaves=4, llave_en_enemigo=2)
+        resultado = _verificar(cripta)
+        self.assertTrue(resultado.resoluble)
+        self.assertIn("itm_sint_llave_3", resultado.orden_llaves)
+
+    def test_determinista(self):
+        cripta = generar_cripta(11, salas=40, llaves=5)
+        self.assertEqual(_verificar(cripta), _verificar(cripta))
+
+    def test_llave_salida_ausente(self):
+        salas = [
+            DatosSala(1, "Uno", [DatosSalida("N", 2)]),
+            DatosSala(2, "Dos", [DatosSalida("S", 1)]),
+        ]
+        llaves = [UbicacionLlave("itm_k", 1)]
+        resultado = _manual(_datos(llave_salida="itm_x", salas=2), salas, llaves)
+        self.assertFalse(resultado.resoluble)
+        self.assertIn("no aparece", resultado.motivo)
+
+    def test_salida_libre_no_basta(self):
+        salas = [
+            DatosSala(1, "Uno", [DatosSalida("N", 2)]),
+            DatosSala(2, "Dos", [DatosSalida("S", 1), DatosSalida("N", 3)]),
+            DatosSala(3, "Salida", [DatosSalida("S", 2)]),
+        ]
+        resultado = _manual(_datos(), salas, [UbicacionLlave("itm_k", 1)])
+        self.assertFalse(resultado.resoluble)
+        self.assertIn("no hay una salida", resultado.motivo)
+        self.assertEqual(resultado.llave_salida_obtenida, True)
+
+    def test_puerta_exige_llave_no_listada(self):
+        salas = [
+            DatosSala(1, "Uno", [DatosSalida("N", 2, cerrada=True, llave="itm_faltante")]),
+            DatosSala(2, "Dos", [DatosSalida("S", 1)]),
+        ]
+        resultado = _manual(_datos(salas=2), salas, [UbicacionLlave("itm_k", 1)])
+        self.assertFalse(resultado.resoluble)
+        self.assertIn("itm_faltante", [l.id for l in resultado.llaves_inobtenibles])
+        self.assertEqual(resultado.frontera[0].llave_requerida, "itm_faltante")
+
+    def test_llave_duplicada(self):
+        salas = [
+            DatosSala(1, "Uno", [DatosSalida("N", 2, cerrada=True, llave="itm_k")]),
+            DatosSala(2, "Dos", [DatosSalida("S", 1),
+                                 DatosSalida("N", 3, cerrada=True, llave="itm_k")]),
+            DatosSala(3, "Salida", [DatosSalida("S", 2)]),
+        ]
+        llaves = [UbicacionLlave("itm_k", 1), UbicacionLlave("itm_k", 3)]
+        resultado = _manual(_datos(), salas, llaves)
+        self.assertTrue(resultado.resoluble)
+        self.assertEqual(resultado.orden_llaves, ["itm_k"])
+
+    def test_frontera_sin_duplicar_puerta_compartida(self):
+        salas = [
+            DatosSala(1, "Uno", [DatosSalida("N", 2, cerrada=True, llave="itm_k")]),
+            DatosSala(2, "Dos", [DatosSalida("S", 1, cerrada=True, llave="itm_k"),
+                                 DatosSalida("N", 3)]),
+            DatosSala(3, "Tres", [DatosSalida("S", 2)]),
+        ]
+        llaves = [UbicacionLlave("itm_k", 3)]
+        resultado = _manual(_datos(llave_salida="itm_x", salas=3), salas, llaves)
+        self.assertFalse(resultado.resoluble)
+        self.assertEqual(len(resultado.frontera), 1)
+        self.assertEqual(resultado.frontera[0].puerta_id, "p-1N-2")
+
+    def test_coincide_con_el_oraculo(self):
+        for salas in (12, 20, 40):
+            for llaves in (1, 2, 3, 5):
+                if salas < llaves + 2:
+                    continue
+                for semilla in range(10):
+                    for resoluble in (True, False):
+                        cripta = generar_cripta(
+                            semilla, salas=salas, llaves=llaves, resoluble=resoluble,
+                            llave_en_enemigo=(1 if llaves > 1 else None),
+                            puertas_cambiantes=min(2, llaves),
+                        )
+                        resultado = _verificar(cripta)
+                        ok, obtenidas = verificar_ingenuo(cripta.datos, cripta.salas, cripta.llaves)
+                        inobtenibles = [l.id for l in resultado.llaves_inobtenibles]
+                        obtenidas_produccion = [
+                            u.id for u in cripta.llaves if u.id not in inobtenibles
+                        ]
+                        self.assertEqual(resultado.resoluble, ok, (salas, llaves, semilla, resoluble))
+                        self.assertEqual(
+                            sorted(set(obtenidas_produccion)), sorted(obtenidas),
+                            (salas, llaves, semilla, resoluble),
+                        )
 
 
 if __name__ == "__main__":
