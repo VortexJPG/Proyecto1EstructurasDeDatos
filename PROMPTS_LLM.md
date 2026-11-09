@@ -525,3 +525,18 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
   > La opcion A me parece correcta, Y si puedes continuar, lo apruebo
 
 - **Uso:** cerrar la pregunta 5 de `clarify` con la opción estricta (la llegada a `sala_salida` debe ser por una puerta que requiera `llave_salida`), aceptar por defecto las otras 9 respuestas y verificar spec-kit v1.3.2 con `uv tool install` + `specify check` (detecta `opencode`), sin inicializar el repo.
+
+### 47
+
+- **Fecha:** 2026-11-09
+- **Integrante:** Kevin
+- **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
+- **Prompt** (continuación de la misma instrucción):
+  
+  > La opcion A me parece correcta, Y si puedes continuar, lo apruebo
+
+- **Uso:** ejecutar el flujo de spec-kit sobre la capacidad de resolubilidad y llaves:
+  1. `specify init --here --integration opencode` (v1.3.2), que solo añadió `.specify/` y `.opencode/commands/speckit.*.md`.
+  2. Redactar `.specify/memory/constitution.md` (v1.0.0) con los 7 principios de la Parte II, pendiente de revisión de A.
+  3. `/speckit.specify`: crear `specs/004-resolubilidad-llaves/spec.md` con 5 historias, FR-001..FR-024, SC-001..SC-007, los 4 escenarios del Apéndice B, entidades y supuestos; y su checklist de calidad.
+  4. `/speckit.clarify`: registrar la sesión 2026-11-09 con las decisiones acordadas (incluida la opción A para la llegada a `sala_salida`) y pasar la spec a estado *Clarified*.

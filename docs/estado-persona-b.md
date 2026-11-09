@@ -13,10 +13,15 @@ Pendiente: verificar spec-kit cuando la Persona A lo inicialice y revisar
 
 - Auditoría del repositorio de P1 completada (módulos, contratos, pruebas,
   `--bench`, Swagger).
-- **spec-kit v1.3.2 instalado y verificado:** `specify check` detecta
-  `opencode (available)`. Falta que A ejecute `specify init --here --ai
-  opencode` (o equivalente) para crear `.specify/` y los comandos
-  `/speckit.*`.
+- **spec-kit v1.3.2 instalado, verificado e inicializado:**
+  `specify check` detecta `opencode (available)`; `specify init --here
+  --integration opencode` creó `.specify/` y `.opencode/commands/speckit.*.md`
+  sin modificar archivos existentes. La constitución quedó redactada
+  (v1.0.0) con los 7 principios del documento, **pendiente de revisión por A**.
+- **Spec 004 creada** en `specs/004-resolubilidad-llaves/spec.md`
+  (FR-001..FR-024, SC-001..SC-007, los 4 escenarios del Apéndice B) y
+  clarificada el 2026-11-09. Checklist en
+  `specs/004-resolubilidad-llaves/checklists/requirements.md`.
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
 - `.venv` con `requests` y `pygame-ce` 2.5.8: **91/91 pruebas en verde**.
@@ -69,8 +74,8 @@ sin avisar):
 
 ## Siguiente
 
-1. Cuando A suba `.specify/` y los comandos `/speckit.*`, revisar la
-   constitución (7 principios) y proponer ajustes.
-2. Fase 2: volcar `docs/borradores/spec-004-resolubilidad.md` con
-   `/speckit.specify`, aplicar las decisiones de `clarify` (P5 = opción A) y
-   confirmar la spec en Git **antes** de escribir código.
+1. Pedir a A que revise la constitución (`.specify/memory/constitution.md`).
+2. Fase 2, paso 2C: confirmar la spec 004 en Git (commits separados de
+   `specify` y `clarify`) **antes** de cualquier código.
+3. Fase 3: `/speckit.plan` de la spec 004 (problema §5.4), rechazando
+   estructuras prohibidas, y después `/speckit.tasks` + `/speckit.analyze`.
