@@ -29,6 +29,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from cripta.modelo.datos import ContenidoSala
+
 
 @dataclass(slots=True)
 class RegistroObjeto:
@@ -107,6 +109,37 @@ class RegistroJugador:
 
 
 @dataclass(slots=True)
+class RegistroAccion:
+    indice: int
+    tiempo: int
+    tipo: str
+    direccion: str = ""
+    objetivo: str = ""
+
+
+@dataclass(slots=True)
+class RegistroContenido:
+    indice_accion: int
+    contenido: ContenidoSala
+
+
+@dataclass(slots=True)
+class RegistroCheckpoint:
+    indice_accion: int
+    tiempo: int
+    estado: EstadoGuardable
+
+
+@dataclass(slots=True)
+class LineaGuardable:
+    k: int
+    acciones: list[RegistroAccion] = field(default_factory=list)
+    contenidos: list[RegistroContenido] = field(default_factory=list)
+    checkpoints: list[RegistroCheckpoint] = field(default_factory=list)
+    conocimiento: str = ""
+
+
+@dataclass(slots=True)
 class EstadoGuardable:
     """Todo lo necesario para continuar una partida exactamente igual."""
 
@@ -125,3 +158,5 @@ class EstadoGuardable:
     # No se revierte con el retroceso; guardarlo hace que una partida cargada
     # genere los mismos ids que la partida original (lo necesita el replay).
     objetos_generados: int = 0
+    # Línea de tiempo (Parte II). None en checkpoints internos y en archivos P1.
+    linea: LineaGuardable | None = None

@@ -1,16 +1,15 @@
-"""Guardado de la partida en binario propio (y en JSON para comparar). [Persona B]
+"""Guardado de la partida en binario propio (v3) y JSON para comparar. [Persona B]
 
-§4.10. Formato (módulo ``struct``, little-endian):
-    [ENCABEZADO]  "CRPT" | versión del formato (u16) | cantidad de salas (u32)
+§4.10 + Parte II §5.5. Formato (módulo ``struct``, little-endian):
+    [ENCABEZADO]  "CRPT" | versión del formato (u16 = 3) | cantidad de salas (u32)
                   | posición del índice (u64)
     [GLOBAL]      largo (u64) + versiones, semilla, azar, reloj, secuencia,
-                  jugador, efectos, eventos, objetos_generados
+                  jugador, efectos, eventos, objetos_generados y LÍNEA DE TIEMPO
     [SALAS]       un bloque por sala, ordenados por id
     [ÍNDICE]      (id de sala u32, posición u64, largo u32) ordenado por id
 Los textos se escriben como largo (u32) + bytes UTF-8.
-``cargar_sala`` lee solo el encabezado, el índice (búsqueda binaria) y el
-bloque de esa sala, sin leer el archivo completo. Un archivo de otra versión
-del formato se rechaza con ``ErrorFormatoIncompatible``.
+La línea de tiempo guarda acciones, contenido nuevo y checkpoints completos.
+Un archivo v2 (Parte I) se rechaza con ``ErrorFormatoIncompatible``.
 """
 
 from __future__ import annotations
@@ -20,8 +19,13 @@ import struct
 from typing import BinaryIO, Any
 
 from cripta.estructuras.ordenamiento import ordenar, busqueda_binaria
+from cripta.modelo.datos import ContenidoSala
 from cripta.modelo.guardable import (
     EstadoGuardable,
+    LineaGuardable,
+    RegistroAccion,
+    RegistroCheckpoint,
+    RegistroContenido,
     RegistroEfecto,
     RegistroEnemigo,
     RegistroEvento,
@@ -33,8 +37,8 @@ from cripta.modelo.guardable import (
 )
 
 MAGIA = b"CRPT"
-# 2: se agregó ``objetos_generados`` al bloque global.
-VERSION_FORMATO = 2
+# 3: línea de tiempo completa (Parte II). Un archivo v2 es de la Parte I.
+VERSION_FORMATO = 3
 
 
 class ErrorFormatoIncompatible(Exception):
@@ -55,6 +59,20 @@ def _leer_txt(archivo: BinaryIO) -> str:
 
 def _bool_byte(valor: bool) -> bytes:
     return b"\x01" if valor else b"\x00"
+
+
+def _contenido_a_dict(contenido: ContenidoSala) -> dict:
+    return {
+        "sala": contenido.sala,
+        "enemigos": [
+            {"instancia": e.instancia, "tipo": e.tipo, "vida": e.vida}
+            for e in contenido.enemigos
+        ],
+        "objetos": list(contenido.objetos),
+        "trampas": [
+            {"instancia": t.instancia, "tipo": t.tipo} for t in contenido.trampas
+        ],
+    }
 
 
 class GuardadoBinario:
@@ -98,8 +116,10 @@ class GuardadoBinario:
                 raise ErrorFormatoIncompatible("magia inválida")
             (version,) = struct.unpack("<H", archivo.read(2))
             if version != VERSION_FORMATO:
+                extra = " (archivo de la Parte I)" if version == 2 else ""
                 raise ErrorFormatoIncompatible(
-                    f"versión de formato {version}, se esperaba {VERSION_FORMATO}"
+                    f"versión de formato {version}, se esperaba {VERSION_FORMATO}{extra}. "
+                    "No se carga en silencio."
                 )
             (cantidad_salas,) = struct.unpack("<I", archivo.read(4))
             (offset_indice,) = struct.unpack("<Q", archivo.read(8))
@@ -131,7 +151,10 @@ class GuardadoBinario:
                 raise ErrorFormatoIncompatible("magia inválida")
             (version,) = struct.unpack("<H", archivo.read(2))
             if version != VERSION_FORMATO:
-                raise ErrorFormatoIncompatible("versión incompatible")
+                extra = " (archivo de la Parte I)" if version == 2 else ""
+                raise ErrorFormatoIncompatible(
+                    f"versión de formato {version}, se esperaba {VERSION_FORMATO}{extra}"
+                )
             archivo.read(4)  # cantidad
             (offset_indice,) = struct.unpack("<Q", archivo.read(8))
             archivo.seek(offset_indice)
@@ -203,6 +226,11 @@ class GuardadoBinario:
             _txt(buf, ev.tipo)
             _txt(buf, ev.objetivo)
         buf.write(struct.pack("<q", estado.objetos_generados))
+        if estado.linea is None:
+            buf.write(b"\x00")
+        else:
+            buf.write(b"\x01")
+            self._codificar_linea(buf, estado.linea)
         return buf.getvalue()
 
     def _decodificar_global(self, datos: bytes) -> EstadoGuardable:
@@ -273,6 +301,8 @@ class GuardadoBinario:
             objetivo = _leer_txt(buf)
             eventos.append(RegistroEvento(tiempo=tiempo, secuencia=secuencia, tipo=tipo, objetivo=objetivo))
         (objetos_generados,) = struct.unpack("<q", buf.read(8))
+        (tiene_linea,) = struct.unpack("<B", buf.read(1))
+        linea = self._decodificar_linea(buf) if tiene_linea else None
         # estado_azar se guarda como texto; intentar parsear JSON a tuple si procede
         try:
             import json
@@ -297,7 +327,83 @@ class GuardadoBinario:
             efectos=efectos,
             eventos=eventos,
             objetos_generados=objetos_generados,
+            linea=linea,
         )
+
+    # --- línea de tiempo (Parte II) -------------------------------------------
+
+    def _codificar_linea(self, buf: "BinaryIO", linea: LineaGuardable) -> None:
+        buf.write(struct.pack("<I", linea.k))
+        buf.write(struct.pack("<I", len(linea.acciones)))
+        for accion in linea.acciones:
+            buf.write(struct.pack("<Iq", accion.indice, accion.tiempo))
+            _txt(buf, accion.tipo)
+            _txt(buf, accion.direccion)
+            _txt(buf, accion.objetivo)
+        buf.write(struct.pack("<I", len(linea.contenidos)))
+        for contenido in linea.contenidos:
+            buf.write(struct.pack("<I", contenido.indice_accion))
+            _txt(buf, json.dumps(_contenido_a_dict(contenido.contenido), ensure_ascii=False))
+        buf.write(struct.pack("<I", len(linea.checkpoints)))
+        for punto in linea.checkpoints:
+            punto.estado.linea = None  # un checkpoint no guarda la línea otra vez
+            blob = self._codificar_estado_completo(punto.estado)
+            buf.write(struct.pack("<IqQ", punto.indice_accion, punto.tiempo, len(blob)))
+            buf.write(blob)
+        _txt(buf, linea.conocimiento)
+
+    def _decodificar_linea(self, buf: "BinaryIO") -> LineaGuardable:
+        (k,) = struct.unpack("<I", buf.read(4))
+        (cantidad_acciones,) = struct.unpack("<I", buf.read(4))
+        acciones: list[RegistroAccion] = []
+        for _ in range(cantidad_acciones):
+            indice, tiempo = struct.unpack("<Iq", buf.read(12))
+            tipo = _leer_txt(buf)
+            direccion = _leer_txt(buf)
+            objetivo = _leer_txt(buf)
+            acciones.append(RegistroAccion(indice, tiempo, tipo, direccion, objetivo))
+        (cantidad_contenidos,) = struct.unpack("<I", buf.read(4))
+        contenidos: list[RegistroContenido] = []
+        for _ in range(cantidad_contenidos):
+            (indice,) = struct.unpack("<I", buf.read(4))
+            datos = json.loads(_leer_txt(buf))
+            contenidos.append(RegistroContenido(indice, ContenidoSala.desde_json(datos)))
+        (cantidad_checkpoints,) = struct.unpack("<I", buf.read(4))
+        checkpoints: list[RegistroCheckpoint] = []
+        for _ in range(cantidad_checkpoints):
+            indice, tiempo, largo = struct.unpack("<IqQ", buf.read(20))
+            estado = self._decodificar_estado_completo(buf.read(largo))
+            checkpoints.append(RegistroCheckpoint(indice, tiempo, estado))
+        conocimiento = _leer_txt(buf)
+        return LineaGuardable(k, acciones, contenidos, checkpoints, conocimiento)
+
+    def _codificar_estado_completo(self, estado: EstadoGuardable) -> bytes:
+        import io
+
+        global_bytes = self._codificar_global(estado)
+        buf = io.BytesIO()
+        buf.write(struct.pack("<Q", len(global_bytes)))
+        buf.write(global_bytes)
+        buf.write(struct.pack("<I", len(estado.salas)))
+        for sala in estado.salas:
+            bloque = self._codificar_sala(sala)
+            buf.write(struct.pack("<IQ", sala.id, len(bloque)))
+            buf.write(bloque)
+        return buf.getvalue()
+
+    def _decodificar_estado_completo(self, datos: bytes) -> EstadoGuardable:
+        import io
+
+        buf = io.BytesIO(datos)
+        (largo_global,) = struct.unpack("<Q", buf.read(8))
+        estado = self._decodificar_global(buf.read(largo_global))
+        (cantidad,) = struct.unpack("<I", buf.read(4))
+        salas: list[RegistroSala] = []
+        for _ in range(cantidad):
+            _, largo = struct.unpack("<IQ", buf.read(12))
+            salas.append(self._decodificar_sala(buf.read(largo)))
+        estado.salas = salas
+        return estado
 
     def _codificar_sala(self, sala: RegistroSala) -> bytes:
         import io
@@ -410,6 +516,7 @@ class GuardadoJSON:
 
     def _a_dict(self, estado: EstadoGuardable) -> dict[str, Any]:
         return {
+            "version_formato": VERSION_FORMATO,
             "cripta_id": estado.cripta_id,
             "version_cripta": estado.version_cripta,
             "version_catalogo": estado.version_catalogo,
@@ -480,9 +587,80 @@ class GuardadoJSON:
                 for ev in estado.eventos
             ],
             "objetos_generados": estado.objetos_generados,
+            "linea": self._linea_a_dict(estado.linea) if estado.linea is not None else None,
         }
 
+    def _linea_a_dict(self, linea: LineaGuardable) -> dict[str, Any]:
+        return {
+            "k": linea.k,
+            "acciones": [
+                {
+                    "indice": accion.indice,
+                    "tiempo": accion.tiempo,
+                    "tipo": accion.tipo,
+                    "direccion": accion.direccion,
+                    "objetivo": accion.objetivo,
+                }
+                for accion in linea.acciones
+            ],
+            "contenidos": [
+                {
+                    "indice_accion": contenido.indice_accion,
+                    "contenido": _contenido_a_dict(contenido.contenido),
+                }
+                for contenido in linea.contenidos
+            ],
+            "checkpoints": [
+                {
+                    "indice_accion": punto.indice_accion,
+                    "tiempo": punto.tiempo,
+                    "estado": self._a_dict(punto.estado),
+                }
+                for punto in linea.checkpoints
+            ],
+            "conocimiento": linea.conocimiento,
+        }
+
+    def _linea_desde_dict(self, datos: dict[str, Any]) -> LineaGuardable:
+        acciones = [
+            RegistroAccion(
+                indice=registro["indice"],
+                tiempo=registro["tiempo"],
+                tipo=registro["tipo"],
+                direccion=registro.get("direccion", ""),
+                objetivo=registro.get("objetivo", ""),
+            )
+            for registro in datos.get("acciones", [])
+        ]
+        contenidos = [
+            RegistroContenido(
+                indice_accion=registro["indice_accion"],
+                contenido=ContenidoSala.desde_json(registro["contenido"]),
+            )
+            for registro in datos.get("contenidos", [])
+        ]
+        checkpoints = [
+            RegistroCheckpoint(
+                indice_accion=registro["indice_accion"],
+                tiempo=registro["tiempo"],
+                estado=self._desde_dict(registro["estado"]),
+            )
+            for registro in datos.get("checkpoints", [])
+        ]
+        return LineaGuardable(
+            k=int(datos["k"]),
+            acciones=acciones,
+            contenidos=contenidos,
+            checkpoints=checkpoints,
+            conocimiento=str(datos.get("conocimiento", "")),
+        )
+
     def _desde_dict(self, d: dict[str, Any]) -> EstadoGuardable:
+        if d.get("version_formato") != VERSION_FORMATO:
+            raise ErrorFormatoIncompatible(
+                f"JSON versión {d.get('version_formato')!r}, se esperaba {VERSION_FORMATO}. "
+                "Si es un archivo de la Parte I, no se carga en silencio."
+            )
         j = d["jugador"]
         jugador = RegistroJugador(
             nombre=j["nombre"],
@@ -546,6 +724,7 @@ class GuardadoJSON:
         azar = d.get("estado_azar")
         if isinstance(azar, list):
             azar = tuple(azar)
+        linea = self._linea_desde_dict(d["linea"]) if d.get("linea") else None
         return EstadoGuardable(
             cripta_id=d["cripta_id"],
             version_cripta=d["version_cripta"],
@@ -559,4 +738,5 @@ class GuardadoJSON:
             efectos=efectos,
             eventos=eventos,
             objetos_generados=d.get("objetos_generados", 0),
+            linea=linea,
         )
