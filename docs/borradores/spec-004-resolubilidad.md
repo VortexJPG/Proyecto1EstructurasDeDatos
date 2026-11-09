@@ -103,6 +103,10 @@ Una cripta es **resoluble** si, partiendo de `sala_inicial`, el jugador puede:
 1. obtener `llave_salida`; y
 2. llegar a `sala_salida` por una puerta que requiere `llave_salida`.
 
+La condición (2) es **estricta** (decisión del grupo, 2026-11-09): debe existir
+al menos una salida hacia `sala_salida` que requiera `llave_salida`. Llegar a
+la sala de salida por una salida libre **no** satisface la condición.
+
 Si no se cumple (1) o (2), la cripta **no es resoluble**.
 
 ### 3.3 Orden de obtención
@@ -290,10 +294,10 @@ Cada una con una opción por defecto propuesta para que la decida el grupo:
 4. **¿`llave_salida` no aparece?** → *Por defecto:* no resoluble, con motivo
    explícito.
 5. **¿Qué significa «llegar a `sala_salida` por una puerta que la requiere» si
-   también se llega por una salida libre?** → *Por defecto:* se exige que
-   exista una entrada a `sala_salida` que requiera `llave_salida`; si no
-   existe, se reporta como no resoluble con ese motivo. *(Decisión de grupo;
-   afecta a criptas reales.)*
+   también se llega por una salida libre?** → **RESUELTA (opción A):** se exige
+   que exista una entrada a `sala_salida` que requiera `llave_salida`; si no
+   existe, se reporta como no resoluble con ese motivo. Llegar por una salida
+   libre no basta.
 6. **¿La respuesta de `/llaves` se pide antes o después de conocer el
    presupuesto?** → *Por defecto:* primero `datos_cripta` (fija el
    presupuesto), después `/llaves`.
@@ -305,6 +309,14 @@ Cada una con una opción por defecto propuesta para que la decida el grupo:
    *Por defecto:* se muestra al inicio y queda disponible en la ayuda/estado.
 10. **¿Una salida con `cierre_automatico` y sin `llave` puede bloquear?** →
     *Por defecto:* no; los cierres automáticos no bloquean (§3.1).
+
+### 9.1 Decisiones acordadas (2026-11-09)
+
+- **P1–P4 y P6–P10:** se aceptan las opciones por defecto anteriores.
+- **P5:** se adopta la **opción A** (condición estricta de §3.2).
+- Estas decisiones se registrarán en la spec oficial al ejecutar
+  `/speckit.clarify`; si alguna cambia, se corregirá **primero la spec** en un
+  commit separado.
 
 ---
 
