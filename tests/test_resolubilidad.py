@@ -1,12 +1,12 @@
-"""Oráculo ingenuo de resolubilidad (T011) y pruebas de la definición estricta.
+"""Pruebas del oráculo, de la definición estricta y del verificador (T011..T038).
 
-El oráculo repite el recorrido desde cero cada vez que obtiene una llave. Es
-**solo para pruebas**: la verificación de producción es incremental. Puede usar
-``dict``/``set`` porque no forma parte del juego evaluado.
+El oráculo vive en ``cripta/bench/ingenuo.py`` porque solo se usa en pruebas y
+mediciones; la verificación de producción es incremental.
 """
 
 import unittest
 
+from cripta.bench.ingenuo import verificar_ingenuo
 from cripta.bench.sinteticos import generar_cripta
 from cripta.modelo.datos import (
     DatosCripta,
@@ -17,50 +17,6 @@ from cripta.modelo.datos import (
 )
 from cripta.modelo.mapa import Mapa
 from cripta.modelo.verificacion import Verificador, formatear_resultado
-
-
-def _alcanzables(inicio, salas_por_id, obtenidas):
-    vistos = {inicio}
-    pendientes = [inicio]
-    while pendientes:
-        actual = pendientes.pop()
-        for salida in salas_por_id[actual].salidas:
-            if salida.cerrada and salida.llave is not None and salida.llave not in obtenidas:
-                continue
-            if salida.sala_destino not in vistos:
-                vistos.add(salida.sala_destino)
-                pendientes.append(salida.sala_destino)
-    return vistos
-
-
-def verificar_ingenuo(datos, salas, llaves):
-    """Devuelve ``(resoluble, llaves_obtenibles_ordenadas)``."""
-    salas_por_id = {sala.id: sala for sala in salas}
-    ubicaciones = {}
-    for ubicacion in llaves:
-        ubicaciones.setdefault(ubicacion.id, []).append(ubicacion.sala)
-    obtenidas = set()
-    while True:
-        region = _alcanzables(datos.sala_inicial, salas_por_id, obtenidas)
-        nuevas = [
-            llave_id
-            for llave_id, sitios in ubicaciones.items()
-            if llave_id not in obtenidas and any(sitio in region for sitio in sitios)
-        ]
-        if not nuevas:
-            break
-        for llave_id in sorted(nuevas):
-            obtenidas.add(llave_id)
-    region = _alcanzables(datos.sala_inicial, salas_por_id, obtenidas)
-    salida_con_llave = any(
-        sala.id in region
-        and salida.sala_destino == datos.sala_salida
-        and salida.llave == datos.llave_salida
-        for sala in salas
-        for salida in sala.salidas
-    )
-    resoluble = datos.llave_salida in obtenidas and salida_con_llave
-    return resoluble, sorted(obtenidas)
 
 
 def _datos(llave_salida="itm_k", salas=3):
@@ -234,6 +190,45 @@ class PruebaVerificador(unittest.TestCase):
         self.assertFalse(resultado.resoluble)
         self.assertEqual(len(resultado.frontera), 1)
         self.assertEqual(resultado.frontera[0].puerta_id, "p-1N-2")
+
+    def test_ac_004_03_dos_corridas_mismo_orden(self):
+        cripta = generar_cripta(13, salas=40, llaves=5)
+        primera = _verificar(cripta)
+        segunda = _verificar(cripta)
+        self.assertTrue(primera.resoluble)
+        self.assertEqual(primera.orden_llaves, segunda.orden_llaves)
+        self.assertEqual(primera, segunda)
+
+    def test_validez_del_orden(self):
+        from cripta.bench.ingenuo import alcanzables
+
+        for semilla in range(5):
+            cripta = generar_cripta(semilla, salas=30, llaves=4)
+            resultado = _verificar(cripta)
+            self.assertTrue(resultado.resoluble)
+            salas_por_id = {sala.id: sala for sala in cripta.salas}
+            ubicaciones = {}
+            for ubicacion in cripta.llaves:
+                ubicaciones.setdefault(ubicacion.id, []).append(ubicacion.sala)
+            obtenidas = set()
+            for llave_id in resultado.orden_llaves:
+                region = alcanzables(cripta.datos.sala_inicial, salas_por_id, obtenidas)
+                self.assertTrue(
+                    any(sala in region for sala in ubicaciones[llave_id]),
+                    (semilla, llave_id),
+                )
+                obtenidas.add(llave_id)
+            self.assertEqual(resultado.orden_llaves[-1], cripta.datos.llave_salida)
+
+    def test_desempate_por_id(self):
+        salas = [
+            DatosSala(1, "Uno", [DatosSalida("N", 2, cerrada=True, llave="itm_b")]),
+            DatosSala(2, "Salida", [DatosSalida("S", 1)]),
+        ]
+        llaves = [UbicacionLlave("itm_b", 1), UbicacionLlave("itm_a", 1)]
+        resultado = _manual(_datos(llave_salida="itm_b", salas=2), salas, llaves)
+        self.assertTrue(resultado.resoluble)
+        self.assertEqual(resultado.orden_llaves, ["itm_a", "itm_b"])
 
     def test_coincide_con_el_oraculo(self):
         for salas in (12, 20, 40):
