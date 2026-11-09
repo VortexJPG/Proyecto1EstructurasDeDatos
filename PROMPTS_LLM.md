@@ -562,3 +562,14 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
   > Si
 
 - **Uso:** implementar `T007` (preparación ligera `preparar_verificacion` y caché de llaves memoria → disco → servicio), `T009..T011` (generador sintético determinista con llaves encadenadas, costos, puertas cambiantes y variante no resoluble; oráculo ingenuo) y la parte B de `T046` (`DatosSalida.costo` opcional y su persistencia). Suite en 115/115.
+
+### 50
+
+- **Fecha:** 2026-11-09
+- **Integrante:** Kevin
+- **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
+- **Prompt:**
+  
+  > Si
+
+- **Uso:** implementar `T012..T029`: verificador incremental en `cripta/modelo/verificacion.py` (recorrido único, orden determinista, frontera sin duplicar puertas compartidas, llaves inobtenibles con ubicaciones y ciclo concreto), comando `--verificar <cripta>` sin vista ni replay, reporte legible y pruebas contra el oráculo. Validación real: cripta-02 resoluble, cripta-05 no resoluble con ciclo, cripta-06 resoluble (300 salas, ~1.8 ms). Suite en 127/127.

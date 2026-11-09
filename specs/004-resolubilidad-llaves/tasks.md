@@ -49,16 +49,16 @@ comprobar salida y ausencia de vista/log.
 
 ### Pruebas (primero)
 
-- [ ] T012 [P] [US1] Prueba de verificación de una cripta resoluble y una no resoluble en `tests/test_resolubilidad.py` (FR-001, FR-002, FR-003, FR-004, FR-005).
-- [ ] T013 [P] [US1] Prueba de que `--verificar` no instancia la vista ni escribe `partida.log` en `tests/test_integracion.py` (FR-012, SC-006).
+- [x] T012 [P] [US1] Prueba de verificación de una cripta resoluble y una no resoluble en `tests/test_resolubilidad.py` (FR-001, FR-002, FR-003, FR-004, FR-005).
+- [x] T013 [P] [US1] Prueba de que `--verificar` no instancia la vista ni escribe `partida.log` en `tests/test_integracion.py` (FR-012, SC-006).
 
 ### Implementación
 
-- [ ] T014 [US1] Crear `cripta/modelo/verificacion.py` con las entidades de `data-model.md` y las estructuras propias de `research.md` (FR-001, FR-005).
-- [ ] T015 [US1] Implementar el recorrido incremental único y la retención/liberación de puertas por llave (FR-001, FR-002, FR-003, FR-004, FR-006, FR-007).
-- [ ] T016 [US1] Implementar el veredicto con la condición estricta de `sala_salida` y el motivo (FR-005).
-- [ ] T017 [US1] Añadir `--verificar <cripta>` en `cripta/controlador/aplicacion.py` con el flujo de `contracts/verificar-cli.md` y una preparación ligera (datos + esqueleto + llaves, sin contenido ni precarga) (FR-012, SC-007).
-- [ ] T018 [US1] Formatear el reporte (`texto_resolubilidad`) en el controlador, sin vista (FR-012, FR-013).
+- [x] T014 [US1] Crear `cripta/modelo/verificacion.py` con las entidades de `data-model.md` y las estructuras propias de `research.md` (FR-001, FR-005).
+- [x] T015 [US1] Implementar el recorrido incremental único y la retención/liberación de puertas por llave (FR-001, FR-002, FR-003, FR-004, FR-006, FR-007).
+- [x] T016 [US1] Implementar el veredicto con la condición estricta de `sala_salida` y el motivo (FR-005).
+- [x] T017 [US1] Añadir `--verificar <cripta>` en `cripta/controlador/aplicacion.py` con el flujo de `contracts/verificar-cli.md` y una preparación ligera (datos + esqueleto + llaves, sin contenido ni precarga) (FR-012, SC-007).
+- [x] T018 [US1] Formatear el reporte (`texto_resolubilidad`) en el controlador, sin vista (FR-012, FR-013).
 
 **Checkpoint**: `--verificar` funciona de punta a punta sobre criptas sintéticas.
 
@@ -72,15 +72,15 @@ ciclo concreto.
 
 ### Pruebas (primero)
 
-- [ ] T019 [P] [US3] Prueba `AC-004-01`: llave de salida detrás de su propia puerta ⇒ no resoluble y ciclo concreto en `tests/test_resolubilidad.py` (FR-009).
-- [ ] T020 [P] [US3] Prueba de frontera, llaves inobtenibles y ubicaciones (incluida `llave_salida` ausente y llave de puerta no listada) en `tests/test_resolubilidad.py` (FR-008, FR-022, FR-023).
+- [x] T019 [P] [US3] Prueba `AC-004-01`: llave de salida detrás de su propia puerta ⇒ no resoluble y ciclo concreto en `tests/test_resolubilidad.py` (FR-009).
+- [x] T020 [P] [US3] Prueba de frontera, llaves inobtenibles y ubicaciones (incluida `llave_salida` ausente y llave de puerta no listada) en `tests/test_resolubilidad.py` (FR-008, FR-022, FR-023).
 
 ### Implementación
 
-- [ ] T021 [US3] Reportar frontera bloqueada sin duplicar puertas compartidas, con sala alcanzable, sala del otro lado, dirección y llave (FR-008, SC-003).
-- [ ] T022 [US3] Reportar llaves inobtenibles con todas sus ubicaciones (sala y enemigo) (FR-008, FR-024, SC-003).
-- [ ] T023 [US3] Detectar el ciclo concreto con dependencias llave→llave, recorrido por id y puerta representativa determinista (FR-009, SC-003).
-- [ ] T024 [US3] Añadir el motivo explícito para `llave_salida` ausente y para la falta de puerta de salida con llave (FR-005, FR-023).
+- [x] T021 [US3] Reportar frontera bloqueada sin duplicar puertas compartidas, con sala alcanzable, sala del otro lado, dirección y llave (FR-008, SC-003).
+- [x] T022 [US3] Reportar llaves inobtenibles con todas sus ubicaciones (sala y enemigo) (FR-008, FR-024, SC-003).
+- [x] T023 [US3] Detectar el ciclo concreto con dependencias llave→llave, recorrido por id y puerta representativa determinista (FR-009, SC-003).
+- [x] T024 [US3] Añadir el motivo explícito para `llave_salida` ausente y para la falta de puerta de salida con llave (FR-005, FR-023).
 
 **Checkpoint**: el reporte explica cualquier bloqueo y cita el ciclo.
 
@@ -94,14 +94,14 @@ respetar versión y presupuesto.
 
 ### Pruebas (primero)
 
-- [ ] T025 [P] [US5] Prueba `AC-004-02`: una llave en `suelta` de un errante se ubica en su sala inicial (FR-017).
-- [ ] T026 [P] [US5] Prueba de invalidación por versión y de reutilización de `llaves.json` (FR-018, FR-021).
-- [ ] T027 [P] [US5] Prueba de presupuesto: la consulta de llaves cuenta y el agotamiento da error explícito (FR-019, FR-020, SC-007).
+- [x] T025 [P] [US5] Prueba `AC-004-02`: una llave en `suelta` de un errante se ubica en su sala inicial (FR-017).
+- [x] T026 [P] [US5] Prueba de invalidación por versión y de reutilización de `llaves.json` (FR-018, FR-021).
+- [x] T027 [P] [US5] Prueba de presupuesto: la consulta de llaves cuenta y el agotamiento da error explícito (FR-019, FR-020, SC-007).
 
 ### Implementación
 
-- [ ] T028 [US5] Integrar la interpretación de `enemigo` y la sala inicial en el verificador (FR-017).
-- [ ] T029 [US5] Unificar duplicados de una llave con criterio determinista de ubicación reportada (FR-024).
+- [x] T028 [US5] Integrar la interpretación de `enemigo` y la sala inicial en el verificador (FR-017).
+- [x] T029 [US5] Unificar duplicados de una llave con criterio determinista de ubicación reportada (FR-024).
 
 **Checkpoint**: las llaves del servicio se interpretan igual en línea y offline.
 

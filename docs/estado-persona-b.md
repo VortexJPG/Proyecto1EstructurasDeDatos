@@ -39,7 +39,15 @@ Pendiente: verificar spec-kit cuando la Persona A lo inicialice y revisar
   de la condición estricta de `sala_salida`.
 - **Costo de salida (parte B, `T046`)**: `DatosSalida.costo` se lee y se
   persiste; falta que A lo consuma en el movimiento.
-- **115/115 pruebas en verde**; el replay de la línea base sigue reproduciendo
+- **Verificador incremental** (`T012..T029`): `cripta/modelo/verificacion.py`
+  con recorrido único, orden determinista, frontera sin duplicados, llaves
+  inobtenibles con ubicaciones y ciclo concreto; `--verificar` sin vista ni
+  replay.
+- **Validación contra el servicio real** (2026-11-09):
+  - `cripta-02` → RESOLUBLE (bronce, negra).
+  - `cripta-05` → NO RESOLUBLE con ciclo `hierro → negra → hierro`.
+  - `cripta-06` (300 salas) → RESOLUBLE; verificación ≈ **1.8 ms** de mediana.
+- **127/127 pruebas en verde**; el replay de la línea base sigue reproduciendo
   la misma victoria.
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
@@ -93,7 +101,9 @@ sin avisar):
 
 ## Siguiente
 
-1. `T012..T018`: verificador incremental (US1) y `--verificar`.
-2. `T019..T024`: reporte de frontera, inobtenibles y ciclo (US3).
-3. `T025..T029`: interpretación de llaves de enemigo y duplicados (US5).
+1. `T030..T034` (US2): bloquear el inicio sin `--forzar`, mostrar el reporte
+   al iniciar y ajustar códigos de salida.
+2. `T035..T038` (US4): prueba formal del orden determinista y de validez.
+3. `T039..T045`: bench de resolubilidad (incremental vs. ingenuo), límites de
+   200 ms y documentación.
 4. `T047..T049`: pendientes de la spec 001 de A (`rango`, `cazador`).
