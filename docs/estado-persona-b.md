@@ -13,6 +13,10 @@ Pendiente: verificar spec-kit cuando la Persona A lo inicialice y revisar
 
 - Auditoría del repositorio de P1 completada (módulos, contratos, pruebas,
   `--bench`, Swagger).
+- **spec-kit v1.3.2 instalado y verificado:** `specify check` detecta
+  `opencode (available)`. Falta que A ejecute `specify init --here --ai
+  opencode` (o equivalente) para crear `.specify/` y los comandos
+  `/speckit.*`.
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
 - `.venv` con `requests` y `pygame-ce` 2.5.8: **91/91 pruebas en verde**.
@@ -65,8 +69,8 @@ sin avisar):
 
 ## Siguiente
 
-1. Verificar `specify check` y `/speckit.*` cuando A suba `.specify/`.
-2. Revisar la constitución (7 principios) y proponer ajustes.
-3. Fase 2: volcar `docs/borradores/spec-004-resolubilidad.md` con
-   `/speckit.specify`, resolver las 10 preguntas de `clarify` y confirmar la
-   spec en Git **antes** de escribir código.
+1. Cuando A suba `.specify/` y los comandos `/speckit.*`, revisar la
+   constitución (7 principios) y proponer ajustes.
+2. Fase 2: volcar `docs/borradores/spec-004-resolubilidad.md` con
+   `/speckit.specify`, aplicar las decisiones de `clarify` (P5 = opción A) y
+   confirmar la spec en Git **antes** de escribir código.
