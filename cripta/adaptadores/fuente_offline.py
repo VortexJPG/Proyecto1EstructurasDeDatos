@@ -32,6 +32,7 @@ from cripta.modelo.datos import (
     Ficha,
     PaginaEsqueleto,
     ResumenCripta,
+    UbicacionLlave,
 )
 
 
@@ -178,6 +179,15 @@ class FuenteOffline(FuenteDatos):
             if encontrada is not None:
                 salida.append(encontrada)
         return salida
+
+    def llaves(self, cripta_id: str) -> list[UbicacionLlave]:
+        """Lee ``llaves.json`` del paquete de esa cripta (formato de la Parte II)."""
+        ruta = os.path.join(self._directorio_de(cripta_id), "llaves.json")
+        if not os.path.exists(ruta):
+            raise ErrorFuenteDatos("llaves", f"no se encontró llaves.json de {cripta_id} en {self.directorio}")
+        datos = self._leer_json(ruta, "llaves")
+        items = datos.get("llaves", datos) if isinstance(datos, dict) else datos
+        return [UbicacionLlave.desde_json(x) for x in (items or [])]
 
     def version_cripta(self, cripta_id: str) -> str:
         return self.datos_cripta(cripta_id).version

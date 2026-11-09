@@ -33,6 +33,7 @@ from cripta.modelo.datos import (
     Ficha,
     PaginaEsqueleto,
     ResumenCripta,
+    UbicacionLlave,
 )
 
 BASE_URL = "https://cripta-api.kad06a0zhgs84.us-east-2.cs.amazonlightsail.com/v1"
@@ -154,6 +155,11 @@ class ClienteHTTP(FuenteDatos):
         params = {"ids": ",".join(ids)}
         datos = self._get("/catalogo", params, "catalogo")
         return [Ficha.desde_json(x) for x in self._lista(datos, "entidades")]
+
+    def llaves(self, cripta_id: str) -> list[UbicacionLlave]:
+        """``GET /criptas/<id>/llaves``: cuenta como una solicitud más."""
+        datos = self._get(f"/criptas/{cripta_id}/llaves", None, "llaves")
+        return [UbicacionLlave.desde_json(x) for x in self._lista(datos, "llaves")]
 
     def version_cripta(self, cripta_id: str) -> str:
         datos = self._get(f"/criptas/{cripta_id}/version", None, "version_cripta")

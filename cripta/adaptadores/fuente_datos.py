@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from cripta.modelo.datos import ContenidoSala, DatosCripta, Ficha, PaginaEsqueleto, ResumenCripta
+from cripta.modelo.datos import ContenidoSala, DatosCripta, Ficha, PaginaEsqueleto, ResumenCripta, UbicacionLlave
 
 
 class ErrorFuenteDatos(Exception):
@@ -37,6 +37,8 @@ class FuenteDatos(ABC):
     def contenido(self, cripta_id: str, salas: list[int]) -> list[ContenidoSala]: ...
     @abstractmethod
     def catalogo(self, ids: list[str]) -> list[Ficha]: ...
+    @abstractmethod
+    def llaves(self, cripta_id: str) -> list[UbicacionLlave]: ...
     @abstractmethod
     def version_cripta(self, cripta_id: str) -> str: ...
     @abstractmethod

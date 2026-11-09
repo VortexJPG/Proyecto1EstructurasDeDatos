@@ -14,7 +14,14 @@ import json
 import os
 from typing import Any
 
-from cripta.modelo.datos import ContenidoSala, DatosCripta, DatosSala, Ficha
+from cripta.modelo.datos import (
+    ContenidoSala,
+    DatosCripta,
+    DatosSala,
+    Ficha,
+    RespuestaLlaves,
+    UbicacionLlave,
+)
 
 
 def _escribir_json(ruta: str, datos: Any) -> None:
@@ -225,3 +232,25 @@ class AlmacenCripta:
 
     def tiene_contenido(self, sala_id: int) -> bool:
         return os.path.exists(os.path.join(self.directorio, f"contenido_{sala_id}.json"))
+
+    # --- llaves de la cripta (Parte II) ---------------------------------------
+
+    def guardar_llaves(self, llaves: list[UbicacionLlave], version_cripta: str) -> None:
+        """Guarda la respuesta de ``/llaves`` atada a la versión de la cripta."""
+        self._escribir("llaves.json", RespuestaLlaves(version_cripta, llaves).a_dict())
+
+    def cargar_llaves(self, version_cripta: str) -> list[UbicacionLlave] | None:
+        """Devuelve las llaves guardadas si son de la versión vigente; si no, None."""
+        try:
+            datos = self._leer("llaves.json")
+        except (OSError, ValueError):
+            return None
+        if not isinstance(datos, dict):
+            return None
+        try:
+            respuesta = RespuestaLlaves.desde_json(datos)
+        except (KeyError, ValueError, TypeError):
+            return None
+        if respuesta.version_cripta != version_cripta:
+            return None
+        return respuesta.llaves

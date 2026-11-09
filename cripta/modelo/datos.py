@@ -177,6 +177,51 @@ class ContenidoSala:
 
 
 @dataclass(slots=True)
+class UbicacionLlave:
+    """Dónde se puede obtener una llave (``GET /criptas/<id>/llaves``).
+
+    Si ``enemigo`` no es None, la llave está en el campo ``suelta`` de esa
+    instancia y ``sala`` es la sala INICIAL del enemigo.
+    """
+
+    id: str
+    sala: int
+    enemigo: str | None = None
+
+    @staticmethod
+    def desde_json(datos: Any) -> "UbicacionLlave":
+        return UbicacionLlave(
+            id=str(datos["id"]),
+            sala=int(datos["sala"]),
+            enemigo=None if datos.get("enemigo") is None else str(datos.get("enemigo")),
+        )
+
+    def a_dict(self) -> dict[str, Any]:
+        return {"id": self.id, "sala": self.sala, "enemigo": self.enemigo}
+
+
+@dataclass(slots=True)
+class RespuestaLlaves:
+    """Respuesta de llaves atada a la versión de la cripta con la que se obtuvo."""
+
+    version_cripta: str
+    llaves: list[UbicacionLlave] = field(default_factory=list)
+
+    def a_dict(self) -> dict[str, Any]:
+        return {
+            "version": self.version_cripta,
+            "llaves": [ubicacion.a_dict() for ubicacion in self.llaves],
+        }
+
+    @staticmethod
+    def desde_json(datos: Any) -> "RespuestaLlaves":
+        return RespuestaLlaves(
+            version_cripta=str(datos.get("version", "")),
+            llaves=[UbicacionLlave.desde_json(x) for x in datos.get("llaves", [])],
+        )
+
+
+@dataclass(slots=True)
 class Ficha:
     id: str
     clase: str

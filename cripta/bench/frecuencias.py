@@ -136,6 +136,10 @@ class FuenteContadora(FuenteDatos):
         self._contar("catalogo")
         return self._fuente.catalogo(ids)
 
+    def llaves(self, cripta_id):
+        self._contar("llaves")
+        return self._fuente.llaves(cripta_id)
+
     def version_cripta(self, cripta_id):
         self._contar("version_cripta")
         return self._fuente.version_cripta(cripta_id)

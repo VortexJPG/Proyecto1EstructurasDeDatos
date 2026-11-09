@@ -27,12 +27,12 @@ prueba va **antes** de la implementación y debe fallar primero.
 **Propósito**: contrato de llaves, persistencia, presupuesto, generador
 sintético y oráculo. Sin esto ninguna historia se puede probar.
 
-- [ ] T003 [P] Añadir `llaves(cripta_id)` a `cripta/adaptadores/fuente_datos.py` y su DTO `UbicacionLlave`/`RespuestaLlaves` en `cripta/modelo/datos.py`; actualizar los dobles de prueba que implementan la interfaz (FR-016, FR-017).
-- [ ] T004 [P] Implementar `GET /v1/criptas/<id>/llaves` en `cripta/adaptadores/cliente_http.py`, con el header existente y el conteo de presupuesto (FR-016, FR-019).
-- [ ] T005 [P] Implementar la lectura de `llaves.json` en `cripta/adaptadores/fuente_offline.py` para `--offline` (FR-015).
-- [ ] T006 [P] Guardar/leer `llaves.json` en `cripta/adaptadores/almacen_disco.py` dentro de la carpeta de la cripta, invalidado por la versión existente (FR-018, FR-021).
+- [x] T003 [P] Añadir `llaves(cripta_id)` a `cripta/adaptadores/fuente_datos.py` y su DTO `UbicacionLlave`/`RespuestaLlaves` en `cripta/modelo/datos.py`; actualizar los dobles de prueba que implementan la interfaz (FR-016, FR-017).
+- [x] T004 [P] Implementar `GET /v1/criptas/<id>/llaves` en `cripta/adaptadores/cliente_http.py`, con el header existente y el conteo de presupuesto (FR-016, FR-019).
+- [x] T005 [P] Implementar la lectura de `llaves.json` en `cripta/adaptadores/fuente_offline.py` para `--offline` (FR-015).
+- [x] T006 [P] Guardar/leer `llaves.json` en `cripta/adaptadores/almacen_disco.py` dentro de la carpeta de la cripta, invalidado por la versión existente (FR-018, FR-021).
 - [ ] T007 Ordenar la consulta en `cripta/controlador/controlador.py`: primero `datos_cripta` (fija presupuesto), después esqueleto y llaves; propagar error si se agota (FR-019, FR-020, SC-007).
-- [ ] T008 [P] Pruebas de contrato de `/llaves` en `tests/test_red.py`: campos, `enemigo`, 404, presupuesto agotado y versión (FR-016..FR-021).
+- [x] T008 [P] Pruebas de contrato de `/llaves` en `tests/test_red.py`: campos, `enemigo`, 404, presupuesto agotado y versión (FR-016..FR-021).
 - [ ] T009 [P] Implementar el generador determinista en `cripta/bench/sinteticos.py`: salas, costos, llaves encadenadas, puertas cambiantes y `llave_salida`; documentar la firma y el DTO de salida para A (FR-014, SC-005).
 - [ ] T010 [P] Prueba del generador: dos corridas con la misma semilla producen la misma cripta y no usan estructuras prohibidas (FR-007, SC-002).
 - [ ] T011 [P] Implementar el oráculo ingenuo en `tests/test_resolubilidad.py` (repetir recorrido por llave), solo para pruebas (SC-005, NFR-005).

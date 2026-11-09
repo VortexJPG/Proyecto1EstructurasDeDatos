@@ -87,6 +87,35 @@ class PruebaClienteHTTP(unittest.TestCase):
                 cliente.listar_criptas()
         self.assertIn("listar_criptas", str(contexto.exception))
 
+    def test_llaves_con_enemigo_y_presupuesto(self):
+        cliente = ClienteHTTP()
+        cliente.establecer_presupuesto(3)
+        cuerpo = {
+            "llaves": [
+                {"id": "itm_llave_bronce", "sala": 4},
+                {"id": "itm_llave_negra", "sala": 12, "enemigo": "e-1203"},
+            ]
+        }
+        with mock.patch.object(cliente_http.requests, "get", return_value=RespuestaFalsa(200, cuerpo)) as get:
+            llaves = cliente.llaves("cripta-02")
+        self.assertEqual(len(llaves), 2)
+        self.assertEqual(llaves[0].id, "itm_llave_bronce")
+        self.assertIsNone(llaves[0].enemigo)
+        self.assertEqual(llaves[1].enemigo, "e-1203")
+        self.assertEqual(cliente.estadisticas().solicitudes_realizadas, 1)
+        args, kwargs = get.call_args
+        self.assertTrue(args[0].endswith("/criptas/cripta-02/llaves"))
+        self.assertIsNone(kwargs.get("params"))
+        self.assertIn("X-Cripta-Client-Id", kwargs["headers"])
+
+    def test_llaves_404_con_contexto(self):
+        cliente = ClienteHTTP()
+        with mock.patch.object(cliente_http.requests, "get", return_value=RespuestaFalsa(404, {"error": "no existe"})):
+            with self.assertRaises(ErrorFuenteDatos) as contexto:
+                cliente.llaves("cripta-99")
+        self.assertEqual(contexto.exception.codigo_http, 404)
+        self.assertIn("llaves", str(contexto.exception))
+
     def test_dos_hilos_no_exceden_el_presupuesto(self):
         cliente = ClienteHTTP()
         cliente.establecer_presupuesto(50)
@@ -130,6 +159,10 @@ class PruebaFuenteOffline(unittest.TestCase):
                            {"pagina": 1, "total_paginas": 1, "salas": [{"id": 1, "nombre": nombre_sala, "salidas": {}}]})
             self._escribir(carpeta, "contenido_1.json",
                            {"contenido": [{"sala": 1, "enemigos": [], "objetos": [f"itm_{cripta_id}"], "trampas": []}]})
+            self._escribir(carpeta, "llaves.json", {"llaves": [
+                {"id": f"itm_{cripta_id}", "sala": 1},
+                {"id": "itm_especial", "sala": 2, "enemigo": "e-1"},
+            ]})
 
     def tearDown(self):
         shutil.rmtree(self.directorio, ignore_errors=True)
@@ -151,6 +184,50 @@ class PruebaFuenteOffline(unittest.TestCase):
     def test_cripta_inexistente(self):
         with self.assertRaises(ErrorFuenteDatos):
             FuenteOffline(self.directorio).datos_cripta("cripta-z")
+
+    def test_llaves_offline(self):
+        fuente = FuenteOffline(self.directorio)
+        llaves = fuente.llaves("cripta-a")
+        self.assertEqual([x.id for x in llaves], ["itm_cripta-a", "itm_especial"])
+        self.assertEqual(llaves[0].sala, 1)
+        self.assertIsNone(llaves[0].enemigo)
+        self.assertEqual(llaves[1].enemigo, "e-1")
+        self.assertEqual(fuente.estadisticas().solicitudes_realizadas, 0)
+
+    def test_llaves_offline_faltantes(self):
+        os.remove(os.path.join(self.directorio, "cripta-b", "llaves.json"))
+        with self.assertRaises(ErrorFuenteDatos) as contexto:
+            FuenteOffline(self.directorio).llaves("cripta-b")
+        self.assertIn("llaves", str(contexto.exception))
+
+
+class PruebaAlmacenLlaves(unittest.TestCase):
+    def setUp(self):
+        self.directorio = tempfile.mkdtemp(prefix="cripta_almacen_")
+        from cripta.adaptadores.almacen_disco import AlmacenCripta
+
+        self.almacen = AlmacenCripta(self.directorio, "cripta-a")
+        self.almacen.validar_version("v1")
+
+    def tearDown(self):
+        shutil.rmtree(self.directorio, ignore_errors=True)
+
+    def test_guardar_y_cargar_por_version(self):
+        from cripta.modelo.datos import UbicacionLlave
+
+        llaves = [UbicacionLlave("itm_llave", 4), UbicacionLlave("itm_negra", 12, "e-1")]
+        self.almacen.guardar_llaves(llaves, "v1")
+        cargadas = self.almacen.cargar_llaves("v1")
+        self.assertEqual(cargadas, llaves)
+        self.assertIsNone(self.almacen.cargar_llaves("v2"))
+
+    def test_la_version_nueva_borra_el_archivo(self):
+        from cripta.modelo.datos import UbicacionLlave
+
+        self.almacen.guardar_llaves([UbicacionLlave("itm_llave", 4)], "v1")
+        self.assertFalse(self.almacen.validar_version("v2"))
+        self.assertIsNone(self.almacen.cargar_llaves("v1"))
+        self.assertIsNone(self.almacen.cargar_llaves("v2"))
 
 
 class _FuenteContada:
