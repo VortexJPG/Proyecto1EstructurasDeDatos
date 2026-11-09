@@ -16,6 +16,7 @@ from unittest import mock
 
 from cripta.adaptadores.fuente_offline import FuenteOffline
 from cripta.adaptadores.guardado import GuardadoBinario, GuardadoJSON
+from cripta.controlador.comandos import ComandoUsuario, TipoComando
 from cripta.controlador.controlador import Controlador, OpcionesEjecucion
 from cripta.controlador.replay import ReproductorReplay
 from cripta.estructuras.ordenamiento import ordenar
@@ -256,31 +257,42 @@ class PruebaPreparacionVerificacion(BaseIntegracion):
         self.assertEqual(len(otro.obtener_llaves()), 1)
 
 
+def _crear_paquete_min(directorio, resoluble):
+    """Paquete offline mínimo y completo (cripta, esqueleto, llaves, catálogo y contenido)."""
+    paquete = os.path.join(directorio, "paquete", "cripta-min")
+    os.makedirs(paquete)
+
+    def escribir(nombre, datos):
+        with open(os.path.join(paquete, nombre), "w", encoding="utf-8") as archivo:
+            json.dump(datos, archivo, ensure_ascii=False)
+
+    escribir("cripta.json", {
+        "id": "cripta-min", "version": "v1", "salas_total": 3, "paginas": 1,
+        "salas_por_pagina": 50, "sala_inicial": 1, "sala_salida": 3,
+        "llave_salida": "itm_k", "presupuesto_solicitudes": 20, "inventario_max": 5,
+        "jugador": {"vida_max": 30, "ataque": 5, "defensa": 1, "velocidad": 100},
+    })
+    escribir("salas_pagina_1.json", {"pagina": 1, "total_paginas": 1, "salas": [
+        {"id": 1, "nombre": "Uno", "salidas": {"N": {"sala": 2}}},
+        {"id": 2, "nombre": "Dos", "salidas": {"S": {"sala": 1}, "N": {"sala": 3, "cerrada": True, "llave": "itm_k"}}},
+        {"id": 3, "nombre": "Tres", "salidas": {"S": {"sala": 2}}},
+    ]})
+    sala_llave = 1 if resoluble else 3
+    escribir("llaves.json", {"llaves": [{"id": "itm_k", "sala": sala_llave}]})
+    escribir("catalogo_version.json", {"version": "c1"})
+    escribir("catalogo_lote_1.json", {"entidades": []})
+    for sala in (1, 2, 3):
+        escribir(f"contenido_{sala}.json", {"contenido": [
+            {"sala": sala, "enemigos": [], "objetos": [], "trampas": []}
+        ]})
+    return os.path.dirname(paquete)
+
+
 class PruebaCliVerificar(BaseIntegracion):
     """``--verificar`` no instancia la vista ni escribe bitácora de partida."""
 
     def crear_paquete(self, resoluble):
-        paquete = os.path.join(self.directorio, "paquete", "cripta-min")
-        os.makedirs(paquete)
-
-        def escribir(nombre, datos):
-            with open(os.path.join(paquete, nombre), "w", encoding="utf-8") as archivo:
-                json.dump(datos, archivo, ensure_ascii=False)
-
-        escribir("cripta.json", {
-            "id": "cripta-min", "version": "v1", "salas_total": 3, "paginas": 1,
-            "salas_por_pagina": 50, "sala_inicial": 1, "sala_salida": 3,
-            "llave_salida": "itm_k", "presupuesto_solicitudes": 10, "inventario_max": 5,
-            "jugador": {"vida_max": 30, "ataque": 5, "defensa": 1, "velocidad": 100},
-        })
-        escribir("salas_pagina_1.json", {"pagina": 1, "total_paginas": 1, "salas": [
-            {"id": 1, "nombre": "Uno", "salidas": {"N": {"sala": 2}}},
-            {"id": 2, "nombre": "Dos", "salidas": {"S": {"sala": 1}, "N": {"sala": 3, "cerrada": True, "llave": "itm_k"}}},
-            {"id": 3, "nombre": "Tres", "salidas": {"S": {"sala": 2}}},
-        ]})
-        sala_llave = 1 if resoluble else 3
-        escribir("llaves.json", {"llaves": [{"id": "itm_k", "sala": sala_llave}]})
-        return os.path.dirname(paquete)
+        return _crear_paquete_min(self.directorio, resoluble)
 
     def ejecutar(self, resoluble):
         from cripta.controlador.aplicacion import main
@@ -306,6 +318,89 @@ class PruebaCliVerificar(BaseIntegracion):
         self.assertIn("NO RESOLUBLE", texto)
         self.assertIn("Ciclo:", texto)
         crear.assert_not_called()
+
+
+class _VistaFalsa:
+    """Vista mínima para probar el arranque sin abrir consola ni ventana."""
+
+    def __init__(self):
+        self.mensajes: list[str] = []
+        self.pedido_comando = False
+
+    def elegir_cripta(self, criptas):
+        return criptas[0].id
+
+    def pedir_nombre(self):
+        return "Prueba"
+
+    def mostrar_info(self, texto):
+        self.mensajes.append(texto)
+
+    def mostrar_estado(self, juego):
+        pass
+
+    def mostrar_resultado(self, resultado):
+        pass
+
+    def mostrar_inventario(self, juego, *args, **kwargs):
+        pass
+
+    def mostrar_error(self, texto):
+        self.mensajes.append(texto)
+
+    def mostrar_fin(self, juego, reporte):
+        pass
+
+    def mostrar_puntajes(self, filas):
+        pass
+
+    def mostrar_ayuda(self):
+        pass
+
+    def pedir_comando(self, juego):
+        self.pedido_comando = True
+        return ComandoUsuario(TipoComando.SALIR)
+
+    def cerrar(self):
+        pass
+
+
+class PruebaBloqueoInicio(BaseIntegracion):
+    def ejecutar(self, resoluble, forzar):
+        from cripta.controlador.aplicacion import main
+
+        paquete = _crear_paquete_min(self.directorio, resoluble)
+        vista = _VistaFalsa()
+        argumentos = [
+            "--cripta", "cripta-min", "--offline", paquete,
+            "--datos", self.directorio, "--nombre", "Prueba", "--semilla", "3",
+        ]
+        if forzar:
+            argumentos.append("--forzar")
+        with mock.patch("cripta.controlador.aplicacion.crear_vista", return_value=vista):
+            codigo = main(argumentos)
+        return codigo, vista
+
+    def test_sin_forzar_no_inicia_ni_crea_replay(self):
+        codigo, vista = self.ejecutar(resoluble=False, forzar=False)
+        self.assertEqual(codigo, 3)
+        self.assertFalse(vista.pedido_comando)
+        self.assertTrue(any("NO RESOLUBLE" in mensaje for mensaje in vista.mensajes))
+        self.assertFalse(os.path.exists(os.path.join(self.directorio, "replays")))
+
+    def test_con_forzar_inicia_y_muestra_advertencia(self):
+        codigo, vista = self.ejecutar(resoluble=False, forzar=True)
+        self.assertEqual(codigo, 0)
+        self.assertTrue(vista.pedido_comando)
+        self.assertTrue(any("ADVERTENCIA" in mensaje for mensaje in vista.mensajes))
+        self.assertTrue(os.path.isdir(os.path.join(self.directorio, "replays")))
+
+    def test_resoluble_inicia_sin_advertencia(self):
+        codigo, vista = self.ejecutar(resoluble=True, forzar=False)
+        self.assertEqual(codigo, 0)
+        self.assertTrue(vista.pedido_comando)
+        self.assertTrue(any("RESOLUBLE" in mensaje for mensaje in vista.mensajes))
+        self.assertFalse(any("ADVERTENCIA" in mensaje for mensaje in vista.mensajes))
 
 
 if __name__ == "__main__":

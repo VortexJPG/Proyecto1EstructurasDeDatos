@@ -58,6 +58,7 @@ class OpcionesEjecucion:
     cripta_id: str | None = None  # si se pasa, se evita GET /criptas
     semilla: int | None = None  # None → se genera una y se escribe en el log
     nombre_jugador: str | None = None
+    forzar: bool = False  # iniciar aunque la cripta no sea resoluble
 
 
 class Controlador:
@@ -84,6 +85,7 @@ class Controlador:
         self._semilla: int | None = None
         self._llaves: list[UbicacionLlave] | None = None
         self._resultado_verificacion: ResultadoVerificacion | None = None
+        self._verificado_limpio = False
 
     @property
     def juego(self) -> Juego | None:
@@ -91,8 +93,12 @@ class Controlador:
 
     # --- flujo interactivo --------------------------------------------------------
 
-    def ejecutar_interactivo(self) -> None:
-        """Elegir cripta, iniciar partida y atender comandos hasta salir o terminar."""
+    def ejecutar_interactivo(self) -> int:
+        """Elegir cripta, verificar, iniciar partida y atender comandos.
+
+        Devuelve 0 si la sesión termina normal y 3 si la cripta no es resoluble
+        y no se pasó ``--forzar`` (en ese caso no se crea partida ni replay).
+        """
         if self._cripta_id is None:
             criptas = self.fuente.listar_criptas()
             if not criptas:
@@ -101,6 +107,19 @@ class Controlador:
                 self._cripta_id = self.vista.elegir_cripta(criptas)
             else:
                 self._cripta_id = criptas[0].id
+        resultado = self.verificar_cripta(self._cripta_id)
+        reporte = self.texto_resolubilidad()
+        if self.vista is not None:
+            self.vista.mostrar_info(reporte)
+        else:
+            print(reporte)
+        if not resultado.resoluble:
+            if not self.opciones.forzar:
+                return 3
+            if self.vista is not None:
+                self.vista.mostrar_info(
+                    "ADVERTENCIA: la cripta no es resoluble; continúas porque se usó --forzar."
+                )
         self.preparar_cripta(self._cripta_id)
         nombre = self.opciones.nombre_jugador
         if nombre is None:
@@ -108,7 +127,7 @@ class Controlador:
         self.iniciar_partida(nombre, self.opciones.semilla, True)
         if self.vista is None:
             self.finalizar()
-            return
+            return 0
         self.vista.mostrar_info(f"Partida iniciada (semilla {self._semilla}).")
         if self._ruta_log is not None:
             self.vista.mostrar_info(f"Bitácora de replay: {self._ruta_log}")
@@ -118,6 +137,7 @@ class Controlador:
             if not self.procesar_comando(comando):
                 break
         self.finalizar()
+        return 0
 
     def procesar_comando(self, comando: ComandoUsuario) -> bool:
         """Ejecuta un comando. Devuelve False si la sesión debe terminar."""
@@ -184,8 +204,23 @@ class Controlador:
     # --- partida ------------------------------------------------------------------
 
     def preparar_cripta(self, cripta_id: str) -> None:
-        """Pasos 1-4 de la preparación (ver docstring del módulo)."""
-        self._preparar_datos_y_mapa(cripta_id)
+        """Pasos 1-4 de la preparación (ver docstring del módulo).
+
+        Si se acaba de verificar la misma cripta, reutiliza los datos y el mapa
+        limpios: verificar no debe costar una segunda consulta de datos ni
+        perder el esqueleto ya leído.
+        """
+        if not (
+            self._verificado_limpio
+            and self._datos is not None
+            and self._datos.id == cripta_id
+            and self._mapa is not None
+        ):
+            self._preparar_datos_y_mapa(cripta_id)
+        self._verificado_limpio = False
+        self._montar_catalogo_y_precarga(cripta_id)
+
+    def _montar_catalogo_y_precarga(self, cripta_id: str) -> None:
         # catálogo
         catalogo = CacheCatalogo(self.fuente, self.almacen_catalogo, self.cache_size)
         self._catalogo = catalogo
@@ -215,6 +250,7 @@ class Controlador:
         self._cripta_id = cripta_id
         self._llaves = None
         self._resultado_verificacion = None
+        self._verificado_limpio = False
         self._datos = self.fuente.datos_cripta(cripta_id)
         self.fuente.establecer_presupuesto(self._datos.presupuesto_solicitudes)
         self._almacen_cripta = AlmacenCripta(self.directorio_datos, cripta_id)
@@ -237,6 +273,7 @@ class Controlador:
         """
         self._preparar_datos_y_mapa(cripta_id)
         self.obtener_llaves()
+        self._verificado_limpio = True
 
     def obtener_llaves(self) -> list[UbicacionLlave]:
         """Llaves de la cripta: memoria → disco (misma versión) → servicio.

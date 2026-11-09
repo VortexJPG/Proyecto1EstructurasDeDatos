@@ -118,6 +118,7 @@ def main(argv: list[str] | None = None) -> int:
         cripta_id=args.cripta_id,
         semilla=args.semilla,
         nombre_jugador=args.nombre_jugador,
+        forzar=args.forzar,
     )
     try:
         fuente = crear_fuente(args)
@@ -135,10 +136,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         vista = crear_vista(args.gui)
         try:
-            Controlador(fuente, opciones, vista).ejecutar_interactivo()
+            codigo = Controlador(fuente, opciones, vista).ejecutar_interactivo()
         finally:
             vista.cerrar()
-        return 0
+        return codigo
     except FaltaPygame:
         print(
             "La ventana necesita pygame-ce. Instálalo con: pip install -r requirements.txt\n"
