@@ -31,11 +31,11 @@ sintético y oráculo. Sin esto ninguna historia se puede probar.
 - [x] T004 [P] Implementar `GET /v1/criptas/<id>/llaves` en `cripta/adaptadores/cliente_http.py`, con el header existente y el conteo de presupuesto (FR-016, FR-019).
 - [x] T005 [P] Implementar la lectura de `llaves.json` en `cripta/adaptadores/fuente_offline.py` para `--offline` (FR-015).
 - [x] T006 [P] Guardar/leer `llaves.json` en `cripta/adaptadores/almacen_disco.py` dentro de la carpeta de la cripta, invalidado por la versión existente (FR-018, FR-021).
-- [ ] T007 Ordenar la consulta en `cripta/controlador/controlador.py`: primero `datos_cripta` (fija presupuesto), después esqueleto y llaves; propagar error si se agota (FR-019, FR-020, SC-007).
+- [x] T007 Ordenar la consulta en `cripta/controlador/controlador.py`: primero `datos_cripta` (fija presupuesto), después esqueleto y llaves; propagar error si se agota (FR-019, FR-020, SC-007).
 - [x] T008 [P] Pruebas de contrato de `/llaves` en `tests/test_red.py`: campos, `enemigo`, 404, presupuesto agotado y versión (FR-016..FR-021).
-- [ ] T009 [P] Implementar el generador determinista en `cripta/bench/sinteticos.py`: salas, costos, llaves encadenadas, puertas cambiantes y `llave_salida`; documentar la firma y el DTO de salida para A (FR-014, SC-005).
-- [ ] T010 [P] Prueba del generador: dos corridas con la misma semilla producen la misma cripta y no usan estructuras prohibidas (FR-007, SC-002).
-- [ ] T011 [P] Implementar el oráculo ingenuo en `tests/test_resolubilidad.py` (repetir recorrido por llave), solo para pruebas (SC-005, NFR-005).
+- [x] T009 [P] Implementar el generador determinista en `cripta/bench/sinteticos.py`: salas, costos, llaves encadenadas, puertas cambiantes y `llave_salida`; documentar la firma y el DTO de salida para A (FR-014, SC-005).
+- [x] T010 [P] Prueba del generador: dos corridas con la misma semilla producen la misma cripta y no usan estructuras prohibidas (FR-007, SC-002).
+- [x] T011 [P] Implementar el oráculo ingenuo en `tests/test_resolubilidad.py` (repetir recorrido por llave), solo para pruebas (SC-005, NFR-005).
 
 **Checkpoint**: contrato, caché, presupuesto y generador listos.
 
@@ -164,9 +164,10 @@ respetar versión y presupuesto.
 
 Estas tareas **no** se implementan hasta que la spec 001 de A esté confirmada
 en Git (constitución VII y §3 de la Parte II). Los `FR-xxx` de A se coordinan
-antes de empezar.
+antes de empezar. **T046 (parte B) ya está hecha**; lo que falta es que A
+consuma el costo y el rango en el modelo.
 
-- [ ] T046 [P] [BLOQUEADA] Leer y exponer `DatosSalida.costo` en `cripta/modelo/datos.py`; persistirlo en `esqueleto.json` (FR de spec 001 de A, por coordinar).
+- [x] T046 [P] Leer y exponer `DatosSalida.costo` en `cripta/modelo/datos.py`; persistirlo en `esqueleto.json`. Parte B hecha; el uso del costo en `Juego._mover` sigue siendo de A (spec 001, FR por coordinar).
 - [ ] T047 [P] [BLOQUEADA] Leer `Ficha.rango` y transportar `comportamiento: "cazador"` en `cripta/modelo/datos.py` (FR de spec 001 de A, por coordinar).
 - [ ] T048 [BLOQUEADA] Acordar con A la interfaz `Salida.costo`, `Enemigo.rango`, `Comportamiento.CAZADOR` y `mostrar_resolubilidad()` (`contracts/interfaz-a-b.md`).
 - [ ] T049 [BLOQUEADA] Pruebas del contrato web (costo ausente = 100, `rango` ≥ 1, cazador) en `tests/test_red.py`.
@@ -184,7 +185,7 @@ T025..T029  → US5 (llaves) depende de T003..T007
 T030..T034  → US2 (bloqueo de partida) depende de US1 y US3
 T035..T038  → US4 (orden) depende de US1
 T039..T045  → mediciones y cierre
-T046..T049  → bloqueadas por la spec 001 de A
+T047..T049  → bloqueadas por la spec 001 de A (T046, parte B, ya está)
 ```
 
 ## MVP

@@ -28,7 +28,19 @@ Pendiente: verificar spec-kit cuando la Persona A lo inicialice y revisar
 - **Contrato de llaves implementado** (`T003..T006`, `T008`): `UbicacionLlave`
   y `RespuestaLlaves`, `FuenteDatos.llaves()`, `ClienteHTTP`, `FuenteOffline`,
   `AlmacenCripta.guardar_llaves/cargar_llaves` con validación de versión y
-  pruebas de contrato/offline/almacén. **96/96 pruebas en verde**.
+  pruebas de contrato/offline/almacén.
+- **Preparación ligera y caché de llaves** (`T007`):
+  `preparar_verificacion` carga datos + esqueleto + llaves sin catálogo,
+  contenido ni precarga; `obtener_llaves` usa memoria → disco → servicio.
+- **Generador sintético determinista** (`T009`, `T010`) en
+  `cripta/bench/sinteticos.py`: llaves encadenadas, costos, puertas
+  cambiantes, lado extra, llave en errante y variante no resoluble.
+- **Oráculo ingenuo** (`T011`) en `tests/test_resolubilidad.py`, con pruebas
+  de la condición estricta de `sala_salida`.
+- **Costo de salida (parte B, `T046`)**: `DatosSalida.costo` se lee y se
+  persiste; falta que A lo consuma en el movimiento.
+- **115/115 pruebas en verde**; el replay de la línea base sigue reproduciendo
+  la misma victoria.
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
 - `.venv` con `requests` y `pygame-ce` 2.5.8: **91/91 pruebas en verde**.
@@ -81,8 +93,7 @@ sin avisar):
 
 ## Siguiente
 
-1. `T007`: orden de consulta en el controlador (datos → presupuesto →
-   esqueleto → llaves) y error explícito al agotar presupuesto.
-2. `T009..T011`: generador sintético determinista y oráculo ingenuo.
-3. `T012..T018`: verificador incremental y `--verificar` (US1).
-4. Pedir a A que revise la constitución y la interfaz B→A.
+1. `T012..T018`: verificador incremental (US1) y `--verificar`.
+2. `T019..T024`: reporte de frontera, inobtenibles y ciclo (US3).
+3. `T025..T029`: interpretación de llaves de enemigo y duplicados (US5).
+4. `T047..T049`: pendientes de la spec 001 de A (`rango`, `cazador`).
