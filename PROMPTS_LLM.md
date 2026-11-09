@@ -573,3 +573,14 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
   > Si
 
 - **Uso:** implementar `T012..T029`: verificador incremental en `cripta/modelo/verificacion.py` (recorrido único, orden determinista, frontera sin duplicar puertas compartidas, llaves inobtenibles con ubicaciones y ciclo concreto), comando `--verificar <cripta>` sin vista ni replay, reporte legible y pruebas contra el oráculo. Validación real: cripta-02 resoluble, cripta-05 no resoluble con ciclo, cripta-06 resoluble (300 salas, ~1.8 ms). Suite en 127/127.
+
+### 51
+
+- **Fecha:** 2026-11-09
+- **Integrante:** Kevin
+- **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
+- **Prompt:**
+  
+  > Si
+
+- **Uso:** implementar `T030..T034` (US2): verificar antes de montar catálogo, precarga o replay; sin `--forzar` no se inicia la partida y se sale con 3; con `--forzar` se muestra la advertencia y se juega. El reporte se muestra al iniciar y queda en el controlador. Se añadieron `llaves.json` a los paquetes offline de P1 para que `--offline` siga funcionando. Suite en 130/130.

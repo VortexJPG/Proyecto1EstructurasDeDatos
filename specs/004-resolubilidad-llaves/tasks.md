@@ -114,14 +114,14 @@ respetar versión y presupuesto.
 
 ### Pruebas (primero)
 
-- [ ] T030 [P] [US2] Prueba `AC-004-04`: sin `--forzar` no se crea partida ni bitácora y se sale con código 3 (FR-010).
-- [ ] T031 [P] [US2] Prueba de `--forzar`: la partida inicia y el reporte sigue disponible (FR-011).
+- [x] T030 [P] [US2] Prueba `AC-004-04`: sin `--forzar` no se crea partida ni bitácora y se sale con código 3 (FR-010).
+- [x] T031 [P] [US2] Prueba de `--forzar`: la partida inicia y el reporte sigue disponible (FR-011).
 
 ### Implementación
 
-- [ ] T032 [US2] Añadir `--forzar` en `cripta/controlador/aplicacion.py` y la verificación previa en `cripta/controlador/controlador.py`, antes de crear la partida y el replay (FR-010, FR-011).
-- [ ] T033 [US2] Exponer `reporte_resolubilidad()`/`texto_resolubilidad()` para que la vista muestre el reporte al iniciar (FR-013).
-- [ ] T034 [US2] Ajustar códigos de salida (0/1/2/3) según `contracts/verificar-cli.md` (FR-010).
+- [x] T032 [US2] Añadir `--forzar` en `cripta/controlador/aplicacion.py` y la verificación previa en `cripta/controlador/controlador.py`, antes de crear la partida y el replay (FR-010, FR-011).
+- [x] T033 [US2] Exponer `reporte_resolubilidad()`/`texto_resolubilidad()` para que la vista muestre el reporte al iniciar (FR-013).
+- [x] T034 [US2] Ajustar códigos de salida (0/1/2/3) según `contracts/verificar-cli.md` (FR-010).
 
 **Checkpoint**: una cripta imposible no arranca salvo decisión explícita.
 
