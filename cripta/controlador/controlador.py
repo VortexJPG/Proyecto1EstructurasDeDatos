@@ -40,11 +40,12 @@ from cripta.controlador.precarga import PlanificadorPrecarga
 from cripta.modelo.acciones import TipoAccion
 from cripta.modelo.juego import Juego
 from cripta.modelo.mapa import Mapa
+from cripta.modelo.timeline import K_POR_DEFECTO, LineaTiempo
 from cripta.modelo.verificacion import ResultadoVerificacion, Verificador, formatear_resultado
 
 if TYPE_CHECKING:
     from cripta.modelo.acciones import Accion, ResultadoAccion
-    from cripta.modelo.datos import ContenidoSala, DatosCripta, UbicacionLlave
+    from cripta.modelo.datos import ContenidoSala, DatosCripta, DatosSala, UbicacionLlave
     from cripta.modelo.guardable import EstadoGuardable
     from cripta.vista.vista_consola import VistaConsola
     from cripta.vista.vista_grafica import VistaGrafica
@@ -59,6 +60,7 @@ class OpcionesEjecucion:
     semilla: int | None = None  # None → se genera una y se escribe en el log
     nombre_jugador: str | None = None
     forzar: bool = False  # iniciar aunque la cripta no sea resoluble
+    checkpoint_cada: int = K_POR_DEFECTO  # acciones entre puntos de control
 
 
 class Controlador:
@@ -86,6 +88,8 @@ class Controlador:
         self._llaves: list[UbicacionLlave] | None = None
         self._resultado_verificacion: ResultadoVerificacion | None = None
         self._verificado_limpio = False
+        self._esqueleto: list[DatosSala] | None = None
+        self._timeline: LineaTiempo | None = None
 
     @property
     def juego(self) -> Juego | None:
@@ -236,6 +240,7 @@ class Controlador:
         self._precarga = PlanificadorPrecarga(
             self.fuente, cripta_id, self._almacen_cripta, self._catalogo, self._mapa.vecinos, incorporar
         )
+        self._precarga.al_incorporar = self._registrar_contenidos
         # asegurar sala inicial
         self._precarga.asegurar(self._datos.sala_inicial)
         self._precarga.planificar(self._datos.sala_inicial)
@@ -251,6 +256,7 @@ class Controlador:
         self._llaves = None
         self._resultado_verificacion = None
         self._verificado_limpio = False
+        self._timeline = None
         self._datos = self.fuente.datos_cripta(cripta_id)
         self.fuente.establecer_presupuesto(self._datos.presupuesto_solicitudes)
         self._almacen_cripta = AlmacenCripta(self.directorio_datos, cripta_id)
@@ -263,6 +269,7 @@ class Controlador:
                 esqueleto.extend(self.fuente.pagina_esqueleto(cripta_id, pagina).salas)
             self._almacen_cripta.guardar_esqueleto(esqueleto)
             self._almacen_cripta.guardar_datos_generales(self._datos)
+        self._esqueleto = esqueleto
         self._mapa = Mapa.construir(self._datos, esqueleto)
 
     def preparar_verificacion(self, cripta_id: str) -> None:
@@ -324,6 +331,16 @@ class Controlador:
         self._juego = Juego(datos, mapa, catalogo, semilla, nombre_jugador)
         self._juego.iniciar()
         _congelar_objetos_cargados()
+        if self._esqueleto is not None:
+            self._timeline = LineaTiempo(
+                datos,
+                self._esqueleto,
+                catalogo,
+                semilla,
+                self._version_catalogo or "",
+                self.opciones.checkpoint_cada,
+            )
+            self._timeline.registrar_inicio(self._juego)
         if registrar_replay:
             encabezado = EncabezadoReplay(
                 cripta_id=datos.id,
@@ -348,6 +365,7 @@ class Controlador:
         juego = self._juego
         if juego is None:
             raise RuntimeError("No hay una partida en curso")
+        tiempo_inicio = juego.reloj
         # Antes de mover, traer el contenido de la sala destino (§4.2).
         if accion.tipo is TipoAccion.MOVER and self._precarga is not None:
             destino = juego.sala_destino(accion.direccion or "")
@@ -357,8 +375,14 @@ class Controlador:
         if resultado.requiere_sala is not None and self._precarga is not None:
             self._precarga.asegurar(resultado.requiere_sala)
             resultado = juego.ejecutar_accion(accion)  # un reintento
-        if resultado.aceptada and self._escritor is not None:
-            self._escritor.registrar(accion)
+        if resultado.aceptada:
+            if self._timeline is not None:
+                if accion.tipo is TipoAccion.RETROCEDER:
+                    self._timeline.recortar(juego.jugador.acciones_ejecutadas)
+                else:
+                    self._timeline.registrar_accion(juego, accion, tiempo_inicio)
+            if self._escritor is not None:
+                self._escritor.registrar(accion)
         self._despues_de_accion()
         return resultado
 
@@ -367,6 +391,8 @@ class Controlador:
         if juego is None:
             raise ValueError("No hay una partida en curso")
         estado = juego.exportar_estado(self._version_catalogo or "")
+        if self._timeline is not None:
+            estado.linea = self._timeline.exportar()
         GuardadoBinario().guardar(ruta, estado)
         GuardadoJSON().guardar(ruta + ".json", estado)
 
@@ -387,6 +413,29 @@ class Controlador:
             self._juego.liberar_fijaciones()
         self._juego = Juego.desde_estado(estado, self._datos, self._mapa, self._catalogo)
         _congelar_objetos_cargados()
+        if (
+            estado.linea is not None
+            and self._esqueleto is not None
+            and self._catalogo is not None
+        ):
+            self._timeline = LineaTiempo.desde_guardable(
+                estado.linea,
+                self._datos,
+                self._esqueleto,
+                self._catalogo,
+                estado.semilla,
+                self._version_catalogo or "",
+            )
+        else:
+            self._timeline = LineaTiempo(
+                self._datos,
+                self._esqueleto or [],
+                self._catalogo,
+                estado.semilla,
+                self._version_catalogo or "",
+                self.opciones.checkpoint_cada,
+            )
+            self._timeline.registrar_inicio(self._juego)
         self._precarga.reiniciar([sala.id for sala in estado.salas if sala.contenido_cargado])
         if self._escritor is not None:
             self._escritor.cerrar()
@@ -435,6 +484,13 @@ class Controlador:
         return texto
 
     # --- internos -----------------------------------------------------------------
+
+    def _registrar_contenidos(self, contenidos: list[ContenidoSala]) -> None:
+        """Callback de la precarga: contenido nuevo para la línea de tiempo."""
+        if self._timeline is not None and self._juego is not None:
+            self._timeline.registrar_contenidos(
+                contenidos, self._juego.jugador.acciones_ejecutadas
+            )
 
     def _despues_de_accion(self) -> None:
         """Precarga anticipada; un fallo de red aquí no detiene el juego."""

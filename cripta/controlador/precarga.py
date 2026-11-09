@@ -62,6 +62,8 @@ class PlanificadorPrecarga:
         self.catalogo = catalogo
         self.vecinos = vecinos
         self.incorporar = incorporar
+        # Persona B: la línea de tiempo se entera del contenido nuevo.
+        self.al_incorporar = None
         self._solicitadas: ConjuntoOrdenado[int] = ConjuntoOrdenado()
         self._incorporados: ConjuntoOrdenado[int] = ConjuntoOrdenado()
         self._pendientes: list[SolicitudPendiente] = []
@@ -93,6 +95,8 @@ class PlanificadorPrecarga:
             self.incorporar(c)
             self._incorporados.agregar(c.sala)
             self._solicitadas.agregar(c.sala)
+        if self.al_incorporar is not None:
+            self.al_incorporar(contenidos)
 
     def reiniciar(self, salas_con_contenido: list[int]) -> None:
         """Tras cargar una partida: solo esas salas tienen contenido en el modelo.

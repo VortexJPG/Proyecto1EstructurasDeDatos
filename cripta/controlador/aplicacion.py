@@ -36,6 +36,7 @@ from cripta.adaptadores.fuente_datos import ErrorFuenteDatos, FuenteDatos
 from cripta.adaptadores.fuente_offline import FuenteOffline
 from cripta.constantes import CACHE_SIZE_POR_DEFECTO
 from cripta.controlador.controlador import Controlador, OpcionesEjecucion
+from cripta.modelo.timeline import K_POR_DEFECTO
 
 if TYPE_CHECKING:
     from cripta.vista.vista_consola import VistaConsola
@@ -56,6 +57,8 @@ def construir_parser() -> argparse.ArgumentParser:
                         help="verificar si CRIPTA es resoluble, sin iniciar partida ni abrir la vista")
     parser.add_argument("--forzar", action="store_true",
                         help="iniciar la partida aunque la cripta no sea resoluble")
+    parser.add_argument("--checkpoint-cada", type=int, default=K_POR_DEFECTO, dest="checkpoint_cada",
+                        metavar="K", help="acciones entre puntos de control de la historia")
     parser.add_argument("--bench", nargs="?", const="", default=None, metavar="FILTRO",
                         help="ejecutar benchmarks (opcional: solo los que contienen FILTRO, p. ej. agenda)")
     parser.add_argument("--cache-size", type=int, default=CACHE_SIZE_POR_DEFECTO, dest="cache_size",
@@ -107,6 +110,9 @@ def crear_vista(grafica: bool) -> VistaConsola | VistaGrafica:
 def main(argv: list[str] | None = None) -> int:
     """Despacha a modo interactivo, --replay o --bench. Devuelve el código de salida."""
     args = construir_parser().parse_args(argv)
+    if args.checkpoint_cada < 1:
+        print("--checkpoint-cada debe ser un entero >= 1", file=sys.stderr)
+        return 1
     if args.bench is not None:
         from cripta.bench.runner import ejecutar_bench
 
@@ -119,6 +125,7 @@ def main(argv: list[str] | None = None) -> int:
         semilla=args.semilla,
         nombre_jugador=args.nombre_jugador,
         forzar=args.forzar,
+        checkpoint_cada=args.checkpoint_cada,
     )
     try:
         fuente = crear_fuente(args)
