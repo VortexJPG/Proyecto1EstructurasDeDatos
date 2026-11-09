@@ -38,7 +38,10 @@ python main.py --semilla 7 --nombre Ana # semilla y nombre fijos
 python main.py --offline                # sin red, con datos_ejemplo/ (las 4 criptas publicadas)
 python main.py --offline DIRECTORIO     # sin red, con otro paquete de respuestas guardadas
 python main.py --replay ARCHIVO.log     # reproducir una partida sin interacción
+python main.py --verificar cripta-05    # verificar resolubilidad sin iniciar partida
+python main.py --cripta cripta-05 --forzar  # iniciar aunque no sea resoluble
 python main.py --bench                  # mediciones por subsistema + frecuencia de operaciones
+python main.py --bench resolubilidad    # incremental vs. repetido por llave
 python main.py --bench agenda           # solo las mediciones que contienen "agenda"
 python main.py --cache-size 25          # fichas de catálogo en memoria
 python main.py --datos DIRECTORIO       # dónde guardar caché, partidas, logs y puntajes
@@ -79,6 +82,23 @@ Las mismas letras, sin Enter. Cuando hay que elegir (por ejemplo, a qué rata at
 Los sprites están dibujados en el código (`cripta/vista/sprites.py`): cada uno es una cuadrícula de 16 x 16 caracteres, uno por pixel. No usan imágenes ni recursos de terceros.
 
 **Turnos en pantalla:** después de cada acción, la bitácora separa lo que hiciste (**Tu turno**) de todo lo que pasó hasta tu siguiente decisión (**Turno de los enemigos**). Por dentro, el juego sigue el reloj virtual del enunciado: un enemigo rápido puede actuar más de una vez en el turno de los enemigos.
+
+## Resolubilidad y llaves
+
+Antes de iniciar una partida el juego consulta `GET /criptas/<id>/llaves`
+(cuenta en `presupuesto_solicitudes` y se guarda por versión) y verifica si la
+cripta puede ganarse.
+
+- `python main.py --verificar cripta-05` imprime el reporte y sale con `0`
+  (resoluble) o `3` (no resoluble); no abre la vista ni escribe `partida.log`.
+- Sin `--forzar`, una cripta no resoluble **no inicia**.
+- `--forzar` permite jugarla y muestra el reporte con una advertencia.
+- El reporte incluye el orden de llaves, las llaves inobtenibles, la frontera
+  bloqueada y el ciclo concreto cuando existe.
+- `--bench resolubilidad` mide el verificador incremental contra la
+  alternativa ingenua (repetir el recorrido por llave) con tamaños y cantidad
+  de llaves crecientes. `CRIPTA_BENCH_SALAS`, `CRIPTA_BENCH_LLAVES`,
+  `CRIPTA_BENCH_REPS` y `CRIPTA_LIMITE_VERIFICACION_MS` ajustan la medición.
 
 ## Pruebas
 
