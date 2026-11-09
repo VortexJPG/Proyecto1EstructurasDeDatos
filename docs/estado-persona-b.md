@@ -19,9 +19,16 @@ Pendiente: verificar spec-kit cuando la Persona A lo inicialice y revisar
   sin modificar archivos existentes. La constitución quedó redactada
   (v1.0.0) con los 7 principios del documento, **pendiente de revisión por A**.
 - **Spec 004 creada** en `specs/004-resolubilidad-llaves/spec.md`
-  (FR-001..FR-024, SC-001..SC-007, los 4 escenarios del Apéndice B) y
-  clarificada el 2026-11-09. Checklist en
+  (FR-001..FR-024, NFR-001..NFR-005, SC-001..SC-007, los 4 escenarios del
+  Apéndice B) y clarificada el 2026-11-09. Checklist en
   `specs/004-resolubilidad-llaves/checklists/requirements.md`.
+- **Plan, research, modelo de datos, contratos, quickstart y 49 tareas**
+  generados en `specs/004-resolubilidad-llaves/`; `analyze` sin huecos de
+  cobertura (FR/NFR/SC mapeados).
+- **Contrato de llaves implementado** (`T003..T006`, `T008`): `UbicacionLlave`
+  y `RespuestaLlaves`, `FuenteDatos.llaves()`, `ClienteHTTP`, `FuenteOffline`,
+  `AlmacenCripta.guardar_llaves/cargar_llaves` con validación de versión y
+  pruebas de contrato/offline/almacén. **96/96 pruebas en verde**.
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
 - `.venv` con `requests` y `pygame-ce` 2.5.8: **91/91 pruebas en verde**.
@@ -74,8 +81,8 @@ sin avisar):
 
 ## Siguiente
 
-1. Pedir a A que revise la constitución (`.specify/memory/constitution.md`).
-2. Fase 2, paso 2C: confirmar la spec 004 en Git (commits separados de
-   `specify` y `clarify`) **antes** de cualquier código.
-3. Fase 3: `/speckit.plan` de la spec 004 (problema §5.4), rechazando
-   estructuras prohibidas, y después `/speckit.tasks` + `/speckit.analyze`.
+1. `T007`: orden de consulta en el controlador (datos → presupuesto →
+   esqueleto → llaves) y error explícito al agotar presupuesto.
+2. `T009..T011`: generador sintético determinista y oráculo ingenuo.
+3. `T012..T018`: verificador incremental y `--verificar` (US1).
+4. Pedir a A que revise la constitución y la interfaz B→A.
