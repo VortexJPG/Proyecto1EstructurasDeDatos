@@ -116,6 +116,16 @@ class PruebaClienteHTTP(unittest.TestCase):
         self.assertEqual(contexto.exception.codigo_http, 404)
         self.assertIn("llaves", str(contexto.exception))
 
+    def test_llaves_presupuesto_agotado(self):
+        cliente = ClienteHTTP()
+        cliente.establecer_presupuesto(1)
+        with mock.patch.object(cliente_http.requests, "get", return_value=RespuestaFalsa(200, {"llaves": []})):
+            cliente.llaves("cripta-02")
+            with self.assertRaises(PresupuestoAgotado) as contexto:
+                cliente.llaves("cripta-02")
+        self.assertIn("llaves", str(contexto.exception))
+        self.assertEqual(cliente.estadisticas().solicitudes_realizadas, 1)
+
     def test_dos_hilos_no_exceden_el_presupuesto(self):
         cliente = ClienteHTTP()
         cliente.establecer_presupuesto(50)
@@ -228,6 +238,28 @@ class PruebaAlmacenLlaves(unittest.TestCase):
         self.assertFalse(self.almacen.validar_version("v2"))
         self.assertIsNone(self.almacen.cargar_llaves("v1"))
         self.assertIsNone(self.almacen.cargar_llaves("v2"))
+
+    def test_el_esqueleto_conserva_el_costo(self):
+        from cripta.modelo.datos import DatosSala, DatosSalida
+
+        salas = [DatosSala(1, "Uno", [DatosSalida("N", 2, costo=250), DatosSalida("S", 1)])]
+        self.almacen.guardar_esqueleto(salas)
+        cargadas = self.almacen.cargar_esqueleto()
+        self.assertEqual(cargadas[0].salidas[0].costo, 250)
+        self.assertIsNone(cargadas[0].salidas[1].costo)
+
+
+class PruebaContratoSalida(unittest.TestCase):
+    def test_costo_opcional_desde_json(self):
+        from cripta.modelo.datos import DatosSala
+
+        sala = DatosSala.desde_json({
+            "id": 1,
+            "nombre": "Uno",
+            "salidas": {"N": {"sala": 2, "costo": 250}, "S": {"sala": 3}},
+        })
+        self.assertEqual(sala.salidas[0].costo, 250)
+        self.assertIsNone(sala.salidas[1].costo)
 
 
 class _FuenteContada:

@@ -189,6 +189,8 @@ class AlmacenCripta:
                 item["llave"] = s.llave
             if s.cierre_automatico is not None:
                 item["cierre_automatico"] = s.cierre_automatico
+            if s.costo is not None:
+                item["costo"] = s.costo
             salidas[s.direccion] = item
         return {"id": sala.id, "nombre": sala.nombre, "salidas": salidas}
 

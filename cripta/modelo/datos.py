@@ -77,6 +77,9 @@ class DatosSalida:
     cerrada: bool = False
     llave: str | None = None
     cierre_automatico: int | None = None
+    # Costo de recorrer la salida (Parte II). None = ausente en el servicio,
+    # que equivale a 100. La Persona A lo consume en el movimiento.
+    costo: int | None = None
 
 
 @dataclass(slots=True)
@@ -106,6 +109,7 @@ class DatosSala:
                     cierre_automatico=None
                     if valor.get("cierre_automatico") is None
                     else int(valor.get("cierre_automatico")),
+                    costo=None if valor.get("costo") is None else int(valor.get("costo")),
                 )
             )
         return DatosSala(id=int(datos["id"]), nombre=str(datos["nombre"]), salidas=salidas)
