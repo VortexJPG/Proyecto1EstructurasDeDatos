@@ -219,6 +219,21 @@ que se obtiene una ubicación por llave, incluidas las que suelta un enemigo.
   considerarla obtenible cuando al menos una ubicación sea alcanzable, y MUST
   elegir la ubicación reportada de forma determinista.
 
+### Performance Requirements
+
+- **NFR-001**: La verificación de la cripta publicada más grande (hoy 300
+  salas) MUST completarse en **≤ 200 ms** en el equipo de referencia.
+- **NFR-002**: El costo MUST crecer de forma aproximadamente lineal en
+  (salas + salidas + llaves); repetir el recorrido una vez por llave no es
+  aceptable como solución final.
+- **NFR-003**: Los límites y tamaños usados en las mediciones MUST ser
+  configurables, no constantes escritas en el código.
+- **NFR-004**: Las mediciones MUST usar semillas fijas y varias repeticiones, y
+  reportar mediana o mínimo.
+- **NFR-005**: El verificador MUST compararse contra una implementación ingenua
+  en criptas sintéticas pequeñas y coincidir en veredicto y conjunto de llaves
+  obtenibles.
+
 ### Key Entities
 
 - **Cripta**: definición publicada con versión; contiene salas, una sala
