@@ -4,11 +4,13 @@ Usan el controlador real con ``FuenteOffline`` sobre ``datos_ejemplo/`` (sin
 red) y un directorio temporal para la caché, los logs y las partidas.
 """
 
+import json
 import os
 import random
 import shutil
 import tempfile
 import unittest
+from unittest import mock
 
 from cripta.adaptadores.fuente_offline import FuenteOffline
 from cripta.adaptadores.guardado import GuardadoBinario, GuardadoJSON
@@ -203,6 +205,53 @@ class PruebaCacheChica(BaseIntegracion):
                 controlador.ejecutar_accion(azar.choice(opciones))
                 self.verificar_fijadas(controlador)
             controlador.cerrar_recursos()
+
+
+class PruebaPreparacionVerificacion(BaseIntegracion):
+    """``preparar_verificacion`` no debe cargar catálogo, contenido ni precarga."""
+
+    def crear_paquete(self):
+        paquete = os.path.join(self.directorio, "paquete", "cripta-min")
+        os.makedirs(paquete)
+
+        def escribir(nombre, datos):
+            with open(os.path.join(paquete, nombre), "w", encoding="utf-8") as archivo:
+                json.dump(datos, archivo, ensure_ascii=False)
+
+        escribir("cripta.json", {
+            "id": "cripta-min", "version": "v1", "salas_total": 3, "paginas": 1,
+            "salas_por_pagina": 50, "sala_inicial": 1, "sala_salida": 3,
+            "llave_salida": "itm_k", "presupuesto_solicitudes": 10, "inventario_max": 5,
+            "jugador": {"vida_max": 30, "ataque": 5, "defensa": 1, "velocidad": 100},
+        })
+        escribir("salas_pagina_1.json", {"pagina": 1, "total_paginas": 1, "salas": [
+            {"id": 1, "nombre": "Uno", "salidas": {"N": {"sala": 2}}},
+            {"id": 2, "nombre": "Dos", "salidas": {"S": {"sala": 1}, "N": {"sala": 3, "cerrada": True, "llave": "itm_k"}}},
+            {"id": 3, "nombre": "Tres", "salidas": {"S": {"sala": 2}}},
+        ]})
+        escribir("llaves.json", {"llaves": [{"id": "itm_k", "sala": 1}]})
+        return os.path.dirname(paquete)
+
+    def test_preparacion_ligera_y_cache(self):
+        paquete = self.crear_paquete()
+        opciones = OpcionesEjecucion(directorio_datos=self.directorio, cache_size=5)
+        controlador = Controlador(FuenteOffline(paquete), opciones, None)
+        controlador.preparar_verificacion("cripta-min")
+        self.assertEqual([u.id for u in controlador.obtener_llaves()], ["itm_k"])
+        self.assertIsNone(controlador._catalogo)
+        self.assertIsNone(controlador._precarga)
+        carpeta = os.path.join(self.directorio, "cripta-min")
+        self.assertTrue(os.path.exists(os.path.join(carpeta, "llaves.json")))
+        self.assertFalse(os.path.exists(os.path.join(carpeta, "contenido_1.json")))
+
+    def test_la_segunda_vez_lee_el_disco(self):
+        paquete = self.crear_paquete()
+        opciones = OpcionesEjecucion(directorio_datos=self.directorio, cache_size=5)
+        Controlador(FuenteOffline(paquete), opciones, None).preparar_verificacion("cripta-min")
+        otro = Controlador(FuenteOffline(paquete), opciones, None)
+        with mock.patch.object(otro.fuente, "llaves", side_effect=AssertionError("no debe pedir llaves")):
+            otro.preparar_verificacion("cripta-min")
+        self.assertEqual(len(otro.obtener_llaves()), 1)
 
 
 if __name__ == "__main__":

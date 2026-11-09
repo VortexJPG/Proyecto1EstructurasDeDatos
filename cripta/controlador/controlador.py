@@ -43,7 +43,7 @@ from cripta.modelo.mapa import Mapa
 
 if TYPE_CHECKING:
     from cripta.modelo.acciones import Accion, ResultadoAccion
-    from cripta.modelo.datos import ContenidoSala, DatosCripta
+    from cripta.modelo.datos import ContenidoSala, DatosCripta, UbicacionLlave
     from cripta.modelo.guardable import EstadoGuardable
     from cripta.vista.vista_consola import VistaConsola
     from cripta.vista.vista_grafica import VistaGrafica
@@ -81,6 +81,7 @@ class Controlador:
         self._cripta_id = opciones.cripta_id
         self._version_catalogo: str | None = None
         self._semilla: int | None = None
+        self._llaves: list[UbicacionLlave] | None = None
 
     @property
     def juego(self) -> Juego | None:
@@ -182,7 +183,35 @@ class Controlador:
 
     def preparar_cripta(self, cripta_id: str) -> None:
         """Pasos 1-4 de la preparación (ver docstring del módulo)."""
+        self._preparar_datos_y_mapa(cripta_id)
+        # catálogo
+        catalogo = CacheCatalogo(self.fuente, self.almacen_catalogo, self.cache_size)
+        self._catalogo = catalogo
+        self._version_catalogo = self.fuente.version_catalogo()
+        catalogo.validar_version(self._version_catalogo)
+        # precarga
+        mapa = self._mapa
+        assert mapa is not None
+
+        def incorporar(contenido: ContenidoSala) -> None:
+            mapa.incorporar_contenido(contenido, catalogo)
+
+        self._precarga = PlanificadorPrecarga(
+            self.fuente, cripta_id, self._almacen_cripta, self._catalogo, self._mapa.vecinos, incorporar
+        )
+        # asegurar sala inicial
+        self._precarga.asegurar(self._datos.sala_inicial)
+        self._precarga.planificar(self._datos.sala_inicial)
+
+    def _preparar_datos_y_mapa(self, cripta_id: str) -> None:
+        """Datos generales, presupuesto, esqueleto y mapa; sin catálogo ni vista.
+
+        Lo comparten la partida y ``--verificar``. Fija el presupuesto ANTES
+        de cualquier otra solicitud, porque la consulta de llaves también
+        cuenta (§4.2 de la Parte II).
+        """
         self._cripta_id = cripta_id
+        self._llaves = None
         self._datos = self.fuente.datos_cripta(cripta_id)
         self.fuente.establecer_presupuesto(self._datos.presupuesto_solicitudes)
         self._almacen_cripta = AlmacenCripta(self.directorio_datos, cripta_id)
@@ -196,23 +225,32 @@ class Controlador:
             self._almacen_cripta.guardar_esqueleto(esqueleto)
             self._almacen_cripta.guardar_datos_generales(self._datos)
         self._mapa = Mapa.construir(self._datos, esqueleto)
-        # catálogo
-        self._catalogo = CacheCatalogo(self.fuente, self.almacen_catalogo, self.cache_size)
-        self._version_catalogo = self.fuente.version_catalogo()
-        self._catalogo.validar_version(self._version_catalogo)
-        # precarga
-        mapa = self._mapa
-        catalogo = self._catalogo
 
-        def incorporar(contenido: ContenidoSala) -> None:
-            mapa.incorporar_contenido(contenido, catalogo)
+    def preparar_verificacion(self, cripta_id: str) -> None:
+        """Preparación ligera para verificar una cripta.
 
-        self._precarga = PlanificadorPrecarga(
-            self.fuente, cripta_id, self._almacen_cripta, self._catalogo, self._mapa.vecinos, incorporar
-        )
-        # asegurar sala inicial
-        self._precarga.asegurar(self._datos.sala_inicial)
-        self._precarga.planificar(self._datos.sala_inicial)
+        Solo datos generales, esqueleto y llaves. No carga catálogo, contenido
+        ni precarga, no crea partida y no instancia la vista (§3.5).
+        """
+        self._preparar_datos_y_mapa(cripta_id)
+        self.obtener_llaves()
+
+    def obtener_llaves(self) -> list[UbicacionLlave]:
+        """Llaves de la cripta: memoria → disco (misma versión) → servicio.
+
+        La primera consulta al servicio cuenta en el presupuesto; las
+        siguientes reutilizan la copia local.
+        """
+        if self._llaves is not None:
+            return self._llaves
+        if self._datos is None or self._almacen_cripta is None:
+            raise RuntimeError("Hay que preparar la cripta antes de pedir las llaves")
+        llaves = self._almacen_cripta.cargar_llaves(self._datos.version)
+        if llaves is None:
+            llaves = self.fuente.llaves(self._datos.id)
+            self._almacen_cripta.guardar_llaves(llaves, self._datos.version)
+        self._llaves = llaves
+        return llaves
 
     def iniciar_partida(self, nombre_jugador: str, semilla: int | None, registrar_replay: bool = True) -> None:
         """Paso 5 + abrir el ``EscritorReplay``."""
