@@ -1,0 +1,203 @@
+Subsistema            Caso                                           n    reps       us/op
+busqueda              buscar en TablaOrdenada (arreglo + búsqueda binaria), 25 claves      25   20000       0.895
+busqueda              insertar en TablaOrdenada (arreglo + búsqueda binaria), 25 claves      25   20000       0.894
+busqueda              buscar en lista sin ordenar, sin repetir (descartada), 25 claves      25     125       0.198
+busqueda              insertar en lista sin ordenar, sin repetir (descartada), 25 claves      25    2000       0.184
+busqueda              buscar en TablaOrdenada (arreglo + búsqueda binaria), 100 claves     100   20000       1.217
+busqueda              insertar en TablaOrdenada (arreglo + búsqueda binaria), 100 claves     100   20000       1.140
+busqueda              buscar en lista sin ordenar, sin repetir (descartada), 100 claves     100     500       0.976
+busqueda              insertar en lista sin ordenar, sin repetir (descartada), 100 claves     100    2000       1.018
+busqueda              buscar en TablaOrdenada (arreglo + búsqueda binaria), 1000 claves    1000   20000       1.550
+busqueda              insertar en TablaOrdenada (arreglo + búsqueda binaria), 1000 claves    1000   20000       1.825
+busqueda              buscar en lista sin ordenar, sin repetir (descartada), 1000 claves    1000    5000      10.445
+busqueda              insertar en lista sin ordenar, sin repetir (descartada), 1000 claves    1000    2000      15.111
+busqueda              buscar en TablaOrdenada (arreglo + búsqueda binaria), 5000 claves    5000   25000       1.922
+busqueda              insertar en TablaOrdenada (arreglo + búsqueda binaria), 5000 claves    5000   20000       3.320
+busqueda              buscar en lista sin ordenar, sin repetir (descartada), 5000 claves    5000   25000      57.575
+busqueda              insertar en lista sin ordenar, sin repetir (descartada), 5000 claves    5000    5000      48.153
+cola                  ColaEnlazada, 100 elementos                  100     500       1.042
+cola                  list pop(0) (descartada), 100 elementos      100     500       0.301
+cola                  ColaEnlazada, 1000 elementos                1000    5000       0.324
+cola                  list pop(0) (descartada), 1000 elementos    1000    5000       0.063
+cola                  ColaEnlazada, 5000 elementos                5000   25000       0.598
+cola                  list pop(0) (descartada), 5000 elementos    5000   25000       0.360
+cola                  ColaEnlazada, 50000 elementos              50000  250000       0.377
+cola                  list pop(0) (descartada), 50000 elementos   50000  250000       3.612
+ordenamiento          insercion aleatorio n=16                      16    1250       6.530
+ordenamiento          mezcla aleatorio n=16                         16    1250      13.849
+ordenamiento          selector aleatorio n=16                       16    1250       6.279
+ordenamiento          insercion casi_ordenado n=16                  16    1250       3.766
+ordenamiento          mezcla casi_ordenado n=16                     16    1250      11.831
+ordenamiento          selector casi_ordenado n=16                   16    1250       2.516
+ordenamiento          insercion inverso n=16                        16    1250       9.024
+ordenamiento          mezcla inverso n=16                           16    1250      11.857
+ordenamiento          selector inverso n=16                         16    1250       9.864
+ordenamiento          insercion aleatorio n=32                      32     625      19.905
+ordenamiento          mezcla aleatorio n=32                         32     625      31.533
+ordenamiento          selector aleatorio n=32                       32     625      17.016
+ordenamiento          insercion casi_ordenado n=32                  32     625       5.644
+ordenamiento          mezcla casi_ordenado n=32                     32     625      28.022
+ordenamiento          selector casi_ordenado n=32                   32     625       6.391
+ordenamiento          insercion inverso n=32                        32     625      39.958
+ordenamiento          mezcla inverso n=32                           32     625      33.040
+ordenamiento          selector inverso n=32                         32     625      41.877
+ordenamiento          insercion aleatorio n=48                      48     416      47.757
+ordenamiento          mezcla aleatorio n=48                         48     416      66.827
+ordenamiento          selector aleatorio n=48                       48     416      57.257
+ordenamiento          insercion casi_ordenado n=48                  48     416      12.568
+ordenamiento          mezcla casi_ordenado n=48                     48     416      43.719
+ordenamiento          selector casi_ordenado n=48                   48     416      14.200
+ordenamiento          insercion inverso n=48                        48     416      72.752
+ordenamiento          mezcla inverso n=48                           48     416      40.499
+ordenamiento          selector inverso n=48                         48     416      46.301
+ordenamiento          insercion aleatorio n=64                      64     312      77.276
+ordenamiento          mezcla aleatorio n=64                         64     312      64.974
+ordenamiento          selector aleatorio n=64                       64     312      73.876
+ordenamiento          insercion casi_ordenado n=64                  64     312      10.761
+ordenamiento          mezcla casi_ordenado n=64                     64     312      65.691
+ordenamiento          selector casi_ordenado n=64                   64     312      17.192
+ordenamiento          insercion inverso n=64                        64     312     142.518
+ordenamiento          mezcla inverso n=64                           64     312      57.004
+ordenamiento          selector inverso n=64                         64     312      60.376
+ordenamiento          insercion aleatorio n=128                    128     156     291.096
+ordenamiento          mezcla aleatorio n=128                       128     156     160.926
+ordenamiento          selector aleatorio n=128                     128     156     159.492
+ordenamiento          insercion casi_ordenado n=128                128     156      29.277
+ordenamiento          mezcla casi_ordenado n=128                   128     156     133.012
+ordenamiento          selector casi_ordenado n=128                 128     156      26.761
+ordenamiento          insercion inverso n=128                      128     156     477.764
+ordenamiento          mezcla inverso n=128                         128     156     119.395
+ordenamiento          selector inverso n=128                       128     156     126.226
+ordenamiento          insercion aleatorio n=500                    500      40    4338.859
+ordenamiento          mezcla aleatorio n=500                       500      40     678.911
+ordenamiento          selector aleatorio n=500                     500      40     810.178
+ordenamiento          insercion casi_ordenado n=500                500      40     133.166
+ordenamiento          mezcla casi_ordenado n=500                   500      40     837.660
+ordenamiento          selector casi_ordenado n=500                 500      40     156.736
+ordenamiento          insercion inverso n=500                      500      40    7723.574
+ordenamiento          mezcla inverso n=500                         500      40     622.591
+ordenamiento          selector inverso n=500                       500      40     600.308
+ordenamiento          mezcla aleatorio n=5000                     5000      10   12023.263
+ordenamiento          selector aleatorio n=5000                   5000      10   10849.277
+ordenamiento          insercion casi_ordenado n=5000              5000      10   10217.882
+ordenamiento          mezcla casi_ordenado n=5000                 5000      10    9626.878
+ordenamiento          selector casi_ordenado n=5000               5000      10   10259.472
+ordenamiento          mezcla inverso n=5000                       5000      10    6756.201
+ordenamiento          selector inverso n=5000                     5000      10    7240.007
+ordenamiento          clave una vez por elemento n=10               10     200       9.703
+ordenamiento          clave en cada comparación (descartada) n=10      10     200      27.042
+ordenamiento          clave una vez por elemento n=50               50      40     104.544
+ordenamiento          clave en cada comparación (descartada) n=50      50      40     938.786
+ordenamiento          clave una vez por elemento n=200             200      10     482.230
+ordenamiento          clave en cada comparación (descartada) n=200     200      10   16161.171
+cache                 CacheAcotada acierto, 100 claves             100     250       1.850
+cache                 CacheAcotada fallo, 100 claves               100     250       0.531
+cache                 CacheAcotada acierto, 1000 claves           1000    2500       1.342
+cache                 CacheAcotada fallo, 1000 claves             1000    2500       0.745
+cache                 LRU 4 criptas reales cap=2 aciertos=68.5% (11 tipos)       2     451       1.431
+cache                 FIFO 4 criptas reales cap=2 aciertos=67.4% (11 tipos)       2     451       0.911
+cache                 LFU 4 criptas reales cap=2 aciertos=69.0% (11 tipos)       2     451       1.474
+cache                 LRU 4 criptas reales cap=4 aciertos=78.9% (11 tipos)       4     451       1.293
+cache                 FIFO 4 criptas reales cap=4 aciertos=78.0% (11 tipos)       4     451       1.201
+cache                 LFU 4 criptas reales cap=4 aciertos=78.3% (11 tipos)       4     451       4.068
+cache                 LRU 4 criptas reales cap=6 aciertos=82.7% (11 tipos)       6     451       1.410
+cache                 FIFO 4 criptas reales cap=6 aciertos=81.8% (11 tipos)       6     451       1.137
+cache                 LFU 4 criptas reales cap=6 aciertos=83.8% (11 tipos)       6     451       1.736
+cache                 LRU catálogo grande cap=10 aciertos=92.1% (58 tipos)      10    6000       1.605
+cache                 FIFO catálogo grande cap=10 aciertos=88.8% (58 tipos)      10    6000       0.906
+cache                 LFU catálogo grande cap=10 aciertos=88.4% (58 tipos)      10    6000       2.716
+cache                 LRU catálogo grande cap=25 aciertos=98.5% (58 tipos)      25    6000       1.174
+cache                 FIFO catálogo grande cap=25 aciertos=98.0% (58 tipos)      25    6000       0.854
+cache                 LFU catálogo grande cap=25 aciertos=97.0% (58 tipos)      25    6000       2.081
+cache                 recuperar ficha desde memoria                 11    2200       1.792
+cache                 recuperar ficha desde disco                   11    2200      36.962
+precarga              elegir lote (BFS), 100 salas                 100     200      94.737
+precarga              elegir lote (BFS), 2500 salas               2500     200     114.045
+precarga              elegir lote (BFS), 10000 salas             10000     200     118.305
+precarga              4 criptas: 12 solicitudes por lotes vs 99 una por sala; 95/99 salas ya pedidas al moverse      99       1       0.000
+guardado              binario partida real en cripta-04: 11.5 KB, guardar 0.3 ms, cargar (dato)      50       5     378.479
+guardado              json partida real en cripta-04: 26.7 KB, guardar 1.3 ms, cargar (dato)      50       5     364.481
+guardado              cargar UNA sala (binario) partida real en cripta-04      50      50      35.692
+guardado              binario sintetica-900: 112.2 KB, guardar 3.6 ms, cargar (dato)     900       5    4475.590
+guardado              json sintetica-900: 387.1 KB, guardar 21.3 ms, cargar (dato)     900       5    5635.810
+guardado              cargar UNA sala (binario) sintetica-900      900      50     214.318
+agenda                montículo + borrado perezoso, 100 eventos     100   20000       3.521
+agenda                lista lineal (descartada), 100 eventos       100   20000      10.100
+agenda                montículo + borrado perezoso, 500 eventos     500   20000       3.872
+agenda                lista lineal (descartada), 500 eventos       500   20000      57.139
+agenda                montículo + borrado perezoso, 2000 eventos    2000   20000       4.825
+agenda                lista lineal (descartada), 2000 eventos     2000   20000     251.162
+ciclo                 salas=100 enemigos=50 peor=8.05 ms cambios/intervalo=332      50     200     637.107
+ciclo                 salas=400 enemigos=200 peor=13.49 ms cambios/intervalo=1347     200     200    3227.165
+ciclo                 salas=900 enemigos=500 peor=19.56 ms cambios/intervalo=3359     500     200    9652.309
+inventario            ListaDoble + TablaOrdenada, 10 objetos        10   20000       1.996
+inventario            list pop(i)/insert(0) (descartada), 10 objetos      10   20000       0.066
+inventario            ListaDoble + TablaOrdenada, 100 objetos      100   20000       2.450
+inventario            list pop(i)/insert(0) (descartada), 100 objetos     100   20000       0.094
+inventario            ListaDoble + TablaOrdenada, 1000 objetos    1000   20000       3.436
+inventario            list pop(i)/insert(0) (descartada), 1000 objetos    1000   20000       0.253
+inventario            ListaDoble + TablaOrdenada, 10000 objetos   10000   20000       5.455
+inventario            list pop(i)/insert(0) (descartada), 10000 objetos   10000   20000       2.469
+inventario            ListaDoble + TablaOrdenada, 100000 objetos  100000   20000       7.793
+inventario            list pop(i)/insert(0) (descartada), 100000 objetos  100000   20000      20.111
+inventario            ListaDoble + TablaOrdenada, soltar en posición inicio, 10000 objetos   10000   20000       8.330
+inventario            list, soltar en posición inicio (descartada), 10000 objetos   10000   20000       3.140
+inventario            ListaDoble + TablaOrdenada, soltar en posición medio, 10000 objetos   10000   20000       9.721
+inventario            list, soltar en posición medio (descartada), 10000 objetos   10000   20000       1.569
+inventario            ListaDoble + TablaOrdenada, soltar en posición final, 10000 objetos   10000   20000      11.156
+inventario            list, soltar en posición final (descartada), 10000 objetos   10000   20000       0.049
+historial             bitácora de deshacer, 10 cambios/intervalo      10  200000       0.478
+historial             bitácora de deshacer, 100 cambios/intervalo     100  200000       0.387
+historial             bitácora de deshacer, 1000 cambios/intervalo    1000  200000       0.363
+historial             copia completa por decisión (prohibida), 100 salas     100      30     278.900
+historial             copia completa por decisión (prohibida), 900 salas     900      30    4503.584
+rastro                200 rastreadores, 100 salas                  100   10000       0.638
+rastro                200 rastreadores, 2500 salas                2500   10000       0.924
+rastro                200 rastreadores, 10000 salas              10000   10000       0.781
+rastro                recorrido como lista (descartada), 100 pasos     100    1000       6.596
+rastro                recorrido como lista (descartada), 1000 pasos    1000    1000      73.226
+rastro                recorrido como lista (descartada), 10000 pasos   10000    1000     824.174
+bitacora              BufferCircular, capacidad 20                  20  100000       0.230
+bitacora              list append + pop(0) (descartada), capacidad 20      20  100000       0.075
+bitacora              BufferCircular, capacidad 2000              2000  100000       0.211
+bitacora              list append + pop(0) (descartada), capacidad 2000    2000  100000       0.274
+bitacora              BufferCircular, capacidad 20000            20000  100000       0.265
+bitacora              list append + pop(0) (descartada), capacidad 20000   20000  100000       2.563
+
+Frecuencia de operaciones (total / por decisión del jugador). El bot juega sin red.
+Operación                                              cripta-01           cripta-02           cripta-03           cripta-04    sintética 900/50
+decisiones del jugador                                        23                  42                  77                  93                 200
+salas visitadas / total                                      5/6               18/20               34/40               42/50                   -
+agenda: cancelar                                         3 (0.1)             6 (0.1)            16 (0.2)            21 (0.2)             0 (0.0)
+agenda: extraer el siguiente                            36 (1.6)            60 (1.4)           126 (1.6)           154 (1.7)      130781 (653.9)
+agenda: máximo de eventos pendientes                           4                   3                   4                   4                 668
+agenda: programar                                       40 (1.7)            67 (1.6)           143 (1.9)           176 (1.9)      130781 (653.9)
+agenda: ver el siguiente                                59 (2.6)           102 (2.4)           203 (2.6)           247 (2.7)      130981 (654.9)
+historial: cambios registrados                        325 (14.1)          565 (13.5)         1164 (15.1)         1432 (15.4)     671846 (3359.2)
+rastro: decisiones de rastreador                         0 (0.0)             0 (0.0)             0 (0.0)             0 (0.0)       50299 (251.5)
+bitácora: mensajes                                      46 (2.0)            78 (1.9)           172 (2.2)           215 (2.3)          1297 (6.5)
+inventario: agregar                                      8 (0.3)            10 (0.2)            10 (0.1)            10 (0.1)             0 (0.0)
+inventario: mover al frente                              2 (0.1)             2 (0.0)             2 (0.0)             2 (0.0)             0 (0.0)
+ordenamiento: elementos ordenados                       30 (1.3)            41 (1.0)            73 (0.9)            92 (1.0)             0 (0.0)
+ordenamiento: eligió insercion                           7 (0.3)            14 (0.3)            25 (0.3)            32 (0.3)             0 (0.0)
+ordenamiento: llamadas                                   7 (0.3)            14 (0.3)            25 (0.3)            32 (0.3)             0 (0.0)
+tabla ordenada: buscar                                491 (21.3)         1133 (27.0)         2317 (30.1)         3056 (32.9)             0 (0.0)
+tabla ordenada: insertar                               183 (8.0)           407 (9.7)          875 (11.4)         1215 (13.1)             0 (0.0)
+caché: aciertos en memoria                                    29                  48                  92                 112                   0
+caché: fijar                                            20 (0.9)            32 (0.8)            54 (0.7)            64 (0.7)             0 (0.0)
+caché: liberar                                          12 (0.5)            22 (0.5)            44 (0.6)            54 (0.6)             0 (0.0)
+caché: obtener ficha                                    29 (1.3)            48 (1.1)            92 (1.2)           112 (1.2)             0 (0.0)
+caché: pedidas por red                                        11                  11                  11                  11                   0
+caché: recuperadas de disco                                    0                   0                   0                   0                   0
+precarga: asegurar (antes de moverse)                    5 (0.2)            18 (0.4)            34 (0.4)            42 (0.5)             0 (0.0)
+precarga: planificar                                    24 (1.0)            43 (1.0)            78 (1.0)            94 (1.0)             0 (0.0)
+precarga: sala NO pedida al moverse                            1                   1                   1                   1                   0
+precarga: sala ya pedida al moverse                            4                  17                  33                  41                   0
+red: catalogo                                                  2                   3                   3                   4                   0
+red: contenido                                                 1                   2                   4                   5                   0
+red: datos_cripta                                              1                   1                   1                   1                   0
+red: listar_criptas                                            1                   1                   1                   1                   0
+red: pagina_esqueleto                                          1                   1                   1                   1                   0
+red: salas pedidas                                             6                  20                  40                  50                   0
+red: solicitudes                                               7                   9                  11                  13                   0
+red: version_catalogo                                          1                   1                   1                   1                   0

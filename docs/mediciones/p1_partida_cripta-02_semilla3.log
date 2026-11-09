@@ -1,0 +1,60 @@
+CRIPTA_REPLAY 1
+cripta_id=cripta-02
+version_cripta=8091a5cd8b7c
+version_catalogo=be68d322d2f5
+semilla=3
+nombre_jugador=BaseP1
+
+recoger o-1-0
+mover N
+recoger o-2-0
+recoger o-2-1
+equipar o-2-0
+mover N
+recoger o-3-0
+equipar o-3-0
+mover N
+recoger o-4-0
+mover N
+abrir E
+mover N
+recoger o-6-0
+mover N
+atacar e-rata-cripta-02-1
+recoger s1-e-rata-cripta-02-1
+mover N
+recoger o-8-0
+mover N
+recoger o-9-0
+mover N
+atacar e-rata-cripta-02-2
+atacar e-rata-cripta-02-2
+recoger s2-e-rata-cripta-02-2
+usar s1-e-rata-cripta-02-1
+mover N
+atacar e-rata-cripta-02-4
+atacar e-rata-cripta-02-5
+atacar e-rata-cripta-02-5
+recoger s3-e-rata-cripta-02-4
+usar o-9-0
+recoger s4-e-rata-cripta-02-5
+usar s2-e-rata-cripta-02-2
+mover N
+recoger o-12-0
+mover N
+atacar e-guard-cripta-02-6
+atacar e-guard-cripta-02-6
+atacar e-guard-cripta-02-6
+usar s3-e-rata-cripta-02-4
+usar s4-e-rata-cripta-02-5
+mover N
+recoger o-14-0
+mover N
+mover N
+atacar e-rata-cripta-02-7
+atacar e-rata-cripta-02-7
+recoger s5-e-rata-cripta-02-7
+usar o-12-0
+mover N
+abrir N
+mover N
