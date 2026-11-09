@@ -69,8 +69,29 @@ class PruebaGeneradorSintetico(unittest.TestCase):
         ruta = os.path.join(os.path.dirname(__file__), "..", "cripta", "bench", "sinteticos.py")
         with open(ruta, encoding="utf-8") as archivo:
             texto = archivo.read()
-        for prohibido in ("import heapq", "import bisect", "import collections", "networkx"):
+        for prohibido in ("import heapq", "import bisect", "import collections", "import networkx"):
             self.assertNotIn(prohibido, texto)
+
+    def test_modulos_evaluados_sin_prohibidos(self):
+        base = os.path.join(os.path.dirname(__file__), "..", "cripta")
+        modulos = [
+            os.path.join(base, "modelo", "verificacion.py"),
+            os.path.join(base, "bench", "sinteticos.py"),
+            os.path.join(base, "bench", "bench_resolubilidad.py"),
+        ]
+        for ruta in modulos:
+            with open(ruta, encoding="utf-8") as archivo:
+                texto = archivo.read()
+            for prohibido in (
+                "import heapq",
+                "import bisect",
+                "import collections",
+                "import networkx",
+                "from collections",
+                "sorted(",
+                ".sort(",
+            ):
+                self.assertNotIn(prohibido, texto, f"{prohibido} en {ruta}")
 
 
 if __name__ == "__main__":

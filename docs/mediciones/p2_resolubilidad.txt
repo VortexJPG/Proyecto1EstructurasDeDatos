@@ -1,0 +1,43 @@
+Subsistema            Caso                                           n    reps       us/op
+resolubilidad         incremental salas=100 llaves=5               100       7     366.151
+resolubilidad         ingenuo salas=100 llaves=5                   100       7     128.310
+resolubilidad         incremental salas=100 llaves=10              100       7     398.182
+resolubilidad         ingenuo salas=100 llaves=10                  100       7     239.397
+resolubilidad         incremental salas=100 llaves=20              100       7     344.382
+resolubilidad         ingenuo salas=100 llaves=20                  100       7     626.724
+resolubilidad         incremental salas=100 llaves=40              100       7     559.132
+resolubilidad         ingenuo salas=100 llaves=40                  100       7     797.396
+resolubilidad         incremental salas=100 llaves=80              100       7     927.107
+resolubilidad         ingenuo salas=100 llaves=80                  100       7    2359.248
+resolubilidad         incremental salas=500 llaves=5               500       7    1301.416
+resolubilidad         ingenuo salas=500 llaves=5                   500       7     770.587
+resolubilidad         incremental salas=500 llaves=10              500       7    1793.522
+resolubilidad         ingenuo salas=500 llaves=10                  500       7    1389.284
+resolubilidad         incremental salas=500 llaves=20              500       7    1789.525
+resolubilidad         ingenuo salas=500 llaves=20                  500       7    1683.147
+resolubilidad         incremental salas=500 llaves=40              500       7    2201.954
+resolubilidad         ingenuo salas=500 llaves=40                  500       7    3316.952
+resolubilidad         incremental salas=500 llaves=80              500       7    2190.282
+resolubilidad         ingenuo salas=500 llaves=80                  500       7    6517.803
+resolubilidad         incremental salas=2000 llaves=5             2000       7    7644.692
+resolubilidad         ingenuo salas=2000 llaves=5                 2000       7    3099.437
+resolubilidad         incremental salas=2000 llaves=10            2000       7    6965.764
+resolubilidad         ingenuo salas=2000 llaves=10                2000       7    4080.434
+resolubilidad         incremental salas=2000 llaves=20            2000       7    7346.828
+resolubilidad         ingenuo salas=2000 llaves=20                2000       7    7373.166
+resolubilidad         incremental salas=2000 llaves=40            2000       7    7461.464
+resolubilidad         ingenuo salas=2000 llaves=40                2000       7   12522.128
+resolubilidad         incremental salas=2000 llaves=80            2000       7    6623.885
+resolubilidad         ingenuo salas=2000 llaves=80                2000       7   26283.580
+resolubilidad         incremental salas=5000 llaves=5             5000       7   15913.560
+resolubilidad         ingenuo salas=5000 llaves=5                 5000       7    8373.284
+resolubilidad         incremental salas=5000 llaves=10            5000       7   15326.330
+resolubilidad         ingenuo salas=5000 llaves=10                5000       7   10808.294
+resolubilidad         incremental salas=5000 llaves=20            5000       7   13472.240
+resolubilidad         ingenuo salas=5000 llaves=20                5000       7   18874.206
+resolubilidad         incremental salas=5000 llaves=40            5000       7   17512.510
+resolubilidad         ingenuo salas=5000 llaves=40                5000       7   30909.552
+resolubilidad         incremental salas=5000 llaves=80            5000       7   15237.694
+resolubilidad         ingenuo salas=5000 llaves=80                5000       7   59004.558
+resolubilidad         limite 200 ms (300 salas)                    300      20     932.308
+[resolubilidad] limite 200 ms (300 salas): 932.3 us (limite 200 ms) -> OK
