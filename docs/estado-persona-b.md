@@ -68,6 +68,10 @@ Pendiente: verificar spec-kit cuando la Persona A lo inicialice y revisar
   `specs/005-linea-de-tiempo/spec.md`: 7 historias, FR-001..FR-032,
   NFR-001..NFR-005, SC-001..SC-007 y los 6 escenarios del Apéndice B
   (`AC-005-01..06`). Checklist en `checklists/requirements.md`.
+- **Plan y 56 tareas de la spec 005** en `specs/005-linea-de-tiempo/`:
+  reconstrucción hacia adelante desde checkpoints (≤ K acciones), búsqueda
+  binaria propia, recorte por pergamino, persistencia v3 y detección de P1.
+  `analyze` sin huecos de cobertura (FR/NFR/SC mapeados).
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
 - `.venv` con `requests` y `pygame-ce` 2.5.8: **91/91 pruebas en verde**.
@@ -120,8 +124,10 @@ sin avisar):
 
 ## Siguiente
 
-1. **Fase 5 — Plan de la spec 005:** `/speckit.plan` (deltas, puntos de control,
-   búsqueda binaria propia, recorte, reconstrucción, formato v3), luego
-   `/speckit.tasks` y `/speckit.analyze`.
-2. Implementación de la línea de tiempo y de `historia <t>`/`historia #k`.
-3. `T047..T049`: pendientes de la spec 001 de A (`rango`, `cazador`).
+1. **Fase 5C — implementación de la línea de tiempo** (`T003..T015`):
+   registro de acciones y contenido, checkpoints cada K, reconstrucción y
+   formato v3.
+2. `T016` (interfaz con A): `avanzar_hasta(t)` y `ejecutar_accion(..., hasta)`
+   para consultar instantes entre decisiones.
+3. `T017..T035`: `historia <t>`/`#k`, rechazos, recorte y `--hasta`.
+4. `T047..T049` de la spec 004: pendientes de la spec 001 de A.
