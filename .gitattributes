@@ -1,0 +1,11 @@
+# Normaliza los fines de línea en el repositorio (LF) para que los diffs
+# sean solo de contenido, también cuando se trabaja desde Windows.
+* text=auto eol=lf
+
+*.py      text eol=lf
+*.md      text eol=lf
+*.json    text eol=lf
+*.txt     text eol=lf
+*.log     text eol=lf
+*.sav     binary
+*.pdf     binary
