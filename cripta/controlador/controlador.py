@@ -40,6 +40,7 @@ from cripta.controlador.precarga import PlanificadorPrecarga
 from cripta.modelo.acciones import TipoAccion
 from cripta.modelo.juego import Juego
 from cripta.modelo.mapa import Mapa
+from cripta.modelo.verificacion import ResultadoVerificacion, Verificador, formatear_resultado
 
 if TYPE_CHECKING:
     from cripta.modelo.acciones import Accion, ResultadoAccion
@@ -82,6 +83,7 @@ class Controlador:
         self._version_catalogo: str | None = None
         self._semilla: int | None = None
         self._llaves: list[UbicacionLlave] | None = None
+        self._resultado_verificacion: ResultadoVerificacion | None = None
 
     @property
     def juego(self) -> Juego | None:
@@ -212,6 +214,7 @@ class Controlador:
         """
         self._cripta_id = cripta_id
         self._llaves = None
+        self._resultado_verificacion = None
         self._datos = self.fuente.datos_cripta(cripta_id)
         self.fuente.establecer_presupuesto(self._datos.presupuesto_solicitudes)
         self._almacen_cripta = AlmacenCripta(self.directorio_datos, cripta_id)
@@ -251,6 +254,27 @@ class Controlador:
             self._almacen_cripta.guardar_llaves(llaves, self._datos.version)
         self._llaves = llaves
         return llaves
+
+    def verificar_cripta(self, cripta_id: str) -> ResultadoVerificacion:
+        """Verifica la resolubilidad sin crear partida ni tocar la vista.
+
+        Usa la preparación ligera (datos + esqueleto + llaves) y deja el
+        resultado disponible para el inicio de partida y para la vista.
+        """
+        self.preparar_verificacion(cripta_id)
+        if self._datos is None or self._mapa is None:
+            raise RuntimeError("Hay que preparar la cripta antes de verificarla")
+        resultado = Verificador(self._datos, self._mapa, self.obtener_llaves()).verificar()
+        self._resultado_verificacion = resultado
+        return resultado
+
+    def reporte_resolubilidad(self) -> ResultadoVerificacion | None:
+        return self._resultado_verificacion
+
+    def texto_resolubilidad(self) -> str:
+        if self._resultado_verificacion is None:
+            return ""
+        return formatear_resultado(self._resultado_verificacion)
 
     def iniciar_partida(self, nombre_jugador: str, semilla: int | None, registrar_replay: bool = True) -> None:
         """Paso 5 + abrir el ``EscritorReplay``."""

@@ -10,6 +10,8 @@ import random
 import shutil
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from unittest import mock
 
 from cripta.adaptadores.fuente_offline import FuenteOffline
@@ -252,6 +254,58 @@ class PruebaPreparacionVerificacion(BaseIntegracion):
         with mock.patch.object(otro.fuente, "llaves", side_effect=AssertionError("no debe pedir llaves")):
             otro.preparar_verificacion("cripta-min")
         self.assertEqual(len(otro.obtener_llaves()), 1)
+
+
+class PruebaCliVerificar(BaseIntegracion):
+    """``--verificar`` no instancia la vista ni escribe bitácora de partida."""
+
+    def crear_paquete(self, resoluble):
+        paquete = os.path.join(self.directorio, "paquete", "cripta-min")
+        os.makedirs(paquete)
+
+        def escribir(nombre, datos):
+            with open(os.path.join(paquete, nombre), "w", encoding="utf-8") as archivo:
+                json.dump(datos, archivo, ensure_ascii=False)
+
+        escribir("cripta.json", {
+            "id": "cripta-min", "version": "v1", "salas_total": 3, "paginas": 1,
+            "salas_por_pagina": 50, "sala_inicial": 1, "sala_salida": 3,
+            "llave_salida": "itm_k", "presupuesto_solicitudes": 10, "inventario_max": 5,
+            "jugador": {"vida_max": 30, "ataque": 5, "defensa": 1, "velocidad": 100},
+        })
+        escribir("salas_pagina_1.json", {"pagina": 1, "total_paginas": 1, "salas": [
+            {"id": 1, "nombre": "Uno", "salidas": {"N": {"sala": 2}}},
+            {"id": 2, "nombre": "Dos", "salidas": {"S": {"sala": 1}, "N": {"sala": 3, "cerrada": True, "llave": "itm_k"}}},
+            {"id": 3, "nombre": "Tres", "salidas": {"S": {"sala": 2}}},
+        ]})
+        sala_llave = 1 if resoluble else 3
+        escribir("llaves.json", {"llaves": [{"id": "itm_k", "sala": sala_llave}]})
+        return os.path.dirname(paquete)
+
+    def ejecutar(self, resoluble):
+        from cripta.controlador.aplicacion import main
+
+        paquete = self.crear_paquete(resoluble)
+        salida = StringIO()
+        with mock.patch("cripta.controlador.aplicacion.crear_vista") as crear:
+            with redirect_stdout(salida):
+                codigo = main(["--verificar", "cripta-min", "--offline", paquete, "--datos", self.directorio])
+        return codigo, salida.getvalue(), crear
+
+    def test_resoluble_sin_vista_ni_bitacora(self):
+        codigo, texto, crear = self.ejecutar(True)
+        self.assertEqual(codigo, 0)
+        self.assertIn("RESOLUBLE", texto)
+        self.assertIn("Orden de llaves: itm_k", texto)
+        crear.assert_not_called()
+        self.assertFalse(os.path.exists(os.path.join(self.directorio, "replays")))
+
+    def test_no_resoluble_sale_con_codigo_3(self):
+        codigo, texto, crear = self.ejecutar(False)
+        self.assertEqual(codigo, 3)
+        self.assertIn("NO RESOLUBLE", texto)
+        self.assertIn("Ciclo:", texto)
+        crear.assert_not_called()
 
 
 if __name__ == "__main__":

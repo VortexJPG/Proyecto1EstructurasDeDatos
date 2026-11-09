@@ -8,6 +8,8 @@ Banderas:
     --offline [DIR]    leer las respuestas desde disco en vez de la red (§3.4);
                        sin DIR se usa el paquete local ``datos_ejemplo/``
     --replay ARCHIVO   reproducir una partida sin interacción (§4.11)
+    --verificar CRIPTA verificar resolubilidad sin iniciar partida (§3.5)
+    --forzar           iniciar aunque la cripta no sea resoluble (§3.5)
     --bench [FILTRO]   mediciones por subsistema, sin vista (§5.3)
     --cache-size N     fichas de catálogo en memoria (por defecto 25, §4.4)
     --semilla N        semilla de la partida (opcional)
@@ -50,6 +52,10 @@ def construir_parser() -> argparse.ArgumentParser:
     parser.add_argument("--offline", nargs="?", const=DIRECTORIO_EJEMPLO, default=None, metavar="DIR",
                         help="leer respuestas guardadas en vez de usar la red (sin DIR: datos_ejemplo/)")
     parser.add_argument("--replay", type=str, default=None, help="archivo de bitácora a reproducir")
+    parser.add_argument("--verificar", type=str, default=None, metavar="CRIPTA",
+                        help="verificar si CRIPTA es resoluble, sin iniciar partida ni abrir la vista")
+    parser.add_argument("--forzar", action="store_true",
+                        help="iniciar la partida aunque la cripta no sea resoluble")
     parser.add_argument("--bench", nargs="?", const="", default=None, metavar="FILTRO",
                         help="ejecutar benchmarks (opcional: solo los que contienen FILTRO, p. ej. agenda)")
     parser.add_argument("--cache-size", type=int, default=CACHE_SIZE_POR_DEFECTO, dest="cache_size",
@@ -115,6 +121,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     try:
         fuente = crear_fuente(args)
+        if args.verificar:
+            controlador = Controlador(fuente, opciones, None)
+            resultado = controlador.verificar_cripta(args.verificar)
+            print(controlador.texto_resolubilidad())
+            return 0 if resultado.resoluble else 3
         if args.replay:
             from cripta.controlador.replay import ReproductorReplay
 
