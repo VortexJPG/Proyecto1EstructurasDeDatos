@@ -63,6 +63,11 @@ Pendiente: verificar spec-kit cuando la Persona A lo inicialice y revisar
   - `cripta-06` (300 salas) → RESOLUBLE; verificación ≈ **1.8 ms** de mediana.
 - **134/134 pruebas en verde**; el replay de la línea base sigue reproduciendo
   la misma victoria.
+- **Spec 004 implementada** salvo las tareas de A (`T047..T049`).
+- **Spec 005 (línea de tiempo) creada y clarificada** en
+  `specs/005-linea-de-tiempo/spec.md`: 7 historias, FR-001..FR-032,
+  NFR-001..NFR-005, SC-001..SC-007 y los 6 escenarios del Apéndice B
+  (`AC-005-01..06`). Checklist en `checklists/requirements.md`.
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
 - `.venv` con `requests` y `pygame-ce` 2.5.8: **91/91 pruebas en verde**.
@@ -115,9 +120,8 @@ sin avisar):
 
 ## Siguiente
 
-1. **Fase 4 — Spec 005 (línea de tiempo):** `/speckit.specify` con los 6
-   escenarios del Apéndice B, `historia <t>`/`historia #k`, `--hasta`,
-   `--checkpoint-cada`, persistencia v3 y memoria/tiempo para ≥ 3 valores de K.
-2. `T047..T049`: pendientes de la spec 001 de A (`rango`, `cazador`).
-3. Cuando A confirme su spec 001, implementar el consumo de `costo` y `rango`
-   en el modelo (interfaz ya acordada en `contracts/interfaz-a-b.md`).
+1. **Fase 5 — Plan de la spec 005:** `/speckit.plan` (deltas, puntos de control,
+   búsqueda binaria propia, recorte, reconstrucción, formato v3), luego
+   `/speckit.tasks` y `/speckit.analyze`.
+2. Implementación de la línea de tiempo y de `historia <t>`/`historia #k`.
+3. `T047..T049`: pendientes de la spec 001 de A (`rango`, `cazador`).
