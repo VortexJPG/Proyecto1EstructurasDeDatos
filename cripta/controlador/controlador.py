@@ -322,6 +322,11 @@ class Controlador:
     def reporte_resolubilidad(self) -> ResultadoVerificacion | None:
         return self._resultado_verificacion
 
+    @property
+    def timeline(self) -> LineaTiempo | None:
+        """Línea de tiempo de la partida en curso (o cargada)."""
+        return self._timeline
+
     def texto_resolubilidad(self) -> str:
         if self._resultado_verificacion is None:
             return ""

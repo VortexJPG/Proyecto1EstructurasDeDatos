@@ -8,6 +8,7 @@ Banderas:
     --offline [DIR]    leer las respuestas desde disco en vez de la red (§3.4);
                        sin DIR se usa el paquete local ``datos_ejemplo/``
     --replay ARCHIVO   reproducir una partida sin interacción (§4.11)
+    --hasta T          con --replay: detenerse en el instante T y mostrar la historia
     --verificar CRIPTA verificar resolubilidad sin iniciar partida (§3.5)
     --forzar           iniciar aunque la cripta no sea resoluble (§3.5)
     --bench [FILTRO]   mediciones por subsistema, sin vista (§5.3)
@@ -53,6 +54,8 @@ def construir_parser() -> argparse.ArgumentParser:
     parser.add_argument("--offline", nargs="?", const=DIRECTORIO_EJEMPLO, default=None, metavar="DIR",
                         help="leer respuestas guardadas en vez de usar la red (sin DIR: datos_ejemplo/)")
     parser.add_argument("--replay", type=str, default=None, help="archivo de bitácora a reproducir")
+    parser.add_argument("--hasta", type=int, default=None, metavar="T",
+                        help="con --replay: detenerse en el instante T e imprimir la historia")
     parser.add_argument("--verificar", type=str, default=None, metavar="CRIPTA",
                         help="verificar si CRIPTA es resoluble, sin iniciar partida ni abrir la vista")
     parser.add_argument("--forzar", action="store_true",
@@ -113,6 +116,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.checkpoint_cada < 1:
         print("--checkpoint-cada debe ser un entero >= 1", file=sys.stderr)
         return 1
+    if args.hasta is not None:
+        if args.replay is None:
+            print("--hasta solo se usa con --replay ARCHIVO", file=sys.stderr)
+            return 1
+        if args.hasta < 0:
+            print("--hasta debe ser un instante >= 0", file=sys.stderr)
+            return 1
     if args.bench is not None:
         from cripta.bench.runner import ejecutar_bench
 
@@ -138,8 +148,17 @@ def main(argv: list[str] | None = None) -> int:
             from cripta.controlador.replay import ReproductorReplay
 
             reproductor = ReproductorReplay(args.replay, fuente, opciones)
-            resumen = reproductor.ejecutar()
-            print(reproductor.describir(resumen))
+            resumen = reproductor.ejecutar(args.hasta)
+            if args.hasta is None:
+                print(reproductor.describir(resumen))
+                return 0
+            if reproductor.error_hasta is not None:
+                print(
+                    f"No se pudo consultar el instante {args.hasta}: {reproductor.error_hasta}",
+                    file=sys.stderr,
+                )
+                return 1
+            print(reproductor.describir_hasta())
             return 0
         vista = crear_vista(args.gui)
         try:

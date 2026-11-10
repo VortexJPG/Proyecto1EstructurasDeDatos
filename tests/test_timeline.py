@@ -10,6 +10,8 @@ import shutil
 import struct
 import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
 from unittest import mock
 
 from cripta.adaptadores.fuente_offline import FuenteOffline
@@ -18,10 +20,13 @@ from cripta.bench.bot import jugar
 from cripta.controlador.aplicacion import main
 from cripta.controlador.comandos import ComandoUsuario, TipoComando
 from cripta.controlador.controlador import Controlador, OpcionesEjecucion
+from cripta.controlador.replay import ReproductorReplay
 from cripta.modelo.acciones import Accion, TipoAccion
 from cripta.vista.vista_consola import VistaConsola
 
 DATOS_EJEMPLO = os.path.join(os.path.dirname(__file__), "..", "datos_ejemplo")
+LOG_BASE = os.path.join(os.path.dirname(__file__), "..", "docs", "mediciones",
+                        "p1_partida_cripta-02_semilla3.log")
 
 
 class BaseTimeline(unittest.TestCase):
@@ -246,6 +251,73 @@ class PruebaComandoHistoria(BaseTimeline):
         with mock.patch.object(vista, "mostrar_error") as error:
             self.assertIsNone(vista._interpretar("historia", None))
             error.assert_called_once()
+
+
+class PruebaReplayHasta(BaseTimeline):
+    def reproductor(self, sub="r"):
+        return ReproductorReplay(
+            LOG_BASE,
+            FuenteOffline(DATOS_EJEMPLO),
+            OpcionesEjecucion(
+                directorio_datos=os.path.join(self.directorio, sub),
+                cache_size=25,
+                checkpoint_cada=5,
+            ),
+        )
+
+    def test_hasta_cero(self):
+        reproductor = self.reproductor()
+        reproductor.ejecutar(0)
+        self.assertIsNone(reproductor.error_hasta)
+        resumen = reproductor._resumen_historico
+        self.assertEqual(resumen.reloj, 0)
+        self.assertEqual(resumen.sala, 1)
+        self.assertEqual(reproductor.acciones_reproducidas, 0)
+
+    def test_hasta_en_una_decision_coincide_con_la_linea(self):
+        completo = self.reproductor("full")
+        completo.ejecutar()
+        linea = completo._controlador.timeline
+        instante = linea.acciones[4].tiempo
+        esperado = linea.resumen(linea.estado_en_accion(4), f"t={instante}")
+        parcial = self.reproductor("parcial")
+        parcial.ejecutar(instante)
+        self.assertIsNone(parcial.error_hasta)
+        self.assertEqual(parcial._resumen_historico, esperado)
+
+    def test_hasta_despues_del_final(self):
+        reproductor = self.reproductor()
+        reproductor.ejecutar(99999)
+        self.assertIsNone(reproductor.error_hasta)
+        self.assertTrue(reproductor._termino_antes)
+        self.assertEqual(reproductor._estado_final, "victoria")
+        self.assertIn("terminó antes (victoria)", reproductor.describir_hasta())
+
+    def test_hasta_sin_vista(self):
+        salida = StringIO()
+        with mock.patch("cripta.controlador.aplicacion.crear_vista") as vista:
+            with redirect_stdout(salida):
+                codigo = main([
+                    "--offline", "--replay", LOG_BASE, "--hasta", "0",
+                    "--datos", os.path.join(self.directorio, "cli"),
+                ])
+        self.assertEqual(codigo, 0)
+        self.assertIn("Historia t=0", salida.getvalue())
+        vista.assert_not_called()
+
+    def test_hasta_sin_replay_es_error(self):
+        error = StringIO()
+        with redirect_stderr(error):
+            codigo = main(["--hasta", "5"])
+        self.assertEqual(codigo, 1)
+        self.assertIn("--replay", error.getvalue())
+
+    def test_hasta_negativo_es_error(self):
+        error = StringIO()
+        with redirect_stderr(error):
+            codigo = main(["--offline", "--replay", LOG_BASE, "--hasta", "-1"])
+        self.assertEqual(codigo, 1)
+        self.assertIn(">= 0", error.getvalue())
 
 
 if __name__ == "__main__":
