@@ -630,3 +630,14 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
   > Si
 
 - **Uso:** implementar la base de la línea de tiempo (`T003..T015`, `T026..T029`, `T037..T041`): `cripta/modelo/timeline.py`, checkpoints cada K con estado del azar, búsqueda binaria propia, reconstrucción en mapa propio con fichas de solo lectura, resumen histórico, recorte por pergamino, `--checkpoint-cada`, y formato binario/JSON v3 con la línea completa y rechazo explícito de archivos v2/P1. Suite en 143/143.
+
+### 56
+
+- **Fecha:** 2026-11-10
+- **Integrante:** Kevin
+- **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
+- **Prompt:**
+  
+  > Si, continua
+
+- **Uso:** implementar `T017..T025`: comando `historia <t>`/`historia #k` en el controlador, parseo en la consola, `mostrar_historia` en consola y ventana, rechazo de instantes futuros/negativos y de `#k` fuera de rango, y pruebas de que la consulta no altera reloj, bitácora ni historial de retroceso. Suite en 150/150.

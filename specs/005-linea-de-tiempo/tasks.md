@@ -45,15 +45,15 @@ la partida.
 
 ### Pruebas (primero)
 
-- [ ] T017 [P] [US1] Prueba de `historia <t>` y `historia #k` sobre una partida sintética (FR-004..FR-005, FR-010, FR-031).
-- [ ] T018 [P] [US1] Prueba de que la consulta no cambia reloj, log ni historial de retroceso (FR-006..FR-008, FR-007, AC-005-04).
+- [x] T017 [P] [US1] Prueba de `historia <t>` y `historia #k` sobre una partida sintética (FR-004..FR-005, FR-010, FR-031).
+- [x] T018 [P] [US1] Prueba de que la consulta no cambia reloj, log ni historial de retroceso (FR-006..FR-008, FR-007, AC-005-04).
 
 ### Implementación
 
-- [ ] T019 [US1] Implementar `consultar_historia(argumento)` en el controlador: parseo de `<t>`/`#k`, búsqueda de checkpoint y reconstrucción (FR-004..FR-008).
-- [ ] T020 [US1] Implementar `ResumenHistorico` y su texto legible (FR-005).
-- [ ] T021 [US1] Añadir `TipoComando.HISTORIA` y el despacho en `procesar_comando` (FR-004).
-- [ ] T022 [A] Parsear `historia` y mostrar el resumen en consola y ventana (`mostrar_historia`) (FR-004, FR-005).
+- [x] T019 [US1] Implementar `consultar_historia(argumento)` en el controlador: parseo de `<t>`/`#k`, búsqueda de checkpoint y reconstrucción (FR-004..FR-008).
+- [x] T020 [US1] Implementar `ResumenHistorico` y su texto legible (FR-005).
+- [x] T021 [US1] Añadir `TipoComando.HISTORIA` y el despacho en `procesar_comando` (FR-004).
+- [x] T022 [A] Mostrar el resumen en consola y ventana (`mostrar_historia`); en consola se parsea `historia <t>|#k`. La ventana muestra el resumen cuando recibe el comando (acceso por teclado pendiente) (FR-004, FR-005).
 
 **Checkpoint**: `historia` funciona en una partida real.
 
@@ -61,9 +61,9 @@ la partida.
 
 ## Phase 4: US2 — Rechazar consultas imposibles (P1)
 
-- [ ] T023 [P] [US2] Prueba `AC-005-01`: t posterior al reloj se rechaza (FR-009).
-- [ ] T024 [P] [US2] Prueba de t negativo y de `#k` fuera de rango (FR-009).
-- [ ] T025 [US2] Implementar la validación y los mensajes de rechazo (FR-009, FR-014).
+- [x] T023 [P] [US2] Prueba `AC-005-01`: t posterior al reloj se rechaza (FR-009).
+- [x] T024 [P] [US2] Prueba de t negativo y de `#k` fuera de rango (FR-009).
+- [x] T025 [US2] Implementar la validación y los mensajes de rechazo (FR-009, FR-014).
 
 ---
 

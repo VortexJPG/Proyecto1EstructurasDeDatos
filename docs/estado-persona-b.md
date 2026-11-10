@@ -80,6 +80,9 @@ Pendiente: verificar spec-kit cuando la Persona A lo inicialice y revisar
   rechazo explícito de archivos v2/P1.
 - **143/143 pruebas en verde**; guardar/cargar conserva la línea y el replay
   de P1 sigue idéntico.
+- **Comando `historia <t>|#k`** (`T017..T025`): el controlador reconstruye sin
+  tocar la partida, la consola lo parsea y muestra el resumen; rechaza
+  instantes futuros/negativos y acciones fuera de rango. **150/150 pruebas**.
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
 - `.venv` con `requests` y `pygame-ce` 2.5.8: **91/91 pruebas en verde**.
@@ -139,10 +142,10 @@ sin avisar):
 
 ## Siguiente
 
-1. `T017..T025`: comando `historia <t>`/`#k` en el controlador y la vista,
-   rechazos y AC-005-01/04.
+1. `T033..T036`: `--replay … --hasta` con el mismo resumen y sin vista.
 2. `T030..T032`: mismo instante; requiere `Juego.avanzar_hasta(t)` (A) para
    instantes entre decisiones.
-3. `T033..T036`: `--replay … --hasta`.
-4. `T042..T047`: `--bench timeline`, elección de K y documentación.
-5. `T047..T049` de la spec 004: pendientes de la spec 001 de A.
+3. `T042..T047`: `--bench timeline`, elección de K y documentación.
+4. `T047..T049` de la spec 004: pendientes de la spec 001 de A.
+5. Ventana: falta un acceso por teclado/menú para invocar `historia`; el
+   método `mostrar_historia` ya está.
