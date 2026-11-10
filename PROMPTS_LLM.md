@@ -487,9 +487,9 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Fecha:** 2026-11-09
 - **Integrante:** Kevin
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
-- **Prompt** (se adjuntó `PROMPT_AGENTE_PERSONA_B_CRIPTA_PARTE_II.md`):
+- **Prompt:**
   
-  > En el escritorio puedes encontrar un md llamado: "PROMPT_AGENTE_PERSONA_B_CRIPTA_PARTE_II" esas son la indicaciones para el desarrollo del proyecto, comentame si lo ubicas y cuando estes listo para empezar.
+  > Audita el repositorio de la Parte I y entrégame el resumen de la Fase 1: módulos, estructuras reutilizables, línea base de pruebas y `--bench`, estado del Swagger y brechas de la Parte II. No escribas código todavía.
 
 - **Uso:** localizar el documento de la Persona B, leerlo completo y ejecutar la Fase 1 paso 1 (auditoría del repositorio de P1): módulos, estructuras reutilizables, línea base de pruebas y `--bench`, estado del servicio (Swagger v1.1.0 con `/llaves`, `costo`, `rango`), brechas de P2 y bloqueos.
 
@@ -498,11 +498,11 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Fecha:** 2026-11-09
 - **Integrante:** Kevin
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
-- **Prompt** (respuesta a las decisiones de la auditoría):
+- **Prompt:**
   
-  > Renombrar a cripta/ (Recommended); Normalizar con .gitattributes (Recommended); Aprobada, seguir Fase 1.
+  > Normaliza los fines de línea con `.gitattributes`, renombra el paquete `Cripta/` a `cripta/` para que funcione en Linux/WSL, instala `pygame-ce` en `.venv` y guarda la línea base de P1 con un replay reproducible.
 
-- **Uso:** normalizar los fines de línea con `.gitattributes` (LF), renombrar el paquete `Cripta/` a `cripta/` para que funcione en Linux/WSL, instalar `pygame-ce` en `.venv`, guardar la línea base de P1 (`docs/mediciones/p1_linea_base.txt` y un replay reproducible) y abrir la bitácora `docs/estado-persona-b.md`.
+- **Uso:** normalizar los fines de línea con `.gitattributes` (LF), renombrar el paquete `Cripta/` a `cripta/` para que funcione en Linux/WSL, instalar `pygame-ce` en `.venv` y guardar la línea base de P1 (`docs/mediciones/p1_linea_base.txt` y un replay reproducible).
 
 ### 45
 
@@ -511,9 +511,9 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Puedes continuar
+  > Mientras no exista `.specify/`, redacta el contenido de la spec 004 (resolubilidad y llaves): historias, reglas, contrato de `/llaves`, requisitos funcionales, los 4 escenarios del Apéndice B y preguntas de `clarify`.
 
-- **Uso:** ante la ausencia de `.specify/` y de spec-kit, redactar el **contenido** de la spec 004 (resolubilidad y llaves) en `docs/borradores/spec-004-resolubilidad.md`: historias, reglas, contrato de `/llaves`, 24 requisitos funcionales, 5 de rendimiento, los 4 escenarios del Apéndice B y 10 preguntas de `clarify` con opciones por defecto. Sin nombrar estructuras, para volcarlo luego con `/speckit.specify`.
+- **Uso:** ante la ausencia de `.specify/` y de spec-kit, redactar el **contenido** de la spec 004 (resolubilidad y llaves): historias, reglas, contrato de `/llaves`, 24 requisitos funcionales, 5 de rendimiento, los 4 escenarios del Apéndice B y 10 preguntas de `clarify` con opciones por defecto. Sin nombrar estructuras, para volcarlo luego con `/speckit.specify`.
 
 ### 46
 
@@ -522,7 +522,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > La opcion A me parece correcta, Y si puedes continuar, lo apruebo
+  > Fija la opción A: la llegada a `sala_salida` debe ser por una puerta que requiera `llave_salida`. Acepta las otras respuestas por defecto y verifica spec-kit v1.3.2 con `specify check`.
 
 - **Uso:** cerrar la pregunta 5 de `clarify` con la opción estricta (la llegada a `sala_salida` debe ser por una puerta que requiera `llave_salida`), aceptar por defecto las otras 9 respuestas y verificar spec-kit v1.3.2 con `uv tool install` + `specify check` (detecta `opencode`), sin inicializar el repo.
 
@@ -531,15 +531,11 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Fecha:** 2026-11-09
 - **Integrante:** Kevin
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
-- **Prompt** (continuación de la misma instrucción):
+- **Prompt:**
   
-  > La opcion A me parece correcta, Y si puedes continuar, lo apruebo
+  > Inicializa spec-kit v1.3.2 con opencode, redacta la constitución con los 7 principios, ejecuta `/speckit.specify` y `/speckit.clarify` de la spec 004 y confirma la spec en Git antes de escribir código.
 
-- **Uso:** ejecutar el flujo de spec-kit sobre la capacidad de resolubilidad y llaves:
-  1. `specify init --here --integration opencode` (v1.3.2), que solo añadió `.specify/` y `.opencode/commands/speckit.*.md`.
-  2. Redactar `.specify/memory/constitution.md` (v1.0.0) con los 7 principios de la Parte II, pendiente de revisión de A.
-  3. `/speckit.specify`: crear `specs/004-resolubilidad-llaves/spec.md` con 5 historias, FR-001..FR-024, SC-001..SC-007, los 4 escenarios del Apéndice B, entidades y supuestos; y su checklist de calidad.
-  4. `/speckit.clarify`: registrar la sesión 2026-11-09 con las decisiones acordadas (incluida la opción A para la llegada a `sala_salida`) y pasar la spec a estado *Clarified*.
+- **Uso:** ejecutar el flujo de spec-kit sobre la capacidad de resolubilidad y llaves: inicializar `.specify/` y los comandos de opencode, redactar `.specify/memory/constitution.md` (v1.0.0) con los 7 principios, crear `specs/004-resolubilidad-llaves/spec.md` con sus historias, FR, escenarios y checklist, y registrar la sesión de `clarify` con la opción A.
 
 ### 48
 
@@ -548,7 +544,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Continua
+  > Ejecuta `/speckit.plan`, `/speckit.tasks` y `/speckit.analyze` de la spec 004, corrige la numeración NFR y después implementa el contrato `GET /llaves` con sus pruebas.
 
 - **Uso:** ejecutar `/speckit.plan`, `/speckit.tasks` y `/speckit.analyze` de la spec 004, corregir la spec (NFR-001..005) y después implementar la primera rebanada: contrato `GET /llaves` (DTO, HTTP, offline y persistencia por versión) con sus pruebas de contrato. Se marcaron `T003..T006` y `T008`.
 
@@ -559,7 +555,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Si
+  > Implementa la preparación ligera y la caché de llaves (T007), el generador sintético determinista y el oráculo (T009-T011) y la parte B de `DatosSalida.costo` (T046).
 
 - **Uso:** implementar `T007` (preparación ligera `preparar_verificacion` y caché de llaves memoria → disco → servicio), `T009..T011` (generador sintético determinista con llaves encadenadas, costos, puertas cambiantes y variante no resoluble; oráculo ingenuo) y la parte B de `T046` (`DatosSalida.costo` opcional y su persistencia). Suite en 115/115.
 
@@ -570,7 +566,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Si
+  > Implementa el verificador incremental, `--verificar` y el reporte (T012-T029), y valídalo contra el oráculo y el servicio real.
 
 - **Uso:** implementar `T012..T029`: verificador incremental en `cripta/modelo/verificacion.py` (recorrido único, orden determinista, frontera sin duplicar puertas compartidas, llaves inobtenibles con ubicaciones y ciclo concreto), comando `--verificar <cripta>` sin vista ni replay, reporte legible y pruebas contra el oráculo. Validación real: cripta-02 resoluble, cripta-05 no resoluble con ciclo, cripta-06 resoluble (300 salas, ~1.8 ms). Suite en 127/127.
 
@@ -581,7 +577,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Si
+  > Implementa el bloqueo de inicio sin `--forzar`, el reporte al iniciar y los códigos de salida (T030-T034); añade `llaves.json` a los paquetes offline.
 
 - **Uso:** implementar `T030..T034` (US2): verificar antes de montar catálogo, precarga o replay; sin `--forzar` no se inicia la partida y se sale con 3; con `--forzar` se muestra la advertencia y se juega. El reporte se muestra al iniciar y queda en el controlador. Se añadieron `llaves.json` a los paquetes offline de P1 para que `--offline` siga funcionando. Suite en 130/130.
 
@@ -592,9 +588,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Si
-  >
-  > Si continua
+  > Implementa las pruebas de orden y determinismo, comparte el oráculo, optimiza el verificador y añade `--bench resolubilidad` (T035-T045).
 
 - **Uso:** implementar `T035..T045`: pruebas de orden válido y determinista, oráculo compartido en `cripta/bench/ingenuo.py`, refactor del verificador a índices por arreglo y adyacencia preparada, `--bench resolubilidad` (incremental vs. ingenuo, K = 5..80, límite de 200 ms) y documentación en README. Evidencia en `docs/mediciones/p2_resolubilidad.txt`. Suite en 134/134.
 
@@ -605,7 +599,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Si
+  > Inicia la spec 005 con `/speckit.specify`: `historia <t>`/`#k`, `--hasta`, checkpoints, persistencia v3 y los 6 escenarios del Apéndice B.
 
 - **Uso:** iniciar la Fase 4 con `/speckit.specify` de la spec 005 (línea de tiempo e historia): 7 historias, FR-001..FR-032, NFR-001..NFR-005, SC-001..SC-007, los 6 escenarios del Apéndice B y una sesión de `clarify` con numeración tras pergamino, consultas fuera de rango, `--hasta` posterior al final, mapa en t=0, enemigos visibles, K por defecto, puntos descartados y archivos de P1.
 
@@ -616,7 +610,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Si
+  > Ejecuta `/speckit.plan` y `/speckit.tasks` de la spec 005 con reconstrucción hacia adelante, búsqueda binaria propia y la interfaz con A.
 
 - **Uso:** ejecutar `/speckit.plan` y `/speckit.tasks` de la spec 005: línea de acciones + contenido nuevo + checkpoints, reconstrucción hacia adelante (≤ K acciones), búsqueda binaria propia del checkpoint, `avanzar_hasta(t)`/`ejecutar_accion(hasta)` como interfaz con A, recorte por pergamino, persistencia v3 y detección de P1. 56 tareas y cobertura completa de FR/NFR/SC.
 
@@ -627,7 +621,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Si
+  > Implementa la base de la línea de tiempo: acciones, contenido, checkpoints, reconstrucción, recorte y formato v3 (T003-T015, T026-T029, T037-T041).
 
 - **Uso:** implementar la base de la línea de tiempo (`T003..T015`, `T026..T029`, `T037..T041`): `cripta/modelo/timeline.py`, checkpoints cada K con estado del azar, búsqueda binaria propia, reconstrucción en mapa propio con fichas de solo lectura, resumen histórico, recorte por pergamino, `--checkpoint-cada`, y formato binario/JSON v3 con la línea completa y rechazo explícito de archivos v2/P1. Suite en 143/143.
 
@@ -638,7 +632,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Si, continua
+  > Implementa `historia <t>`/`#k`, los rechazos y las pruebas de que no altera reloj, log ni historial de retroceso (T017-T025).
 
 - **Uso:** implementar `T017..T025`: comando `historia <t>`/`historia #k` en el controlador, parseo en la consola, `mostrar_historia` en consola y ventana, rechazo de instantes futuros/negativos y de `#k` fuera de rango, y pruebas de que la consulta no altera reloj, bitácora ni historial de retroceso. Suite en 150/150.
 
@@ -649,7 +643,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Continua
+  > Implementa `--replay --hasta` y el bench de la línea con K=10/25/50/100 y sin checkpoints (T033-T036, T042-T047).
 
 - **Uso:** implementar `T033..T036` (`--replay … --hasta` con el mismo resumen que `historia` y sin vista, mensaje si la partida terminó antes) y `T042..T047` (`--bench timeline` con K ∈ {10, 25, 50, 100} y sin checkpoints, memoria estimada y elección de K = 50). Evidencia en `docs/mediciones/p2_timeline.txt`. Suite en 156/156.
 
@@ -660,9 +654,9 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Si continua, despues dime cuanto porcentaje nuestra parte nos falta.
+  > Añade las secciones 5.4, 5.5 y 5.6-B al Documento de Decisiones, repite el bench del historial de retroceso y revisa la trazabilidad.
 
-- **Uso:** añadir las secciones §5.4 (resolubilidad), §5.5 (línea de tiempo, K = 50) y §5.6-B (historial de retroceso antes/después) a `Decisiones_de_diseño.md`, repetir el bench del historial (`docs/mediciones/p2_historial.txt`) y crear `docs/trazabilidad-persona-b.md` con el mapeo FR/NFR/SC y los casos del Apéndice B. Suite en 156/156.
+- **Uso:** añadir las secciones §5.4 (resolubilidad), §5.5 (línea de tiempo, K = 50) y §5.6-B (historial de retroceso antes/después) a `Decisiones_de_diseño.md`, repetir el bench del historial (`docs/mediciones/p2_historial.txt`) y revisar la trazabilidad de FR/NFR/SC y de los casos del Apéndice B. Suite en 156/156.
 
 ### 59
 
@@ -671,9 +665,9 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Ok, continua con lo que puedas entonces
+  > Completa la parte B de `rango`/`cazador` y prepara el contenido de la defensa: resumen de las specs, trazabilidad de dos requisitos, ensayo de cambio de regla y checklist.
 
-- **Uso:** completar la parte B de `rango`/`cazador` (lectura, transporte y persistencia en `Ficha`, sin el comportamiento que corresponde a A) y preparar la defensa en `docs/defensa-persona-b.md`: resumen de las specs 004/005, trazabilidad de FR-005 y FR-011, ensayo de cambio de regla y checklist §8. Suite en 158/158; avance 96/105 tareas (91.4 %).
+- **Uso:** completar la parte B de `rango`/`cazador` (lectura, transporte y persistencia en `Ficha`, sin el comportamiento que corresponde a A) y preparar el contenido de la defensa: resumen de las specs 004/005, recorrido de dos requisitos, ensayo de cambio de regla y checklist §8. Suite en 158/158.
 
 ### 60
 
@@ -682,6 +676,6 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
-  > Ok, continua con lo que puedas entonces
+  > Añade el acceso a `historia` en la ventana con la tecla `V` y cierra el checklist propio de B.
 
-- **Uso:** añadir el acceso a `historia` en la ventana (tecla `V`, entrada de texto y panel del resumen), actualizar la defensa y la trazabilidad, y cerrar el checklist propio de B. Suite en 160/160; avance 97/105 tareas (92.4 %).
+- **Uso:** añadir el acceso a `historia` en la ventana (tecla `V`, entrada de texto y panel del resumen) y cerrar el checklist propio de B. Suite en 160/160; avance 97/105 tareas (92.4 %).
