@@ -50,12 +50,12 @@ lista de verificación de §8. Se actualiza al cerrar cada fase.
 
 | Ítem | Estado | Dependencia |
 |---|---|---|
-| `T047..T049` spec 004: `rango`, `cazador` y consumo de `costo` | Pendiente | Spec 001 de A confirmada |
+| `T048` spec 004: acordar la interfaz de `costo`/`rango`/`cazador` | Pendiente | Coordinación con A |
 | `T016`, `T030..T032`: instantes entre decisiones | Pendiente | `Juego.avanzar_hasta` de A |
 | `T053..T056`: conocimiento del mapa, vista y caso pergamino/antorcha | Pendiente | Interfaz de conocimiento de A |
 | Acceso a `historia` en la ventana | Pendiente | Diseño de la vista (A/B) |
-| Recomendación de K y §5.6-B | Hecho | `DECISIONES.md` §5.5 y §5.6 |
-| Defensa: recorrido de 2 requisitos y cambio de regla | Pendiente | Fase 8 |
+| Defensa: recorrido de 2 requisitos y cambio de regla | Hecho | `docs/defensa-persona-b.md` |
+| §5.4, §5.5 y §5.6-B | Hecho | `Decisiones_de_diseño.md` |
 
 ## Verificación rápida
 

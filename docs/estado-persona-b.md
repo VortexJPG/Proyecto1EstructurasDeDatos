@@ -12,11 +12,11 @@ implementadas salvo los puntos que dependen de la Persona A.
 
 | Spec | Tareas hechas | Pendientes | % |
 |---|---:|---:|---:|
-| 004 Resolubilidad | 46 / 49 | 3 (A) | 93.9 % |
+| 004 Resolubilidad | 48 / 49 | 1 (coordinación con A) | 98.0 % |
 | 005 Línea de tiempo | 48 / 56 | 8 (A/GUI) | 85.7 % |
-| **Total** | **94 / 105** | **11** | **89.5 %** |
+| **Total** | **96 / 105** | **9** | **91.4 %** |
 
-Pendientes: `T047..T049` (spec 001 de A), `T016`/`T030..T032`
+Pendientes: `T048` (acordar la interfaz con A), `T016`/`T030..T032`
 (`avanzar_hasta` de A) y `T053..T056` (conocimiento del mapa y caso cruzado
 con A), más el acceso a `historia` en la ventana.
 
@@ -107,6 +107,13 @@ con A), más el acceso a `historia` en la ventana.
   añadidos a `Decisiones_de_diseño.md`.
 - **Trazabilidad** de FR/NFR/SC y `AC-004-01..04` / `AC-005-01..06` en
   `docs/trazabilidad-persona-b.md`.
+- **Parte B de `rango`/`cazador`**: `Ficha.rango` se lee y persiste, y el
+  comportamiento `cazador` se transporta; el comportamiento en sí sigue siendo
+  de A.
+- **Preparación de defensa** en `docs/defensa-persona-b.md`: resumen de las
+  specs 004/005, recorrido de trazabilidad de dos requisitos, ensayo de cambio
+  de regla y checklist §8.
+- **158/158 pruebas en verde**.
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
 - `.venv` con `requests` y `pygame-ce` 2.5.8: **91/91 pruebas en verde**.

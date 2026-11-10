@@ -168,9 +168,9 @@ antes de empezar. **T046 (parte B) ya está hecha**; lo que falta es que A
 consuma el costo y el rango en el modelo.
 
 - [x] T046 [P] Leer y exponer `DatosSalida.costo` en `cripta/modelo/datos.py`; persistirlo en `esqueleto.json`. Parte B hecha; el uso del costo en `Juego._mover` sigue siendo de A (spec 001, FR por coordinar).
-- [ ] T047 [P] [BLOQUEADA] Leer `Ficha.rango` y transportar `comportamiento: "cazador"` en `cripta/modelo/datos.py` (FR de spec 001 de A, por coordinar).
+- [x] T047 [P] Leer `Ficha.rango` y transportar `comportamiento: "cazador"` en `cripta/modelo/datos.py` (parte B; el comportamiento del cazador sigue siendo de A).
 - [ ] T048 [BLOQUEADA] Acordar con A la interfaz `Salida.costo`, `Enemigo.rango`, `Comportamiento.CAZADOR` y `mostrar_resolubilidad()` (`contracts/interfaz-a-b.md`).
-- [ ] T049 [BLOQUEADA] Pruebas del contrato web (costo ausente = 100, `rango` ≥ 1, cazador) en `tests/test_red.py`.
+- [x] T049 Pruebas del contrato web en `tests/test_red.py`: lectura de `costo` (ausente = None), `rango` y transporte de `cazador`; el uso de 100 y del comportamiento queda en A.
 
 ---
 
@@ -185,7 +185,7 @@ T025..T029  → US5 (llaves) depende de T003..T007
 T030..T034  → US2 (bloqueo de partida) depende de US1 y US3
 T035..T038  → US4 (orden) depende de US1
 T039..T045  → mediciones y cierre
-T047..T049  → bloqueadas por la spec 001 de A (T046, parte B, ya está)
+T048       → coordinación pendiente con A; T046/T047/T049 (parte B) ya están
 ```
 
 ## MVP
