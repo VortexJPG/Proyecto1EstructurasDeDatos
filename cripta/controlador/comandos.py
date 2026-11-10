@@ -20,6 +20,7 @@ class TipoComando(Enum):
     INVENTARIO_ANTERIOR = "inventario_anterior"
     VER_INVENTARIO = "ver_inventario"
     VISTA_ORDENADA = "vista_ordenada"  # argumento: "peso" | "valor" | "nombre"
+    HISTORIA = "historia"  # argumento: "120" o "#4"
     GUARDAR = "guardar"  # argumento: ruta
     CARGAR = "cargar"  # argumento: ruta
     PUNTAJES = "puntajes"

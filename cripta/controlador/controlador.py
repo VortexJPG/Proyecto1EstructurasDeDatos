@@ -40,7 +40,7 @@ from cripta.controlador.precarga import PlanificadorPrecarga
 from cripta.modelo.acciones import TipoAccion
 from cripta.modelo.juego import Juego
 from cripta.modelo.mapa import Mapa
-from cripta.modelo.timeline import K_POR_DEFECTO, LineaTiempo
+from cripta.modelo.timeline import ErrorReconstruccion, K_POR_DEFECTO, LineaTiempo, ResumenHistorico
 from cripta.modelo.verificacion import ResultadoVerificacion, Verificador, formatear_resultado
 
 if TYPE_CHECKING:
@@ -181,6 +181,13 @@ class Controlador:
                 vista.mostrar_inventario(juego, juego.vista_inventario(criterio), criterio)
             except ValueError as exc:
                 vista.mostrar_error(str(exc))
+        elif tipo is TipoComando.HISTORIA:
+            try:
+                resumen = self.consultar_historia(comando.argumento or "")
+            except (ValueError, ErrorReconstruccion) as exc:
+                vista.mostrar_error(str(exc))
+            else:
+                vista.mostrar_historia(resumen)
         elif tipo is TipoComando.GUARDAR:
             ruta = comando.argumento or os.path.join(self.directorio_datos, "partida_guardada.sav")
             try:
@@ -385,6 +392,37 @@ class Controlador:
                 self._escritor.registrar(accion)
         self._despues_de_accion()
         return resultado
+
+    def consultar_historia(self, argumento: str) -> ResumenHistorico:
+        """Consulta ``historia <t>`` o ``historia #k`` sin tocar la partida."""
+        if self._juego is None or self._timeline is None:
+            raise ValueError("La línea de tiempo no está disponible en esta partida.")
+        texto = (argumento or "").strip()
+        if not texto:
+            raise ValueError("Uso: historia <t> | historia #k")
+        if texto.startswith("#"):
+            try:
+                numero = int(texto[1:])
+            except ValueError as exc:
+                raise ValueError(f"Acción inválida: {texto!r}") from exc
+            if numero < 1 or numero > len(self._timeline.acciones):
+                raise ValueError(
+                    f"No existe la acción #{numero} (hay {len(self._timeline.acciones)})."
+                )
+            juego = self._timeline.estado_en_accion(numero - 1)
+            return self._timeline.resumen(juego, f"#{numero}")
+        try:
+            instante = int(texto)
+        except ValueError as exc:
+            raise ValueError(f"Instante inválido: {texto!r}") from exc
+        if instante < 0:
+            raise ValueError("El instante no puede ser negativo.")
+        if instante > self._juego.reloj:
+            raise ValueError(
+                f"El instante {instante} es posterior al reloj actual ({self._juego.reloj})."
+            )
+        juego = self._timeline.estado_en_tiempo(instante, self._juego.reloj)
+        return self._timeline.resumen(juego, f"t={instante}")
 
     def guardar_partida(self, ruta: str) -> None:
         juego = self._juego

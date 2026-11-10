@@ -46,6 +46,7 @@ from cripta.modelo.acciones import TipoAccion
 from cripta.modelo.actores import Jugador
 from cripta.modelo.juego import EstadoPartida
 from cripta.modelo.puertos import FichaNoDisponible
+from cripta.modelo.timeline import formatear_resumen
 from cripta.vista import sprites
 from cripta.vista.base import (
     LINEA_ENEMIGOS,
@@ -400,6 +401,9 @@ class VistaGrafica(VistaBase):
     def mostrar_info(self, texto: str) -> None:
         print(texto)  # copia en la terminal (por ejemplo, la ruta del replay)
         self._agregar_aviso(texto, False)
+
+    def mostrar_historia(self, resumen) -> None:
+        self.mostrar_info(formatear_resumen(resumen))
 
     def mostrar_error(self, texto: str) -> None:
         self._agregar_aviso(texto, True)

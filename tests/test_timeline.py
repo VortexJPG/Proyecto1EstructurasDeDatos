@@ -10,13 +10,16 @@ import shutil
 import struct
 import tempfile
 import unittest
+from unittest import mock
 
 from cripta.adaptadores.fuente_offline import FuenteOffline
 from cripta.adaptadores.guardado import GuardadoBinario, GuardadoJSON, ErrorFormatoIncompatible
 from cripta.bench.bot import jugar
 from cripta.controlador.aplicacion import main
+from cripta.controlador.comandos import ComandoUsuario, TipoComando
 from cripta.controlador.controlador import Controlador, OpcionesEjecucion
 from cripta.modelo.acciones import Accion, TipoAccion
+from cripta.vista.vista_consola import VistaConsola
 
 DATOS_EJEMPLO = os.path.join(os.path.dirname(__file__), "..", "datos_ejemplo")
 
@@ -28,7 +31,7 @@ class BaseTimeline(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.directorio, ignore_errors=True)
 
-    def controlador(self, k=4, sub="a", cripta="cripta-02", semilla=3, vida=None):
+    def controlador(self, k=4, sub="a", cripta="cripta-02", semilla=3, vida=None, replay=False):
         controlador = Controlador(
             FuenteOffline(DATOS_EJEMPLO),
             OpcionesEjecucion(
@@ -41,7 +44,7 @@ class BaseTimeline(unittest.TestCase):
         controlador.preparar_cripta(cripta)
         if vida is not None:
             controlador._datos.jugador.vida_max = vida
-        controlador.iniciar_partida("Tl", semilla, registrar_replay=False)
+        controlador.iniciar_partida("Tl", semilla, registrar_replay=replay)
         return controlador
 
 
@@ -137,6 +140,112 @@ class PruebaPersistenciaLinea(BaseTimeline):
         with self.assertRaises(ErrorFormatoIncompatible) as contexto:
             GuardadoJSON().cargar(ruta)
         self.assertIn("Parte I", str(contexto.exception))
+
+
+class _VistaHistoria:
+    def __init__(self):
+        self.historiales = []
+        self.errores = []
+
+    def mostrar_historia(self, resumen):
+        self.historiales.append(resumen)
+
+    def mostrar_error(self, texto):
+        self.errores.append(texto)
+
+    def mostrar_info(self, texto):
+        pass
+
+    def mostrar_estado(self, juego):
+        pass
+
+
+class PruebaComandoHistoria(BaseTimeline):
+    def test_historia_por_accion(self):
+        controlador = self.controlador(k=3)
+        jugar(controlador, 8, 3)
+        resultado = controlador.consultar_historia("#3")
+        esperado = controlador._timeline.resumen(
+            controlador._timeline.estado_en_accion(2), "#3"
+        )
+        self.assertEqual(resultado, esperado)
+
+    def test_historia_en_instante_de_decision(self):
+        controlador = self.controlador(k=3)
+        jugar(controlador, 8, 3)
+        instante = controlador._timeline.acciones[4].tiempo
+        resultado = controlador.consultar_historia(str(instante))
+        esperado = controlador._timeline.resumen(
+            controlador._timeline.estado_en_accion(4), f"t={instante}"
+        )
+        self.assertEqual(resultado, esperado)
+
+    def test_historia_en_cero(self):
+        controlador = self.controlador()
+        jugar(controlador, 4, 3)
+        resultado = controlador.consultar_historia("0")
+        self.assertEqual(resultado.reloj, 0)
+        self.assertEqual(resultado.sala, 1)
+
+    def test_rechazos(self):
+        controlador = self.controlador()
+        jugar(controlador, 4, 3)
+        acciones = len(controlador._timeline.acciones)
+        for argumento in (
+            "#0",
+            f"#{acciones + 1}",
+            str(controlador.juego.reloj + 1),
+            "-1",
+            "",
+            "abc",
+            "#x",
+        ):
+            with self.assertRaises(ValueError, msg=argumento):
+                controlador.consultar_historia(argumento)
+
+    def test_consulta_no_altera_nada(self):
+        controlador = self.controlador(k=3, replay=True)
+        jugar(controlador, 5, 3)
+        ruta = controlador._ruta_log
+        tamano = os.path.getsize(ruta)
+        reloj = controlador.juego.reloj
+        acciones = controlador.juego.jugador.acciones_ejecutadas
+        historial = controlador.juego.historial
+        antes = (historial.puede_retroceder(), historial.cambios_del_ultimo(), len(historial))
+        controlador.consultar_historia("#2")
+        self.assertEqual(controlador.juego.reloj, reloj)
+        self.assertEqual(controlador.juego.jugador.acciones_ejecutadas, acciones)
+        self.assertEqual(
+            (historial.puede_retroceder(), historial.cambios_del_ultimo(), len(historial)), antes
+        )
+        self.assertEqual(os.path.getsize(ruta), tamano)
+        controlador.cerrar_recursos()
+
+    def test_procesar_comando_historia(self):
+        controlador = self.controlador()
+        jugar(controlador, 4, 3)
+        vista = _VistaHistoria()
+        controlador.vista = vista
+        self.assertTrue(
+            controlador.procesar_comando(ComandoUsuario(TipoComando.HISTORIA, argumento="#2"))
+        )
+        self.assertEqual(len(vista.historiales), 1)
+        controlador.procesar_comando(
+            ComandoUsuario(TipoComando.HISTORIA, argumento="999999")
+        )
+        self.assertTrue(vista.errores)
+
+    def test_vista_consola_parsea_historia(self):
+        vista = VistaConsola()
+        comando = vista._interpretar("historia 120", None)
+        self.assertIs(comando.tipo, TipoComando.HISTORIA)
+        self.assertEqual(comando.argumento, "120")
+        comando = vista._interpretar("historia #4", None)
+        self.assertIs(comando.tipo, TipoComando.HISTORIA)
+        self.assertEqual(comando.argumento, "#4")
+        with mock.patch.object(vista, "mostrar_error") as error:
+            self.assertIsNone(vista._interpretar("historia", None))
+            error.assert_called_once()
 
 
 if __name__ == "__main__":

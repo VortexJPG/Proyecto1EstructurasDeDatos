@@ -32,6 +32,7 @@ from typing import TYPE_CHECKING
 from cripta.controlador.comandos import ComandoUsuario, TipoComando
 from cripta.modelo.acciones import TipoAccion
 from cripta.modelo.juego import EstadoPartida
+from cripta.modelo.timeline import formatear_resumen
 from cripta.vista.base import (
     LINEA_ENEMIGOS,
     LINEA_MENSAJE,
@@ -70,6 +71,7 @@ Controles (escribe la letra y presiona Enter; no importan mayúsculas):
   sig | ant            mover el cursor del inventario
   ordenar peso|valor|nombre   ver el inventario ordenado (no cambia el orden real)
   retroceder           usar un pergamino de retroceso
+  historia <t>|#k      ver cómo estaba la partida en ese instante o antes de la acción k
   guardar [ruta] | cargar [ruta]   (sin ruta: datos_locales/partida_guardada.sav)
   puntajes             tabla de puntajes
   ayuda | ?            esta ayuda
@@ -202,6 +204,11 @@ class VistaConsola(VistaBase):
             return ComandoUsuario(TipoComando.VISTA_ORDENADA, argumento=criterio)
 
         # --- sesión -----------------------------------------------------------------
+        if verbo in ("historia", "hist"):
+            if argumento is None:
+                self.mostrar_error("Uso: historia <t> | historia #k")
+                return None
+            return ComandoUsuario(TipoComando.HISTORIA, argumento=argumento)
         if verbo in ("guardar", "cargar"):
             # Sin ruta, el controlador usa su archivo por defecto.
             tipo = TipoComando.GUARDAR if verbo == "guardar" else TipoComando.CARGAR
@@ -336,6 +343,11 @@ class VistaConsola(VistaBase):
 
     def mostrar_info(self, texto: str) -> None:
         _imprimir(texto)
+
+    def mostrar_historia(self, resumen) -> None:
+        _imprimir()
+        _imprimir(formatear_resumen(resumen))
+        _imprimir()
 
     def mostrar_error(self, texto: str) -> None:
         _imprimir(f"(!) {texto}")

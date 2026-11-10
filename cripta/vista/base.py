@@ -132,6 +132,10 @@ class VistaBase:
     def mostrar_info(self, texto: str) -> None:
         raise NotImplementedError
 
+    def mostrar_historia(self, resumen: "ResumenHistorico") -> None:
+        """Muestra un resumen histórico (lo entrega el controlador)."""
+        raise NotImplementedError
+
     # --- común ----------------------------------------------------------------------
 
     @staticmethod

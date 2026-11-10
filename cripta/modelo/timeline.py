@@ -246,13 +246,17 @@ class LineaTiempo:
         return self.checkpoints[mejor]
 
     def _acciones_hasta(self, tiempo: int) -> int:
-        """Número de acciones cuyo reloj de inicio es ≤ ``tiempo``."""
+        """Número de acciones cuyo reloj de inicio es **anterior** a ``tiempo``.
+
+        Una acción que empieza exactamente en ``tiempo`` todavía no se ha
+        tomado: el estado que se muestra es el de justo antes de esa decisión.
+        """
         bajo = 0
         alto = len(self.acciones) - 1
         mejor = 0
         while bajo <= alto:
             medio = (bajo + alto) // 2
-            if self.acciones[medio].tiempo <= tiempo:
+            if self.acciones[medio].tiempo < tiempo:
                 mejor = medio + 1
                 bajo = medio + 1
             else:
