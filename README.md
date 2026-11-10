@@ -76,6 +76,7 @@ Las mismas letras, sin Enter. Cuando hay que elegir (por ejemplo, a qué rata at
 | `Arriba` / `Abajo` | mover el cursor del inventario |
 | `I` | cambiar el orden del inventario: real, peso, valor, nombre |
 | `Z` | usar un pergamino de retroceso |
+| `V` | ver la historia: escribe `120` o `#4` y Enter |
 | `F5` / `F9` | guardar / cargar la partida |
 | `P` | tabla de puntajes |
 | `L` | ver la bitácora completa (los últimos 20 mensajes) |

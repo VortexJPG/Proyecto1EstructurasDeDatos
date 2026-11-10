@@ -121,6 +121,32 @@ class PruebaVentana(unittest.TestCase):
         self.assertTrue(self.juego.ejecutar_accion(comando.accion).aceptada)
         self.vista.mostrar_estado(self.juego)
 
+    def test_historia_en_la_ventana(self):
+        from cripta.modelo.timeline import ResumenHistorico
+
+        resumen = ResumenHistorico(
+            etiqueta="#1",
+            reloj=0,
+            sala=1,
+            nombre_sala="Uno",
+            vida=10,
+            vida_max=10,
+            ataque=1,
+            defensa=0,
+            velocidad=100,
+        )
+        self.vista.mostrar_historia(resumen)
+        self.assertEqual(self.vista._capa, "historia")
+        self.vista._mostrar_cuadro()  # no debe fallar al dibujar el resumen
+
+    def test_v_pide_historia(self):
+        self.teclas(pygame.K_v)
+        pygame.event.post(pygame.event.Event(pygame.TEXTINPUT, text="#4"))
+        pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN))
+        comando = self.vista.pedir_comando(self.juego)
+        self.assertIs(comando.tipo, TipoComando.HISTORIA)
+        self.assertEqual(comando.argumento, "#4")
+
     def test_teclas(self):
         self.assertIs(self.comando(pygame.K_t).accion.tipo, TipoAccion.ESPERAR)
         accion = self.comando(pygame.K_w).accion

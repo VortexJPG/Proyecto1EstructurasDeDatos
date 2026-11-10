@@ -246,6 +246,7 @@ class VistaGrafica(VistaBase):
         self._menu: _Menu | None = None
         self._capa: str | None = None  # "ayuda" | "puntajes" | "bitacora": se cierra con cualquier tecla
         self._puntajes: list[RegistroPuntaje] = []
+        self._historia_resumen = None
         self._fin: tuple[ResumenPartida, str] | None = None
         self._avisos: list[_Aviso] = []
         self._flotantes: list[_Flotante] = []
@@ -336,6 +337,34 @@ class VistaGrafica(VistaBase):
         finally:
             pygame.key.stop_text_input()
 
+    def _pedir_historia(self) -> str | None:
+        """Entrada de texto para ``historia <t>`` / ``historia #k`` en la ventana."""
+        texto = ""
+        pygame.key.start_text_input()
+        try:
+            while True:
+                evento = self._siguiente_evento()
+                if evento is None:
+                    self._mostrar_cuadro()
+                    self._dibujar_prompt_historia(texto)
+                    self._presentar()
+                    continue
+                if evento.type == pygame.QUIT:
+                    self._cerrar_ventana()
+                elif evento.type == pygame.TEXTINPUT:
+                    for caracter in evento.text:
+                        if (caracter.isdigit() or caracter == "#") and len(texto) < 8:
+                            texto += caracter
+                elif evento.type == pygame.KEYDOWN:
+                    if evento.key == pygame.K_BACKSPACE:
+                        texto = texto[:-1]
+                    elif evento.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+                        return texto or None
+                    elif evento.key == pygame.K_ESCAPE:
+                        return None
+        finally:
+            pygame.key.stop_text_input()
+
     def pedir_comando(self, juego: Juego) -> ComandoUsuario:
         """Espera una tecla con sentido y la devuelve como comando (el reloj no avanza)."""
         self._juego = juego
@@ -403,7 +432,8 @@ class VistaGrafica(VistaBase):
         self._agregar_aviso(texto, False)
 
     def mostrar_historia(self, resumen) -> None:
-        self.mostrar_info(formatear_resumen(resumen))
+        self._historia_resumen = resumen
+        self._capa = "historia"
 
     def mostrar_error(self, texto: str) -> None:
         self._agregar_aviso(texto, True)
@@ -464,6 +494,9 @@ class VistaGrafica(VistaBase):
             return self._accion(TipoAccion.ESPERAR)
         if tecla == pygame.K_z:
             return self._accion(TipoAccion.RETROCEDER)
+        if tecla == pygame.K_v:
+            texto = self._pedir_historia()
+            return ComandoUsuario(TipoComando.HISTORIA, argumento=texto) if texto else None
         if tecla == pygame.K_i:
             siguiente = ORDENES[(ORDENES.index(self._criterio) + 1) % len(ORDENES)]
             if siguiente is None:
@@ -805,6 +838,37 @@ class VistaGrafica(VistaBase):
         ancho = self._fuente_chica.size(texto)[0]
         self._texto(texto, ((ANCHO - ancho) // 2, rect.bottom + 14), TENUE, self._fuente_chica)
 
+    def _dibujar_prompt_historia(self, texto: str) -> None:
+        rect = pygame.Rect(ANCHO // 2 - 240, ALTO // 2 - 48, 480, 96)
+        pygame.draw.rect(self._pantalla, CAJA, rect, border_radius=6)
+        pygame.draw.rect(self._pantalla, DORADO, rect, 2, border_radius=6)
+        self._texto(
+            "Historia: escribe un instante (120) o una acción (#4)",
+            (rect.x + 12, rect.y + 10),
+            TEXTO,
+            self._fuente_chica,
+        )
+        self._texto(texto or "_", (rect.x + 12, rect.y + 40), DORADO, self._fuente_titulo)
+        self._texto("Enter acepta; Esc cancela", (rect.x + 12, rect.bottom - 22), TENUE, self._fuente_chica)
+
+    def _dibujar_historia(self) -> None:
+        resumen = self._historia_resumen
+        if resumen is None:
+            return
+        capa = pygame.Surface((ANCHO, ALTO), pygame.SRCALPHA)
+        capa.fill((0, 0, 0, 215))
+        self._pantalla.blit(capa, (0, 0))
+        lineas = formatear_resumen(resumen).splitlines()
+        y = 50
+        for i, linea in enumerate(lineas):
+            fuente = self._fuente_titulo if i == 0 else self._fuente_chica
+            color = DORADO if i == 0 else TEXTO
+            self._texto(self._recortar(fuente, linea, ANCHO - 100), (50, y), color, fuente)
+            y += 28 if i == 0 else 18
+            if y > ALTO - 50:
+                break
+        self._texto("Cualquier tecla para volver", (50, ALTO - 28), TENUE, self._fuente_chica)
+
     def _pantalla_espera(self, texto: str) -> None:
         """Un cuadro con "Preparando..." mientras el controlador descarga la cripta."""
         self._dibujar_portada(texto)
@@ -829,6 +893,8 @@ class VistaGrafica(VistaBase):
             self._dibujar_puntajes()
         elif self._capa == "bitacora":
             self._dibujar_bitacora_completa()
+        elif self._capa == "historia":
+            self._dibujar_historia()
         if self._fin is not None:
             self._dibujar_fin(*self._fin)
         self._presentar()
