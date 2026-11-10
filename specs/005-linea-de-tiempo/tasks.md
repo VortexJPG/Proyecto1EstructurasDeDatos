@@ -12,8 +12,8 @@ implementación).
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirmar la línea base: 134/134 pruebas y `--bench` sin regresiones.
-- [ ] T002 [P] Confirmar que la spec 005 y el plan están en Git antes de tocar código (constitución VII).
+- [x] T001 Confirmar la línea base: 134/134 pruebas y `--bench` sin regresiones.
+- [x] T002 [P] Confirmar que la spec 005 y el plan están en Git antes de tocar código (constitución VII).
 
 ---
 
@@ -117,10 +117,10 @@ la partida.
 ## Phase 10: Polish y cierre
 
 - [x] T048 [P] Actualizar `README.md` con `historia`, `--hasta` y `--checkpoint-cada` (FR-004, FR-022).
-- [ ] T049 [P] Añadir las secciones §5.5 y §5.6-B a `Decisiones_de_diseño.md` con la evidencia (FR-019, FR-021).
-- [ ] T050 Auditar estructuras prohibidas en `timeline.py`, el bench y la persistencia (constitución I).
-- [ ] T051 Ejecutar la suite completa, `--bench timeline` y guardar la evidencia en `docs/mediciones/p2_timeline.txt` (SC-002, SC-005, SC-006).
-- [ ] T052 Auditoría de trazabilidad `AC-005-01..06` → tarea → código → prueba, y de `SC-001..SC-007` (SC-001..SC-007).
+- [x] T049 [P] Añadir las secciones §5.5 y §5.6-B a `Decisiones_de_diseño.md` con la evidencia (FR-019, FR-021).
+- [x] T050 Auditar estructuras prohibidas en `timeline.py`, el bench y la persistencia (constitución I).
+- [x] T051 Ejecutar la suite completa, `--bench timeline` y guardar la evidencia en `docs/mediciones/p2_timeline.txt` (SC-002, SC-005, SC-006).
+- [x] T052 Auditoría de trazabilidad `AC-005-01..06` → tarea → código → prueba, y de `SC-001..SC-007` (SC-001..SC-007).
 
 ---
 

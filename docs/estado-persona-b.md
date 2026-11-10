@@ -5,9 +5,20 @@
 
 ## Fase actual
 
-**Fase 1 — Auditoría y preparación.** Auditoría aprobada (2026-11-09).
-Pendiente: verificar spec-kit cuando la Persona A lo inicialice y revisar
-`.specify/memory/constitution.md`.
+**Fase 7/8 — mediciones, Documento de Decisiones y cierre.** Specs 004 y 005
+implementadas salvo los puntos que dependen de la Persona A.
+
+## Avance (2026-11-10)
+
+| Spec | Tareas hechas | Pendientes | % |
+|---|---:|---:|---:|
+| 004 Resolubilidad | 46 / 49 | 3 (A) | 93.9 % |
+| 005 Línea de tiempo | 48 / 56 | 8 (A/GUI) | 85.7 % |
+| **Total** | **94 / 105** | **11** | **89.5 %** |
+
+Pendientes: `T047..T049` (spec 001 de A), `T016`/`T030..T032`
+(`avanzar_hasta` de A) y `T053..T056` (conocimiento del mapa y caso cruzado
+con A), más el acceso a `historia` en la ventana.
 
 ## Hecho
 
@@ -91,6 +102,11 @@ Pendiente: verificar spec-kit cuando la Persona A lo inicialice y revisar
   por defecto** (0.81 ms, 0.58 MB), muy por debajo de 50 ms. Evidencia en
   `docs/mediciones/p2_timeline.txt`.
 - **156/156 pruebas en verde**.
+- **Documento de Decisiones**: §5.4 (resolubilidad, incremental vs. ingenuo),
+  §5.5 (línea de tiempo, K = 50) y §5.6-B (historial de retroceso antes/después)
+  añadidos a `Decisiones_de_diseño.md`.
+- **Trazabilidad** de FR/NFR/SC y `AC-004-01..04` / `AC-005-01..06` en
+  `docs/trazabilidad-persona-b.md`.
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
 - `.venv` con `requests` y `pygame-ce` 2.5.8: **91/91 pruebas en verde**.
@@ -150,10 +166,9 @@ sin avisar):
 
 ## Siguiente
 
-1. `T030..T032`: mismo instante; requiere `Juego.avanzar_hasta(t)` (A) para
-   instantes entre decisiones.
-2. `T048..T052`: documentar §5.4/§5.5 en `Decisiones_de_diseño.md`, auditoría
-   de trazabilidad y cierre.
-3. `T047..T049` de la spec 004: pendientes de la spec 001 de A.
-4. Ventana: falta un acceso por teclado/menú para invocar `historia`; el
-   método `mostrar_historia` ya está.
+1. `T030..T032` / `AC-005-03`: instantes entre decisiones; requiere
+   `Juego.avanzar_hasta(t)` (A).
+2. `T053..T056`: conocimiento del mapa y caso cruzado pergamino/antorcha (A).
+3. `T047..T049` de la spec 004: `rango`/`cazador` y consumo de `costo` (A).
+4. Ventana: acceso por teclado/menú para `historia`.
+5. Fase 8: defensa (recorrido de 2 requisitos y ensayo de cambio de regla).

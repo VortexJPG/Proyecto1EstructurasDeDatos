@@ -17,8 +17,8 @@ prueba va **antes** de la implementación y debe fallar primero.
 
 **Propósito**: dejar el terreno listo sin tocar lógica de juego.
 
-- [ ] T001 Confirmar la línea base: `.venv/bin/python -m unittest discover -s tests` en verde y `--bench` sin cambios (SC-001).
-- [ ] T002 [P] Verificar que la spec 004 y el plan están confirmados en Git antes de tocar código (constitución VII).
+- [x] T001 Confirmar la línea base: `.venv/bin/python -m unittest discover -s tests` en verde y `--bench` sin cambios (SC-001).
+- [x] T002 [P] Verificar que la spec 004 y el plan están confirmados en Git antes de tocar código (constitución VII).
 
 ---
 

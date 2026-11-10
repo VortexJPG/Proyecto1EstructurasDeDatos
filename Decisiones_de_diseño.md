@@ -22,6 +22,9 @@ Universidad Nacional (UNA) · II Ciclo 2026
 - [4.9 Ordenamiento](#49-ordenamiento)
 - [4.10 Guardado binario de la partida](#410-guardado-binario-de-la-partida)
 - [4.11 Bitácora de partida y reproducción (replay)](#411-bitácora-de-partida-y-reproducción-replay)
+- [5.4 Resolubilidad y llaves](#54-resolubilidad-y-llaves)
+- [5.5 Línea de tiempo e historia](#55-línea-de-tiempo-e-historia)
+- [5.6 Historial de retroceso con la carga de la Parte II](#56-historial-de-retroceso-con-la-carga-de-la-parte-ii)
 
 ## Introducción
 
@@ -658,3 +661,194 @@ Anotar una acción: O(1). Reproducir: O(acciones del log), porque se vuelve a 
 - Si el servidor publica una versión nueva de la cripta y no queda una copia local de la vieja, ese log ya no se puede reproducir (el programa lo avisa).
 - Reproducir una partida muy larga cuesta lo mismo que volver a jugarla.
 - Si se cambiara la versión de Python, el generador de azar podría dar otros números en algunas funciones; conviene reproducir con la misma versión.
+
+## 5.4 Resolubilidad y llaves
+
+> Spec: [`specs/004-resolubilidad-llaves/spec.md`](specs/004-resolubilidad-llaves/spec.md) · Plan: [`plan.md`](specs/004-resolubilidad-llaves/plan.md)
+
+### 1. El problema
+
+Antes de empezar una partida hay que decidir si la cripta puede ganarse: si
+desde la sala inicial se puede obtener `llave_salida` y entrar a `sala_salida`
+por una puerta que la requiera. Las llaves no se consumen; los enemigos pueden
+soltar llaves; las trampas y los cierres automáticos no bloquean. Si la cripta
+no es resoluble, la partida no debe iniciar salvo `--forzar`, y el reporte debe
+explicar **por qué** (frontera, llaves inobtenibles y ciclo concreto).
+
+Pasa en cada inicio de partida y en cada `--verificar`. La cripta publicada más
+grande tiene 300 salas.
+
+### 2. Opciones
+
+- **Repetir el recorrido por cada llave:** simple de escribir; cuesta
+  O(K·(R+E)).
+- **Explorar el espacio de estados (subconjuntos de llaves):** correcto pero
+  exponencial; las llaves no se consumen, así que es innecesario.
+- **Un recorrido incremental:** expandir una vez la región alcanzable, retener
+  las puertas cerradas por llave y liberarlas cuando la llave se obtiene.
+
+### 3. Qué escogimos
+
+Un **recorrido incremental único** con cola FIFO y salidas en orden N, S, E, O.
+Las puertas cerradas se guardan en una lista propia por llave; al obtener una
+llave se liberan solo esas puertas y la expansión continúa (no se reinicia). El
+mismo recorrido produce:
+
+- el orden de llaves (por sala y por id, determinista);
+- la frontera bloqueada (puertas retenidas al final, sin duplicar las
+  compartidas);
+- las llaves inobtenibles con sus ubicaciones;
+- el ciclo concreto llave → puerta → llave, siguiendo dependencias por id.
+
+Los ids se indexan con arreglos y la adyacencia se prepara una vez
+(`TablaOrdenada` para salas dispersas y `ColaEnlazada` para la expansión). Nada
+de `dict`, `set`, `heapq`, `bisect`, `collections` ni `networkx`.
+
+La respuesta de `/llaves` se guarda por versión de cripta y la consulta cuenta
+en `presupuesto_solicitudes`.
+
+### 4. Complejidad
+
+- Recorrido: O(R + E + D + K log K), con D = puertas liberadas (cada una una
+  vez).
+- Construcción de índices y adyacencia: O(R + E).
+- El ingenuo: O(K·(R+E)).
+- Memoria: O(R + E + K) para el verificador.
+
+### 5. Lo que medimos
+
+`--bench resolubilidad` (5000 salas, semillas fijas, mediana de 7 repeticiones;
+tabla completa en `docs/mediciones/p2_resolubilidad.txt`):
+
+| Salas | K | Incremental | Ingenuo |
+|---:|---:|---:|---:|
+| 5000 | 5 | 17.2 ms | 11.4 ms |
+| 5000 | 20 | 17.0 ms | 17.7 ms |
+| 5000 | 80 | 15.8 ms | 57.2 ms |
+| 2000 | 80 | 6.0 ms | 21.7 ms |
+
+- El incremental **no crece con K**; el ingenuo sí. El cruce está cerca de
+  K ≈ 20; a K = 80 el incremental es ~3.6× más rápido.
+- En la escala publicada (300 salas) la verificación tarda **≈ 0.9 ms**
+  (límite: 200 ms).
+- Contra el servicio real: `cripta-02` resoluble, `cripta-05` no resoluble con
+  ciclo `hierro → negra → hierro`, `cripta-06` resoluble.
+- El verificador coincide con el oráculo ingenuo en cientos de criptas
+  sintéticas (mismo veredicto y mismas llaves obtenibles).
+
+### 6. Cuándo dejaría de servir
+
+- Si una cripta tuviera muchísimas llaves y casi ninguna puerta, el costo fijo
+  de preparar índices dominaría; el ingenuo tendría menor constante para K
+  pequeño (se ve en la tabla). Para K grande el incremental sigue ganando.
+- Si el servicio dejara de publicar `/llaves`, no se podría verificar.
+- La lectura de `costo` y `rango` y el comportamiento del cazador dependen de
+  la spec 001 de la Persona A; la parte B deja los datos listos.
+
+## 5.5 Línea de tiempo e historia
+
+> Spec: [`specs/005-linea-de-tiempo/spec.md`](specs/005-linea-de-tiempo/spec.md) · Plan: [`plan.md`](specs/005-linea-de-tiempo/plan.md)
+
+### 1. El problema
+
+Hay que responder `historia <t>` / `historia #k` con el estado exacto del
+pasado, sin consumir reloj, sin escribir en `partida.log` y sin tocar el
+historial de retroceso. Las acciones revertidas por un pergamino dejan de
+existir. Una consulta no puede aplicar ni deshacer más de K acciones y el
+resultado debe ser idéntico a re-simular desde cero. La línea debe guardarse y
+cargarse, y un archivo de la Parte I no puede cargarse en silencio.
+
+Pasa cada vez que el jugador consulta la historia; la partida de referencia
+tiene 5000 acciones.
+
+### 2. Opciones
+
+- **Copia completa por acción:** prohibida por memoria (acciones × estado).
+- **Guardar todos los deltas y reconstruir hacia atrás:** mucha memoria y
+  serialización compleja de objetos vivos.
+- **Registrar acciones + contenido nuevo + checkpoints y re-simular hacia
+  adelante:** reutiliza el motor determinista y acota la consulta a K acciones.
+
+### 3. Qué escogimos
+
+La línea vigente guarda **acciones**, **contenido nuevo** (salas que la
+precarga o el movimiento cargaron) y **puntos de control completos cada K
+acciones**. Cada checkpoint incluye el estado del generador aleatorio.
+
+Una consulta:
+
+1. busca con **búsqueda binaria propia** el checkpoint más cercano (sin
+   `bisect`);
+2. reconstruye en un `Mapa` propio con un proveedor de fichas de solo lectura
+   (no toca la partida viva ni los pines de la caché);
+3. re-simula como máximo K acciones y aplica los contenidos nuevos;
+4. si el instante cae entre decisiones, avanza eventos hasta t.
+
+El pergamino trunca la línea por posición y descarta los checkpoints
+posteriores. La numeración `#k` se recalcula sobre la línea vigente. Guardar y
+cargar usa el formato binario **v3** (y su copia JSON) con la línea completa;
+un archivo v2/P1 se rechaza con `ErrorFormatoIncompatible`.
+
+### 4. Complejidad
+
+- Consulta: O(K acciones + eventos del intervalo); nunca O(n).
+- Memoria: O(acciones + contenido nuevo + (n/K) · tamaño del estado).
+- Recorte: truncar por posición; no recorre toda la historia.
+- Guardado: O(estado + checkpoints).
+
+### 5. Lo que medimos
+
+`--bench timeline` (5000 acciones, semillas fijas, mediana; tabla completa en
+`docs/mediciones/p2_timeline.txt`):
+
+| K | Consulta | Checkpoints | Memoria de checkpoints |
+|---:|---:|---:|---:|
+| 10 | 0.41 ms | 501 | 2.95 MB |
+| 25 | 0.59 ms | 201 | 1.16 MB |
+| 50 | **0.81 ms** | 101 | **0.58 MB** |
+| 100 | 1.13 ms | 51 | 0.29 MB |
+| sin CP | **99.0 ms** | 1 | 0.006 MB |
+
+- Sin checkpoints se **excede** el límite de 50 ms; con checkpoints no.
+- **K = 50 por defecto**: 0.81 ms y 0.58 MB, muy por debajo del límite.
+- Las pruebas comparan el estado reconstruido con el oráculo de re-simulación
+  para muchas acciones y K, y comprueban que `historia` no cambia reloj, log
+  ni historial de retroceso.
+
+### 6. Cuándo dejaría de servir
+
+- Si el estado por checkpoint creciera mucho (criptas enormes con miles de
+  salas y enemigos), K = 50 podría ocupar demasiada memoria; se baja K o se
+  guardan checkpoints comprimidos.
+- Un instante entre decisiones necesita `Juego.avanzar_hasta` de la Persona A;
+  mientras no esté, se rechaza en vez de devolver un estado incorrecto.
+- Si la partida no fuera determinista, la re-simulación no serviría.
+
+## 5.6 Historial de retroceso con la carga de la Parte II
+
+Repetición de las mediciones de §4.6 con el código de la Parte II (línea de
+tiempo y checkpoints añadidos). La decisión de P1 fue una **bitácora de
+deshacer**; se comprueba si sigue siendo adecuada.
+
+| Caso | P1 (base) | Parte II | Diferencia |
+|---|---:|---:|---:|
+| Registrar y deshacer, 10 cambios/intervalo | 0.478 µs | 0.290 µs | −39 % |
+| Registrar y deshacer, 100 cambios/intervalo | 0.387 µs | 0.252 µs | −35 % |
+| Registrar y deshacer, 1000 cambios/intervalo | 0.363 µs | 0.248 µs | −32 % |
+| Copia completa por decisión (prohibida), 100 salas | 278.9 µs | 202.2 µs | −27 % |
+| Copia completa por decisión (prohibida), 900 salas | 4503.6 µs | 1981.3 µs | −56 % |
+
+Evidencia: `docs/mediciones/p1_linea_base.txt` y
+`docs/mediciones/p2_historial.txt`.
+
+**Antes/después:** la línea de tiempo **no cambia** el historial de retroceso;
+añade checkpoints aparte y la bitácora de deshacer sigue costando O(1) por
+cambio. Las diferencias son de la máquina y del estado de la caché (misma
+tendencia, sin regresión). La decisión de §4.6 **sigue siendo adecuada**: el
+retroceso sigue deshaciendo en O(cambios del intervalo) y la copia completa
+sigue siendo entre 2 y 3 órdenes de magnitud más cara y prohibida.
+
+Si en el futuro una acción cambiara casi todo el estado, la bitácora se
+acercaría a una copia completa; ya se ve en la cripta sintética grande (~3359
+cambios por decisión), pero la copia seguiría estando prohibida y ocupando más
+memoria.

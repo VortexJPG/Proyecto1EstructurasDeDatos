@@ -1,0 +1,6 @@
+Subsistema            Caso                                           n    reps       us/op
+historial             bitácora de deshacer, 10 cambios/intervalo      10  200000       0.290
+historial             bitácora de deshacer, 100 cambios/intervalo     100  200000       0.252
+historial             bitácora de deshacer, 1000 cambios/intervalo    1000  200000       0.248
+historial             copia completa por decisión (prohibida), 100 salas     100      30     202.184
+historial             copia completa por decisión (prohibida), 900 salas     900      30    1981.263
