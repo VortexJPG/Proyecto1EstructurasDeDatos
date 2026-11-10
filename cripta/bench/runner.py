@@ -50,15 +50,26 @@ def ejecutar_bench(filtro: str | None = None) -> int:
     from cripta.bench.bench_datos import registrar as registrar_bench_datos
     from cripta.bench.bench_modelo import registrar as registrar_bench_modelo
     from cripta.bench.bench_resolubilidad import registrar as registrar_bench_resolubilidad, revisar_limite
+    from cripta.bench.bench_timeline import (
+        imprimir_memoria,
+        limpiar as limpiar_timeline,
+        registrar as registrar_bench_timeline,
+        revisar_limite as revisar_limite_timeline,
+    )
 
     registro = RegistroBenchmarks()
     registrar_bench_datos(registro)
     registrar_bench_modelo(registro)
     registrar_bench_resolubilidad(registro)
+    registrar_bench_timeline(registro)
     resultados = registro.ejecutar(filtro)
     imprimir_tabla(resultados)
     if filtro is None or "resolubilidad" in filtro:
         revisar_limite(resultados)
+    if filtro is None or "timeline" in filtro:
+        revisar_limite_timeline(resultados)
+        imprimir_memoria()
+        limpiar_timeline()
     if filtro is None or filtro in "frecuencias":
         from cripta.bench.frecuencias import imprimir_frecuencias
 

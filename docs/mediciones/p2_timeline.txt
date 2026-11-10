@@ -1,0 +1,15 @@
+Subsistema            Caso                                           n    reps       us/op
+timeline              consulta k=10                               5000      25     410.025
+timeline              consulta k=25                               5000      25     594.730
+timeline              consulta k=50                               5000      25     810.793
+timeline              consulta k=100                              5000      25    1132.835
+timeline              consulta sin puntos de control              5000       1   99003.644
+[timeline] consulta con K por defecto (50): 810.8 us (limite 50 ms) -> OK
+
+Memoria de la línea (estimada con pickle; sin contar el estado vivo):
+         K   checkpoints   MB puntos   KB acciones
+        10           501       2.952         140.3
+        25           201       1.159         140.3
+        50           101       0.582         140.3
+       100            51       0.294         140.3
+    sin CP             1       0.006         140.3
