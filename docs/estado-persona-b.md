@@ -13,12 +13,12 @@ implementadas salvo los puntos que dependen de la Persona A.
 | Spec | Tareas hechas | Pendientes | % |
 |---|---:|---:|---:|
 | 004 Resolubilidad | 48 / 49 | 1 (coordinación con A) | 98.0 % |
-| 005 Línea de tiempo | 48 / 56 | 8 (A/GUI) | 85.7 % |
-| **Total** | **96 / 105** | **9** | **91.4 %** |
+| 005 Línea de tiempo | 49 / 56 | 7 (A) | 87.5 % |
+| **Total** | **97 / 105** | **8** | **92.4 %** |
 
 Pendientes: `T048` (acordar la interfaz con A), `T016`/`T030..T032`
-(`avanzar_hasta` de A) y `T053..T056` (conocimiento del mapa y caso cruzado
-con A), más el acceso a `historia` en la ventana.
+(`avanzar_hasta` de A) y `T053`, `T054`, `T056` (conocimiento del mapa y caso
+cruzado con A).
 
 ## Hecho
 
@@ -114,6 +114,8 @@ con A), más el acceso a `historia` en la ventana.
   specs 004/005, recorrido de trazabilidad de dos requisitos, ensayo de cambio
   de regla y checklist §8.
 - **158/158 pruebas en verde**.
+- **Historia en la ventana**: tecla `V`, entrada de texto para `t` o `#k` y
+  panel del resumen; **160/160 pruebas**.
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
 - `.venv` con `requests` y `pygame-ce` 2.5.8: **91/91 pruebas en verde**.
@@ -175,7 +177,8 @@ sin avisar):
 
 1. `T030..T032` / `AC-005-03`: instantes entre decisiones; requiere
    `Juego.avanzar_hasta(t)` (A).
-2. `T053..T056`: conocimiento del mapa y caso cruzado pergamino/antorcha (A).
-3. `T047..T049` de la spec 004: `rango`/`cazador` y consumo de `costo` (A).
-4. Ventana: acceso por teclado/menú para `historia`.
-5. Fase 8: defensa (recorrido de 2 requisitos y ensayo de cambio de regla).
+2. `T053`, `T054`, `T056`: conocimiento del mapa y caso cruzado
+   pergamino/antorcha (A).
+3. `T048`: acordar con A la interfaz de `costo`/`rango`/`cazador`.
+
+Todo lo demás de la Parte B está cerrado.

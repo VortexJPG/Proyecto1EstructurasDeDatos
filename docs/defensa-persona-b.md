@@ -61,7 +61,7 @@ reconstruido coincide con el oráculo de re-simulación y `historia` no altera
 reloj, log ni historial.
 
 **Límite.** `historia <t>` entre decisiones depende de `Juego.avanzar_hasta`
-(A). La ventana aún no tiene acceso por teclado a `historia`.
+(A).
 
 ## 3. Specs de la Persona A (resumen para la defensa)
 
@@ -143,6 +143,5 @@ spec va primero (constitución VII).
   `Juego.avanzar_hasta`, hay que explicar la limitación y el rechazo explícito.
 - `cazador`/`rango`: B transporta los datos, pero A debe aceptar el
   comportamiento; una ficha con cazador todavía rompe `Comportamiento`.
-- La ventana no tiene acceso a `historia`; sí la consola.
 - La precarga asíncrona puede cargar salas no visitadas en momentos distintos;
   el resumen usa salas visitadas, así que no afecta la historia jugable.

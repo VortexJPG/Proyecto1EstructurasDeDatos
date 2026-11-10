@@ -128,7 +128,7 @@ la partida.
 
 - [ ] T053 [BLOQUEADA A] Sustituir el doble de conocimiento por `serializar_conocimiento` / `restaurar_conocimiento` de A (FR-030).
 - [ ] T054 [BLOQUEADA A] Integrar `avanzar_hasta` y el límite de `ejecutar_accion` en el modelo (FR-002).
-- [ ] T055 [BLOQUEADA A] Mostrar `historia` en la vista y parsear el comando (FR-004).
+- [x] T055 Mostrar `historia` en consola y ventana (V) y parsear el comando (FR-004).
 - [ ] T056 [BLOQUEADA A] Verificar el caso cruzado: pergamino con antorcha revierte el mapa conocido y `historia` coincide (FR-011, FR-030).
 
 ---
