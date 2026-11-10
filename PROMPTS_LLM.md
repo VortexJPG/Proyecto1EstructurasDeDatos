@@ -485,7 +485,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 43
 
 - **Fecha:** 2026-11-09
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -496,7 +496,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 44
 
 - **Fecha:** 2026-11-09
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -507,7 +507,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 45
 
 - **Fecha:** 2026-11-09
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -518,7 +518,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 46
 
 - **Fecha:** 2026-11-09
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -529,7 +529,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 47
 
 - **Fecha:** 2026-11-09
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -540,7 +540,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 48
 
 - **Fecha:** 2026-11-09
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -551,7 +551,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 49
 
 - **Fecha:** 2026-11-09
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -562,7 +562,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 50
 
 - **Fecha:** 2026-11-09
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -573,7 +573,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 51
 
 - **Fecha:** 2026-11-09
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -584,7 +584,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 52
 
 - **Fecha:** 2026-11-09
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -595,7 +595,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 53
 
 - **Fecha:** 2026-11-09
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -606,7 +606,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 54
 
 - **Fecha:** 2026-11-09
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -617,7 +617,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 55
 
 - **Fecha:** 2026-11-09
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -628,7 +628,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 56
 
 - **Fecha:** 2026-11-10
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -639,7 +639,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 57
 
 - **Fecha:** 2026-11-10
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -650,7 +650,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 58
 
 - **Fecha:** 2026-11-10
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -661,7 +661,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 59
 
 - **Fecha:** 2026-11-10
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
@@ -672,7 +672,7 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
 ### 60
 
 - **Fecha:** 2026-11-10
-- **Integrante:** Kevin
+- **Integrante:** Brandon
 - **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
 - **Prompt:**
   
