@@ -641,3 +641,14 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
   > Si, continua
 
 - **Uso:** implementar `T017..T025`: comando `historia <t>`/`historia #k` en el controlador, parseo en la consola, `mostrar_historia` en consola y ventana, rechazo de instantes futuros/negativos y de `#k` fuera de rango, y pruebas de que la consulta no altera reloj, bitácora ni historial de retroceso. Suite en 150/150.
+
+### 57
+
+- **Fecha:** 2026-11-10
+- **Integrante:** Kevin
+- **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
+- **Prompt:**
+  
+  > Continua
+
+- **Uso:** implementar `T033..T036` (`--replay … --hasta` con el mismo resumen que `historia` y sin vista, mensaje si la partida terminó antes) y `T042..T047` (`--bench timeline` con K ∈ {10, 25, 50, 100} y sin checkpoints, memoria estimada y elección de K = 50). Evidencia en `docs/mediciones/p2_timeline.txt`. Suite en 156/156.

@@ -86,10 +86,10 @@ la partida.
 
 ## Phase 7: US5 — Replay sin vista (P1)
 
-- [ ] T033 [P] [US5] Prueba de `--replay … --hasta t` con el mismo resumen que `historia` y sin vista (FR-022, FR-023).
-- [ ] T034 [P] [US5] Prueba `AC-005-05`: t posterior al final muestra el final y el motivo (FR-024).
-- [ ] T035 [US5] Implementar `--hasta` en `aplicacion.py` y `ReproductorReplay` (FR-022..FR-024).
-- [ ] T036 [US5] Formatear el resumen de `--hasta` sin crear la vista (FR-023).
+- [x] T033 [P] [US5] Prueba de `--replay … --hasta t` con el mismo resumen que `historia` y sin vista (FR-022, FR-023).
+- [x] T034 [P] [US5] Prueba `AC-005-05`: t posterior al final muestra el final y el motivo (FR-024).
+- [x] T035 [US5] Implementar `--hasta` en `aplicacion.py` y `ReproductorReplay` (FR-022..FR-024).
+- [x] T036 [US5] Formatear el resumen de `--hasta` sin crear la vista (FR-023).
 
 ---
 
@@ -105,18 +105,18 @@ la partida.
 
 ## Phase 9: US7 — Checkpoints y rendimiento (P2)
 
-- [ ] T042 [P] [US7] Prueba de que una consulta no aplica ni deshace más de K acciones (FR-016).
-- [ ] T043 [P] [US7] Prueba de memoria: checkpoints cada K y acciones, no estados por acción (FR-020, NFR-002).
-- [ ] T044 [US7] Crear `cripta/bench/bench_timeline.py` con K ∈ {10, 25, 50, 100} y sin checkpoints (NFR-001, NFR-002, NFR-003, NFR-004).
-- [ ] T045 [US7] Registrar el bench en `runner.py` y hacer configurables tamaños y límites (NFR-004).
-- [ ] T046 [US7] Medir 5000 acciones y elegir el K por defecto con la tabla de tiempo/memoria (FR-021, NFR-001, SC-004).
-- [ ] T047 [US7] Documentar el K elegido, la alternativa sin checkpoints y la decisión adelante/atrás (FR-019, FR-021).
+- [x] T042 [P] [US7] Prueba de que una consulta no aplica ni deshace más de K acciones (FR-016).
+- [x] T043 [P] [US7] Prueba de memoria: checkpoints cada K y acciones, no estados por acción (FR-020, NFR-002).
+- [x] T044 [US7] Crear `cripta/bench/bench_timeline.py` con K ∈ {10, 25, 50, 100} y sin checkpoints (NFR-001, NFR-002, NFR-003, NFR-004).
+- [x] T045 [US7] Registrar el bench en `runner.py` y hacer configurables tamaños y límites (NFR-004).
+- [x] T046 [US7] Medir 5000 acciones y elegir el K por defecto con la tabla de tiempo/memoria (FR-021, NFR-001, SC-004).
+- [x] T047 [US7] Documentar el K elegido, la alternativa sin checkpoints y la decisión adelante/atrás (FR-019, FR-021).
 
 ---
 
 ## Phase 10: Polish y cierre
 
-- [ ] T048 [P] Actualizar `README.md` con `historia`, `--hasta` y `--checkpoint-cada` (FR-004, FR-022).
+- [x] T048 [P] Actualizar `README.md` con `historia`, `--hasta` y `--checkpoint-cada` (FR-004, FR-022).
 - [ ] T049 [P] Añadir las secciones §5.5 y §5.6-B a `Decisiones_de_diseño.md` con la evidencia (FR-019, FR-021).
 - [ ] T050 Auditar estructuras prohibidas en `timeline.py`, el bench y la persistencia (constitución I).
 - [ ] T051 Ejecutar la suite completa, `--bench timeline` y guardar la evidencia en `docs/mediciones/p2_timeline.txt` (SC-002, SC-005, SC-006).

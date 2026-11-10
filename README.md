@@ -38,10 +38,13 @@ python main.py --semilla 7 --nombre Ana # semilla y nombre fijos
 python main.py --offline                # sin red, con datos_ejemplo/ (las 4 criptas publicadas)
 python main.py --offline DIRECTORIO     # sin red, con otro paquete de respuestas guardadas
 python main.py --replay ARCHIVO.log     # reproducir una partida sin interacción
+python main.py --replay ARCHIVO.log --hasta 1200  # historia en el instante 1200, sin vista
+python main.py --checkpoint-cada 25     # punto de control cada 25 acciones (defecto: 50)
 python main.py --verificar cripta-05    # verificar resolubilidad sin iniciar partida
 python main.py --cripta cripta-05 --forzar  # iniciar aunque no sea resoluble
 python main.py --bench                  # mediciones por subsistema + frecuencia de operaciones
 python main.py --bench resolubilidad    # incremental vs. repetido por llave
+python main.py --bench timeline         # historia: tiempo y memoria para varios K
 python main.py --bench agenda           # solo las mediciones que contienen "agenda"
 python main.py --cache-size 25          # fichas de catálogo en memoria
 python main.py --datos DIRECTORIO       # dónde guardar caché, partidas, logs y puntajes
@@ -61,7 +64,7 @@ Escribe la letra y presiona Enter:
 | `T` | esperar |
 | `I` | ver el inventario |
 
-También hay comandos con palabras: `sig` y `ant` (mover el cursor del inventario), `ordenar peso|valor|nombre`, `retroceder`, `guardar`, `cargar`, `puntajes`, `ayuda` y `salir`.
+También hay comandos con palabras: `sig` y `ant` (mover el cursor del inventario), `ordenar peso|valor|nombre`, `retroceder`, `historia <t>|#k`, `guardar`, `cargar`, `puntajes`, `ayuda` y `salir`.
 
 ### En la ventana (`--gui`)
 
@@ -99,6 +102,26 @@ cripta puede ganarse.
   alternativa ingenua (repetir el recorrido por llave) con tamaños y cantidad
   de llaves crecientes. `CRIPTA_BENCH_SALAS`, `CRIPTA_BENCH_LLAVES`,
   `CRIPTA_BENCH_REPS` y `CRIPTA_LIMITE_VERIFICACION_MS` ajustan la medición.
+
+## Historia de la partida
+
+- `historia <t>` muestra el estado después de todos los eventos con tiempo ≤ t.
+- `historia #k` muestra el estado justo antes de la k-ésima acción vigente.
+- La consulta **no** consume reloj, **no** escribe en `partida.log` y **no**
+  altera el historial de retroceso.
+- Tras usar un pergamino, las acciones revertidas desaparecen y `#k` se
+  renumera.
+- `--replay ARCHIVO.log --hasta T` imprime el mismo resumen sin abrir la vista;
+  si T es posterior al final, muestra el estado final e indica que la partida
+  terminó antes.
+- Los puntos de control se toman cada K acciones (`--checkpoint-cada`); el
+  valor por defecto es 50 y está justificado en
+  `docs/mediciones/p2_timeline.txt`.
+- Guardar/cargar conserva la línea completa. Un archivo de la Parte I se rechaza
+  como incompatible.
+- `historia <t>` con t **entre dos decisiones** se rechaza con un mensaje claro
+  hasta integrar `Juego.avanzar_hasta` de la Persona A; los instantes de
+  decisión y `historia #k` funcionan.
 
 ## Pruebas
 

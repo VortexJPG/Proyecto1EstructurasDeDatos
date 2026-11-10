@@ -83,6 +83,14 @@ Pendiente: verificar spec-kit cuando la Persona A lo inicialice y revisar
 - **Comando `historia <t>|#k`** (`T017..T025`): el controlador reconstruye sin
   tocar la partida, la consola lo parsea y muestra el resumen; rechaza
   instantes futuros/negativos y acciones fuera de rango. **150/150 pruebas**.
+- **`--replay … --hasta T`** (`T033..T036`): mismo resumen que `historia T`,
+  sin vista; si T es posterior al final, muestra el final e indica el motivo.
+- **Bench de la línea** (`T042..T047`): 5000 acciones, K ∈ {10, 25, 50, 100} y
+  sin checkpoints. Consulta: 0.41 / 0.59 / 0.81 / 1.13 ms y **99 ms** sin
+  checkpoints; memoria de checkpoints: 2.95 / 1.16 / 0.58 / 0.29 MB. **K = 50
+  por defecto** (0.81 ms, 0.58 MB), muy por debajo de 50 ms. Evidencia en
+  `docs/mediciones/p2_timeline.txt`.
+- **156/156 pruebas en verde**.
 - `.gitattributes` con `text=auto eol=lf` (commit `ec25931`).
 - Paquete renombrado de `Cripta/` a `cripta/` para Linux/WSL (commit `6d8117b`).
 - `.venv` con `requests` y `pygame-ce` 2.5.8: **91/91 pruebas en verde**.
@@ -142,10 +150,10 @@ sin avisar):
 
 ## Siguiente
 
-1. `T033..T036`: `--replay … --hasta` con el mismo resumen y sin vista.
-2. `T030..T032`: mismo instante; requiere `Juego.avanzar_hasta(t)` (A) para
+1. `T030..T032`: mismo instante; requiere `Juego.avanzar_hasta(t)` (A) para
    instantes entre decisiones.
-3. `T042..T047`: `--bench timeline`, elección de K y documentación.
-4. `T047..T049` de la spec 004: pendientes de la spec 001 de A.
-5. Ventana: falta un acceso por teclado/menú para invocar `historia`; el
+2. `T048..T052`: documentar §5.4/§5.5 en `Decisiones_de_diseño.md`, auditoría
+   de trazabilidad y cierre.
+3. `T047..T049` de la spec 004: pendientes de la spec 001 de A.
+4. Ventana: falta un acceso por teclado/menú para invocar `historia`; el
    método `mostrar_historia` ya está.
