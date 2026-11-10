@@ -235,6 +235,7 @@ class Ficha:
     defensa: int | None = None
     velocidad: int | None = None
     comportamiento: str | None = None
+    rango: int | None = None
     suelta: list[str] = field(default_factory=list)
     regeneracion: int | None = None
     veneno: int | None = None
@@ -264,6 +265,7 @@ class Ficha:
             defensa=None if datos.get("defensa") is None else int(datos.get("defensa")),
             velocidad=None if datos.get("velocidad") is None else int(datos.get("velocidad")),
             comportamiento=None if datos.get("comportamiento") is None else str(datos.get("comportamiento")),
+            rango=None if datos.get("rango") is None else int(datos.get("rango")),
             suelta=[str(x) for x in datos.get("suelta", []) or []],
             regeneracion=None if datos.get("regeneracion") is None else int(datos.get("regeneracion")),
             veneno=None if datos.get("veneno") is None else int(datos.get("veneno")),

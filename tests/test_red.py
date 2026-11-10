@@ -211,6 +211,36 @@ class PruebaFuenteOffline(unittest.TestCase):
         self.assertIn("llaves", str(contexto.exception))
 
 
+class PruebaCatalogoRango(unittest.TestCase):
+    def test_rango_y_cazador_se_transportan(self):
+        from cripta.modelo.datos import Ficha
+
+        ficha = Ficha.desde_json({
+            "id": "ent_cazador", "clase": "enemigo", "nombre": "Cazador",
+            "comportamiento": "cazador", "rango": 300,
+        })
+        self.assertEqual(ficha.comportamiento, "cazador")
+        self.assertEqual(ficha.rango, 300)
+        sin_rango = Ficha.desde_json({"id": "e", "clase": "enemigo", "nombre": "X"})
+        self.assertIsNone(sin_rango.rango)
+
+    def test_rango_persiste_en_disco(self):
+        import tempfile
+        from cripta.adaptadores.almacen_disco import AlmacenCatalogo
+        from cripta.modelo.datos import Ficha
+
+        directorio = tempfile.mkdtemp(prefix="cripta_catalogo_")
+        try:
+            almacen = AlmacenCatalogo(directorio)
+            ficha = Ficha("ent_cazador", "enemigo", "Cazador", comportamiento="cazador", rango=300)
+            almacen.escribir(ficha)
+            leida = almacen.leer("ent_cazador")
+            self.assertEqual(leida.rango, 300)
+            self.assertEqual(leida.comportamiento, "cazador")
+        finally:
+            shutil.rmtree(directorio, ignore_errors=True)
+
+
 class PruebaAlmacenLlaves(unittest.TestCase):
     def setUp(self):
         self.directorio = tempfile.mkdtemp(prefix="cripta_almacen_")
