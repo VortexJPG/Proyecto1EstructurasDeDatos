@@ -243,7 +243,7 @@ Se revisó todo el proyecto contra el enunciado. Cambios:
   - `--bench` corre;
   - con la API del curso arranca bien (usó 2 de 9 solicitudes porque aprovechó lo que la partida anterior dejó en disco).
 
-**Falta (lo hacen los integrantes):** los prompts de Persona B en la bitácora, que Persona B repase todo para la defensa y subir el proyecto a GitHub.
+**Persona B:** prompts registrados (43–63), constitución 1.0.1 aprobada y revisión de la integración de A hecha. Falta la prueba con la API real y el push final.
 
 
 ## Parte II — Persona A (2026-11-15)
@@ -270,7 +270,7 @@ División de la Parte II: la Persona A tiene terreno y cazador (spec 001), inval
 
 **Datos:** `datos_ejemplo_p2/` con las respuestas reales de `cripta-05` y `cripta-06` (descargadas del servicio el 2026-11-15). Va en una carpeta aparte porque tienen otra versión de catálogo que `datos_ejemplo/`.
 
-**Documentos:** `Decisiones_de_diseño.md` pasó a llamarse `DECISIONES.md` (§7.2). Se agregaron la metodología de la Parte II, §4.2 ampliado (lo pidió la revisión de la Parte I), §5.1, §5.2, §5.3 y §5.6-A. La constitución quedó revisada por A (v1.0.1; falta que B la apruebe). README con la versión de spec-kit, los agentes, los comandos nuevos y cómo correr las pruebas de aceptación.
+**Documentos:** `Decisiones_de_diseño.md` pasó a llamarse `DECISIONES.md` (§7.2). Se agregaron la metodología de la Parte II, §4.2 ampliado (lo pidió la revisión de la Parte I), §5.1, §5.2, §5.3 y §5.6-A. La constitución quedó revisada por A y aprobada por B (v1.0.1, 2026-11-17). README con la versión de spec-kit, los agentes, los comandos nuevos y cómo correr las pruebas de aceptación.
 
 **Pruebas:** `test_terreno_cazador.py`, `test_invalidacion.py`, `test_niebla.py`, `test_interfaz_a_b.py` y `test_robustez.py` (partidas al azar en las 6 criptas). Pasaban 225 pruebas el 2026-11-15 (237 después del cierre del 2026-11-17).
 
@@ -281,10 +281,38 @@ División de la Parte II: la Persona A tiene terreno y cazador (spec 001), inval
 - **Auditoría de trazabilidad:** cada FR y NFR de 001, 002 y 003 tiene tarea y prueba que lo cita. Faltaban pruebas para los requisitos de medición: `tests/test_bench_rutas.py` las agrega con contadores deterministas y con los límites de §6.1 en la cripta de referencia. También faltaba la de 001/FR-018: una prueba recorre `cripta/` buscando ids reales de los paquetes offline. Hay una matriz por spec en `specs/00N-*/trazabilidad.md`, pensada para la defensa ("un requisito al azar").
 - **Revisión cruzada de lo de B** (la parte de A):
   - Las specs 004 y 005 no nombran estructuras, clases ni módulos. ✔
-  - `bench/ingenuo.py` usaba `dict`, `set` y `sorted`, y además la comparación no era justa (el ingenuo con tablas hash contra el incremental con estructuras propias). Se reescribió con los mismos índices por posición que el verificador. Se volvió a medir: `docs/mediciones/p2_resolubilidad.txt` y la tabla de §5.4 en `DECISIONES.md`. Ahora el incremental gana desde K = 5. **Brandon debería revisar este cambio.**
+  - `bench/ingenuo.py` usaba `dict`, `set` y `sorted`, y además la comparación no era justa (el ingenuo con tablas hash contra el incremental con estructuras propias). Se reescribió con los mismos índices por posición que el verificador. Se volvió a medir: `docs/mediciones/p2_resolubilidad.txt` y la tabla de §5.4 en `DECISIONES.md`. Ahora el incremental gana desde K = 5. **Revisado por Brandon (2026-11-17):** el ingenuo usa las mismas estructuras propias, la auditoría de prohibidos lo incluye y una corrida nueva del bench confirma la tendencia.
   - `bench/bench_timeline.py` tenía `"cripta-02"` escrito en el código. Ahora elige "la cripta más pequeña con al menos 20 salas" de `criptas.json`, que es la misma, así que sus números no cambian. En `bench/bench_rutas.py` se quitó `"cripta-06"`: la referencia es la cripta más grande del paquete.
 - **pygame-ce** quedó instalado en el Python del equipo: las 237 pruebas corren sin saltarse ninguna.
 - `python main.py --bench` completo corre sin errores y los cuatro límites de §6.1 dan PASA/OK.
+
+### Revisión de la Persona B (2026-11-17)
+
+- **`bench/ingenuo.py`:** revisado. Ya no usa `dict`, `set` ni `sorted`; prepara
+  los mismos índices por posición y la misma adyacencia que el verificador, así
+  que la comparación mide el algoritmo y no la estructura. Se añadió a la
+  prueba de auditoría de estructuras prohibidas. La corrida nueva de
+  `--bench resolubilidad` confirma que el incremental gana desde K = 5
+  (≈ 8–9 ms frente a ≈ 17–43 ms en 5000 salas).
+- **Tabla §5.4:** contrastada con `docs/mediciones/p2_resolubilidad.txt`
+  (12.1/24.3 ms con K=5, 13.4/34.7 con K=20, 14.2/96.0 con K=80, 5.2/28.7 en
+  2000 salas y 0.7 ms en 300 salas). Las cifras y la conclusión son
+  consistentes; no requiere corrección.
+- **Cambios pequeños en archivos de B:** revisados y probados.
+  - `guardable.py`/`guardado.py`: `conocimiento` se guarda y carga en binario
+    y JSON, dentro de v3.
+  - `timeline.py`: el resumen usa salas exploradas/avistadas; `historia <t>`
+    entre decisiones usa `ejecutar_accion(hasta=t)` y `Juego.avanzar_hasta`.
+  - `bitacora_replay.py`: `comentario()` y el lector ignora `#`; el replay de P1
+    sigue funcionando.
+  - `comandos.py`/`controlador.py`: `MAPA`, `IR_A` y `ResultadoViaje`.
+  - `precarga.py`: la reserva descuenta las solicitudes pendientes.
+  - `fuente_offline.py`: contenido y catálogo se leen una sola vez.
+- **Pruebas:** 112 pruebas específicas de resolubilidad, interfaz A↔B, niebla,
+  red, integración, timeline y robustez en verde. `--verificar cripta-05` y
+  `cripta-06` con `--offline datos_ejemplo_p2` da el reporte esperado
+  (cripta-05 no resoluble con ciclo; cripta-06 resoluble). Suite completa:
+  243/243.
 
 **Orden sugerido de commits** (§2.6: la spec antes que el código, y en commits separados):
 1. `docs(constitution)`: `.specify/memory/constitution.md` (v1.0.1).

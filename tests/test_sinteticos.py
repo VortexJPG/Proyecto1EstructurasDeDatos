@@ -77,6 +77,7 @@ class PruebaGeneradorSintetico(unittest.TestCase):
         modulos = [
             os.path.join(base, "modelo", "verificacion.py"),
             os.path.join(base, "bench", "sinteticos.py"),
+            os.path.join(base, "bench", "ingenuo.py"),
             os.path.join(base, "bench", "bench_resolubilidad.py"),
         ]
         for ruta in modulos:
