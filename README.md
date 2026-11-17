@@ -10,7 +10,7 @@ Proyecto de Estructuras de Datos — II Ciclo 2026. Juego de mazmorra dirigido p
 | [PROMPTS_LLM.md](PROMPTS_LLM.md) | Bitácora de uso de LLM (§10.3), incluidos los comandos de spec-kit con texto propio |
 | [PLAN_DE_TRABAJO.md](PLAN_DE_TRABAJO.md) | División del trabajo entre los integrantes y registro de los cambios grandes |
 | [.specify/memory/constitution.md](.specify/memory/constitution.md) | Constitución del proyecto (principios que siguen todas las specs) |
-| [specs/](specs/) | Una carpeta por capacidad con `spec.md`, `plan.md`, `research.md`, `tasks.md`: 001 terreno y cazador, 002 invalidación de rutas, 003 niebla e «ir a» (Persona A); 004 resolubilidad, 005 línea de tiempo (Persona B) |
+| [specs/](specs/) | Una carpeta por capacidad con `spec.md`, `plan.md`, `research.md`, `tasks.md`: 001 terreno y cazador, 002 invalidación de rutas, 003 niebla e «ir a» (Persona A); 004 resolubilidad, 005 línea de tiempo (Persona B); 006 fin de partida en la interfaz (Persona A) |
 | [docs/mediciones/](docs/mediciones/) | Salidas guardadas de `--bench` que respaldan el Documento de Decisiones |
 
 ## Desarrollo con spec-kit (Parte II)
@@ -86,6 +86,8 @@ Escribe la letra y presiona Enter:
 | `T` | esperar |
 | `I` | ver el inventario |
 
+Al ganar o morir, la terminal pregunta `[R] Reintentar  [S] Salir` en vez de cerrar el programa.
+
 También hay comandos con palabras: `sig` y `ant` (mover el cursor del inventario), `ordenar peso|valor|nombre`, `retroceder`, `mapa` (mapa conocido), `ir a <sala>` (viaje automático), `historia <t>|#k`, `guardar`, `cargar`, `puntajes`, `ayuda` y `salir`.
 
 ### En la ventana (`--gui`)
@@ -106,6 +108,7 @@ Las mismas letras, sin Enter. Cuando hay que elegir (por ejemplo, a qué rata at
 | `L` | ver la bitácora completa (los últimos 20 mensajes) |
 | `F1` | ver los controles |
 | `Esc` | salir |
+| Al ganar o morir | botones **Reintentar** (izquierda: otra partida en la misma cripta) y **Salir** (derecha: cierra el programa) |
 
 Los sprites están dibujados en el código (`cripta/vista/sprites.py`): cada uno es una cuadrícula de 16 x 16 caracteres, uno por pixel. No usan imágenes ni recursos de terceros.
 
@@ -171,6 +174,7 @@ Las pruebas de aceptación citan su requisito (`001/FR-012`, `AC-003-02`, ...). 
 | 003 niebla de guerra e «ir a» | `python -m unittest tests.test_niebla -v` |
 | 004 resolubilidad y llaves | `python -m unittest tests.test_resolubilidad -v` |
 | 005 línea de tiempo | `python -m unittest tests.test_timeline -v` |
+| 006 fin de partida y cripta no resoluble en la interfaz | `python -m unittest tests.test_reintentar -v` |
 | Contratos entre A y B | `python -m unittest tests.test_interfaz_a_b -v` |
 | Requisitos de medición y límites de §6.1 (A) | `python -m unittest tests.test_bench_rutas -v` |
 | Partidas al azar en las 6 criptas (robustez) | `python -m unittest tests.test_robustez -v` |
