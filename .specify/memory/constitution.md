@@ -9,7 +9,7 @@
   - Flujo, paso 6: el Documento de Decisiones se llama `DECISIONES.md`
     (§7.2 de la Parte II).
   - Sin cambios de reglas del juego: ninguna spec necesita corregirse.
-  - Pendiente: aprobación de la Persona B (Governance).
+  - Aprobada por la Persona B el 2026-11-17.
 -->
 
 ## Core Principles
@@ -111,4 +111,4 @@ correspondiente. Si una enmienda cambia una regla del juego, se corrige primero
 la spec afectada. Todas las revisiones verifican el cumplimiento de estos
 principios; la complejidad añadida debe justificarse con mediciones.
 
-**Version**: 1.0.1 | **Ratified**: 2026-11-09 | **Last Amended**: 2026-11-15
+**Version**: 1.0.1 | **Ratified**: 2026-11-09 | **Last Amended**: 2026-11-15 | **Approved**: Persona A (2026-11-15) · Persona B (2026-11-17)

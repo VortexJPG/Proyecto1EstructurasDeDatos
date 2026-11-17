@@ -717,3 +717,14 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
   > - Actualiza README y PLAN_DE_TRABAJO con lo que cambió y deja el orden sugerido de los commits.
 
 - **Uso:** instalar `pygame-ce` y comprobar la suite completa (237/237, sin pruebas saltadas) y el `--bench` completo (límites de §6.1 en PASA/OK). Auditar la trazabilidad: se agregaron `tests/test_bench_rutas.py` (requisitos de medición con contadores deterministas y límites en la cripta de referencia), la prueba de 001/FR-018 (sin ids reales en `cripta/`) y las matrices `specs/00N-*/trazabilidad.md`. En la revisión cruzada se quitaron los ids de cripta escritos en los bench (`bench_rutas.py` y `bench_timeline.py`) y se reescribió `bench/ingenuo.py` sin `dict`/`set` y con los mismos índices que el verificador; con eso se volvió a medir la resolubilidad (`docs/mediciones/p2_resolubilidad.txt`, tabla de §5.4). Se actualizaron README y PLAN_DE_TRABAJO.
+
+### 63
+
+- **Fecha:** 2026-11-17
+- **Integrante:** Brandon
+- **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
+- **Prompt:**
+
+  > Aprueba la constitución 1.0.1: revisa los siete principios, la alineación con el proyecto y deja constancia de la aprobación de la Persona B, con una prueba que valide el documento.
+
+- **Uso:** revisar `.specify/memory/constitution.md` v1.0.1, registrar la aprobación de la Persona B (2026-11-17) en el informe de impacto y en la línea de versión, y añadir `tests/test_constitucion.py` para comprobar versión, siete principios, prohibiciones, aprobación de ambos integrantes y ausencia de plantillas. Suite en 243/243.
