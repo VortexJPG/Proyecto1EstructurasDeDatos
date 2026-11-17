@@ -739,3 +739,14 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
   > Revisa `bench/ingenuo.py`, la nueva tabla de §5.4 y los cambios pequeños de A en los archivos de B listados en `PLAN_DE_TRABAJO.md`, con pruebas.
 
 - **Uso:** revisar el oráculo ingenuo reescrito (sin `dict`/`set`/`sorted`, con los mismos índices que el verificador), contrastar la tabla §5.4 con `docs/mediciones/p2_resolubilidad.txt` y revisar los cambios en `guardable.py`, `guardado.py`, `timeline.py`, `bitacora_replay.py`, `comandos.py`, `controlador.py`, `precarga.py` y `fuente_offline.py`. Se añadió `ingenuo.py` a la auditoría de estructuras prohibidas, se actualizó `PLAN_DE_TRABAJO.md` con la revisión y se ejecutaron las pruebas específicas (112) y la suite completa (243/243).
+
+### 65
+
+- **Fecha:** 2026-11-17
+- **Integrante:** Brandon
+- **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
+- **Prompt:**
+
+  > Haz la prueba con la API real: valida el contrato de Swagger, `/llaves`, `costo` y cazador; juega una partida real, guarda/carga y reproduce el log en línea y sin red.
+
+- **Uso:** ejecutar la prueba de aceptación contra el servicio: Swagger 1.1.0; criptas 02–06 con versiones, presupuestos y llaves; `/llaves` con llaves de enemigos; `costo` en salidas y cazadores con `rango`; `--verificar` en línea; partida real de 80 acciones (9/25 solicitudes, 0 errores); guardar/cargar con conocimiento y línea; replay en línea y offline idéntico; `--hasta` y costo de salida. Evidencia en `docs/mediciones/p2_api_real.txt` y `p2_api_real_cripta05.log`; prueba opt-in `tests/test_api_real.py`. Suite 245/245 (2 pruebas de red saltadas por defecto).

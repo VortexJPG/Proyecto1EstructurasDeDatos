@@ -243,7 +243,7 @@ Se revisó todo el proyecto contra el enunciado. Cambios:
   - `--bench` corre;
   - con la API del curso arranca bien (usó 2 de 9 solicitudes porque aprovechó lo que la partida anterior dejó en disco).
 
-**Persona B:** prompts registrados (43–63), constitución 1.0.1 aprobada y revisión de la integración de A hecha. Falta la prueba con la API real y el push final.
+**Persona B:** prompts registrados, constitución 1.0.1 aprobada, revisión de la integración de A hecha y prueba con la API real completada (2026-11-17). Falta el push final.
 
 
 ## Parte II — Persona A (2026-11-15)
@@ -313,6 +313,15 @@ División de la Parte II: la Persona A tiene terreno y cazador (spec 001), inval
   `cripta-06` con `--offline datos_ejemplo_p2` da el reporte esperado
   (cripta-05 no resoluble con ciclo; cripta-06 resoluble). Suite completa:
   243/243.
+
+- **Prueba con la API real (2026-11-17):** Swagger 1.1.0; criptas
+  02–06 con sus versiones y presupuestos; `/llaves` con llaves de enemigos;
+  `costo` en las salidas y cazadores con `rango` (2400 y 600); `--verificar`
+  en línea (02/06 resolubles, 05 no resoluble); partida real de 80 acciones con
+  9/25 solicitudes; guardar/cargar con conocimiento y línea; replay en línea y
+  `--offline datos_ejemplo_p2` idéntico; `--hasta 0/1000/99999` y costo de
+  salida 200 → reloj 200. Evidencia: `docs/mediciones/p2_api_real.txt` y
+  `p2_api_real_cripta05.log`; prueba opt-in `tests/test_api_real.py`.
 
 **Orden sugerido de commits** (§2.6: la spec antes que el código, y en commits separados):
 1. `docs(constitution)`: `.specify/memory/constitution.md` (v1.0.1).

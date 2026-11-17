@@ -1,0 +1,79 @@
+# Prueba con la API real — 2026-11-17
+
+Servicio: `https://cripta-api.kad06a0zhgs84.us-east-2.cs.amazonlightsail.com`
+Swagger: **1.1.0**. Cliente: `cripta/adaptadores/cliente_http.py` (uuid por
+ejecución, presupuesto, 429).
+
+## 1. Criptas publicadas y contrato
+
+| Cripta | Salas | Versión | Presupuesto | Llaves |
+|---|---:|---|---:|---|
+| cripta-02 | 20 | `52532a77ee04` | 23 | bronce (2), negra (4) |
+| cripta-03 | 40 | `f9186ac25124` | 42 | bronce (2), negra (4), hierro (16, `e-cripta-03-8`) |
+| cripta-04 | 50 | `7074a17814ad` | 52 | bronce (2), negra (4), hierro (16, `e-cripta-04-8`) |
+| cripta-05 | 24 | `48bfa3b75055` | 25 | bronce (2), negra (23), hierro (24) |
+| cripta-06 | 300 | `f9ed9afa683d` | 63 | bronce (22), plata (92), negra (136), hierro (247, `e-cripta-06-1`) |
+
+Catálogo: versión `4b9e75a42be5`, igual a `datos_ejemplo_p2/`. Se comprobaron
+los cazadores:
+
+- `ent_espectro_acechador`: `comportamiento: cazador`, `rango: 2400`.
+- `ent_sabueso_oseo`: `comportamiento: cazador`, `rango: 600`.
+
+El esqueleto de `cripta-06` trae `costo` en las salidas (p. ej. sala 3 → E,
+costo 200; sala 4 → S, costo 50): 55 salidas con costo en la primera página.
+
+## 2. `--verificar` en línea
+
+```bash
+python main.py --verificar cripta-02  # exit 0
+python main.py --verificar cripta-05  # exit 3
+python main.py --verificar cripta-06  # exit 0
+```
+
+| Cripta | Veredicto | Tiempo total (incluye red) |
+|---|---|---:|
+| cripta-02 | RESOLUBLE: bronce, negra | 3.75 s |
+| cripta-05 | NO RESOLUBLE; ciclo `hierro → negra → hierro` | 3.69 s |
+| cripta-06 | RESOLUBLE: bronce, hierro, plata, negra | 7.80 s |
+
+## 3. Partida real, guardado y línea de tiempo
+
+`Controlador` + `ClienteHTTP` sobre `cripta-05`, semilla 3, bot explorador
+(80 decisiones):
+
+- 80 acciones aceptadas, reloj 8930, 10 enemigos derrotados, partida en curso.
+- **Solicitudes: 9/25**, 0 respuestas 429, 0 errores.
+- Guardar y cargar la partida conserva la línea: `historia #1` idéntica antes y
+  después; 80 acciones y 2 checkpoints.
+- Log real: `docs/mediciones/p2_api_real_cripta05.log`.
+
+## 4. Replay en línea y sin red
+
+| Ejecución | Acciones | Reloj final | Derrotados | Solicitudes | Errores |
+|---|---:|---:|---:|---:|---:|
+| En línea | 80 | 8930 | 10 | 11/25 | 0 |
+| `--offline datos_ejemplo_p2` | 80 | 8930 | 10 | 0/25 | 0 |
+
+Ambos dan el mismo resultado. Las versiones de cripta y catálogo del paquete
+offline coinciden con las del servicio.
+
+## 5. `--hasta` sobre el log real (offline)
+
+- `--hasta 0`: estado inicial (sala 1, reloj 0).
+- `--hasta 1000`: estado después de los eventos ≤ 1000 (reloj 945, sala 7).
+- `--hasta 99999`: estado final y “El log termina antes del instante pedido”.
+
+## 6. Costo de salida en una partida real
+
+`cripta-06`, sala inicial 141: la salida N declara `costo 200`; al moverse, el
+reloj pasa de 0 a **200**. Solicitudes de esa prueba: 11/63, sin errores.
+
+## 7. Conclusión
+
+- El contrato de Swagger v1.1.0 se cumple: versiones, `/llaves` con enemigos,
+  `costo` y cazadores con `rango`.
+- La verificación en línea da los veredictos esperados y respeta el presupuesto.
+- Una partida real se guarda, se carga, se consulta y se reproduce igual en
+  línea y sin red.
+- No se observaron 429 ni errores.
