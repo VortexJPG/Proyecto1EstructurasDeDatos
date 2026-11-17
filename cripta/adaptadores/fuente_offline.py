@@ -45,6 +45,13 @@ class FuenteOffline(FuenteDatos):
     def __init__(self, directorio: str) -> None:
         self.directorio = directorio
         self._presupuesto: int | None = None
+        # Optimización (revisión de la Parte I, "optimizaciones pendientes"):
+        # antes cada consulta de contenido o de catálogo volvía a leer y
+        # decodificar TODOS los JSON del paquete (en la cripta de referencia,
+        # ~120 ms por movimiento). Los archivos no cambian durante la ejecución,
+        # así que se leen una vez y se guardan en tablas propias (no dict).
+        self._contenido_por_cripta: TablaOrdenada[str, TablaOrdenada[int, ContenidoSala]] = TablaOrdenada()
+        self._fichas: TablaOrdenada[str, Ficha] | None = None
 
     def _leer_json(self, ruta: str, operacion: str) -> Any:
         if not os.path.exists(ruta):
@@ -132,9 +139,12 @@ class FuenteOffline(FuenteDatos):
         return resultado
 
     def contenido(self, cripta_id: str, salas: list[int]) -> list[ContenidoSala]:
-        por_sala: TablaOrdenada[int, ContenidoSala] = TablaOrdenada()
-        for c in self._cargar_contenido_todo(cripta_id):
-            por_sala.insertar(c.sala, c)
+        por_sala = self._contenido_por_cripta.obtener(cripta_id)
+        if por_sala is None:
+            por_sala = TablaOrdenada()
+            for c in self._cargar_contenido_todo(cripta_id):
+                por_sala.insertar(c.sala, c)
+            self._contenido_por_cripta.insertar(cripta_id, por_sala)
         salida = []
         for sala in salas:
             encontrado = por_sala.obtener(sala)
@@ -170,9 +180,12 @@ class FuenteOffline(FuenteDatos):
         return salida
 
     def catalogo(self, ids: list[str]) -> list[Ficha]:
-        por_id: TablaOrdenada[str, Ficha] = TablaOrdenada()
-        for ficha in self._cargar_catalogo_todo():
-            por_id.insertar(ficha.id, ficha)
+        por_id = self._fichas
+        if por_id is None:
+            por_id = TablaOrdenada()
+            for ficha in self._cargar_catalogo_todo():
+                por_id.insertar(ficha.id, ficha)
+            self._fichas = por_id
         salida = []
         for ident in ids:
             encontrada = por_id.obtener(ident)
