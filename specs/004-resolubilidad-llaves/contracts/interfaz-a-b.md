@@ -23,8 +23,8 @@ Persona A para la Parte II. **No** implementa comportamiento de A.
 ### Lo que debe hacer A
 
 - Exponer el costo en la salida y usarlo en `Juego._mover` en lugar de la
-  constante fija `COSTO_MOVER = 100` (regla de la Parte II; FR de la spec 001 de
-  A, **IDs por coordinar**).
+  constante fija `COSTO_MOVER = 100` (regla de la Parte II; spec 001 de A,
+  FR-001 a FR-005).
 - Mantener el valor por defecto 100 cuando el servicio no lo traiga.
 
 ### Validación
@@ -54,7 +54,7 @@ Persona A para la Parte II. **No** implementa comportamiento de A.
 - Añadir `CAZADOR` a `Comportamiento` y aceptar `"cazador"` en
   `Comportamiento.desde_texto` (hoy lanza `ValueError`).
 - Exponer `rango` en la instancia de enemigo y usarlo en la IA (comportamiento
-  cazador; FR de la spec 001 de A, **IDs por coordinar**).
+  cazador; spec 001 de A, FR-008 a FR-013).
 
 ### Validación
 

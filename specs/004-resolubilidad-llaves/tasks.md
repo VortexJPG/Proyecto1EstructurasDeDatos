@@ -169,7 +169,7 @@ consuma el costo y el rango en el modelo.
 
 - [x] T046 [P] Leer y exponer `DatosSalida.costo` en `cripta/modelo/datos.py`; persistirlo en `esqueleto.json`. Parte B hecha; el uso del costo en `Juego._mover` sigue siendo de A (spec 001, FR por coordinar).
 - [x] T047 [P] Leer `Ficha.rango` y transportar `comportamiento: "cazador"` en `cripta/modelo/datos.py` (parte B; el comportamiento del cazador sigue siendo de A).
-- [ ] T048 [BLOQUEADA] Acordar con A la interfaz `Salida.costo`, `Enemigo.rango`, `Comportamiento.CAZADOR` y `mostrar_resolubilidad()` (`contracts/interfaz-a-b.md`).
+- [x] T048 Acordar con A la interfaz `Salida.costo`, `Enemigo.rango`, `Comportamiento.CAZADOR` y `mostrar_resolubilidad()` (`contracts/interfaz-a-b.md`). — *Resuelta con la entrega de A (2026-11-15); prueba en `tests/test_interfaz_a_b.py`.*
 - [x] T049 Pruebas del contrato web en `tests/test_red.py`: lectura de `costo` (ausente = None), `rango` y transporte de `cazador`; el uso de 100 y del comportamiento queda en A.
 
 ---

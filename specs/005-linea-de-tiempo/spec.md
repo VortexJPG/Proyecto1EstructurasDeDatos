@@ -316,8 +316,8 @@ control; comparar memoria y tiempo.
 ## Assumptions
 
 - La Persona A entrega el registro e inversión de los cambios de conocimiento
-  del mapa y su serialización; hasta entonces se usa la interfaz mínima con un
-  doble de prueba.
+  del mapa y su serialización (entregado en la spec 003: el conocimiento va en
+  el estado guardable y, por lo tanto, en cada punto de control).
 - El reloj virtual y la agenda de eventos existentes son la fuente de verdad de
   los instantes.
 - Los deltas cubren todas las mutaciones registradas en el historial de

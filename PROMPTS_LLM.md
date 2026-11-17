@@ -679,3 +679,41 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
   > Añade el acceso a `historia` en la ventana con la tecla `V` y cierra el checklist propio de B.
 
 - **Uso:** añadir el acceso a `historia` en la ventana (tecla `V`, entrada de texto y panel del resumen) y cerrar el checklist propio de B. Suite en 160/160; avance 97/105 tareas (92.4 %).
+
+### 61
+
+- **Fecha:** 2026-11-15
+- **Integrante:** Kevin
+- **Herramienta / modelo:** Claude Code (Claude Opus 5.5)
+- **Prompt:**
+
+  > Responsabilidades (Persona A):
+  > - Implementar terreno y costos variables de salidas, el cazador (rango, desempate y ruta mínima), invalidación de rutas, niebla de guerra, comando "ir a <sala>", harness de benchmarks y sus respectivas secciones en el Documento de Decisiones
+  > - Desarrollar las specs bajo el flujo obligatorio de spec-kit: `001-terreno-cazador`, `002-invalidacion-ruta` y `003-niebla-ir-a`.
+  >
+  > Restricciones Inquebrantables:
+  > - **Estructuras prohibidas:** Quedan prohibidos `heapq`, `bisect`, `collections` (deque, OrderedDict, defaultdict, Counter), `networkx` y bibliotecas de grafos/rutas. `set` y `dict` están prohibidos como índice o caché en los problemas evaluados (6.2). Todo se implementa a mano.
+  > - **Determinismo y MVC:** Misma cripta, semilla y acciones generan exactamente la misma partida. `--replay`, `--bench` y `--verificar` no instancian la vista.
+  > - **Trazabilidad estricta:** Cada requisito funcional tiene ID estable, los casos del Apéndice B van como escenarios de aceptación y cada tarea referencia su requisito.
+  > - **Git / Spec-kit:** La especificación de cada capacidad debe confirmarse antes de escribir el código que la implementa.
+  >
+  > Tarea inicial:
+  > Ayúdame a redactar el primer entregable: `specs/001-terreno-cazador/spec.md` siguiendo el formato de spec-kit (historias de usuario, requisitos funcionales y escenarios de aceptación basados en el Apéndice B), **sin incluir nombres de clases, módulos o estructuras de datos**
+
+- **Uso:** redactar `specs/001-terreno-cazador/spec.md` y, con el mismo flujo de spec-kit (specify, clarify, plan, tasks, analyze), las specs `002-invalidacion-rutas` y `003-niebla-ir-a`; implementar la parte de la Persona A: costo de las salidas, cazador con búsqueda propia (montículo y arreglos con marcas de generación) y desempate, invalidación fina de rutas, niebla de guerra con memoria de puertas y antorcha, `mapa` e `ir a`, harness y mediciones de `--bench` (`cazador`, `invalidacion`, `ciclo_p2`, `mapa_conocido`, `ir_a`, `agenda_p2`), y las secciones §5.1, §5.2, §5.3 y §5.6-A de `DECISIONES.md`. Suite en 225/225 (10 de la ventana necesitan `pygame-ce`).
+
+### 62
+
+- **Fecha:** 2026-11-17
+- **Integrante:** Kevin
+- **Herramienta / modelo:** Claude Code (Claude Opus 5.5)
+- **Prompt:**
+
+  > Ya está implementada la parte de la Persona A. Ahora completa lo que falta para dejar el proyecto listo para la entrega, sin hacer commits (los hago yo a mano después, con la spec antes que el código) y sin la prueba contra la API real, que la hace mi compañero:
+  >
+  > - Instala las dependencias de `requirements.txt` para que las pruebas de la ventana no se salten, y corre la suite completa y el `--bench` completo para confirmar que todo funciona y que se cumplen los límites de §6.1.
+  > - Haz la auditoría de trazabilidad de las specs 001, 002 y 003: cada FR y NFR debe tener al menos una tarea en `tasks.md` y una prueba que lo cite. Agrega las pruebas que falten, también para los requisitos de medición y de rendimiento (de preferencia con contadores deterministas y no solo con tiempos), y arma una matriz requisito → escenario → tarea → código → prueba para la defensa.
+  > - Haz la parte de la Persona A de la revisión cruzada: revisa que las specs de 004 y 005 no nombren estructuras, clases ni módulos, que el código no use estructuras prohibidas ni tenga datos de criptas concretas escritos, y corrige lo que encuentres. Si una corrección cambia una medición, vuelve a medir y actualiza el Documento de Decisiones.
+  > - Actualiza README y PLAN_DE_TRABAJO con lo que cambió y deja el orden sugerido de los commits.
+
+- **Uso:** instalar `pygame-ce` y comprobar la suite completa (237/237, sin pruebas saltadas) y el `--bench` completo (límites de §6.1 en PASA/OK). Auditar la trazabilidad: se agregaron `tests/test_bench_rutas.py` (requisitos de medición con contadores deterministas y límites en la cripta de referencia), la prueba de 001/FR-018 (sin ids reales en `cripta/`) y las matrices `specs/00N-*/trazabilidad.md`. En la revisión cruzada se quitaron los ids de cripta escritos en los bench (`bench_rutas.py` y `bench_timeline.py`) y se reescribió `bench/ingenuo.py` sin `dict`/`set` y con los mismos índices que el verificador; con eso se volvió a medir la resolubilidad (`docs/mediciones/p2_resolubilidad.txt`, tabla de §5.4). Se actualizaron README y PLAN_DE_TRABAJO.

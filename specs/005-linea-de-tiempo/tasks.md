@@ -32,7 +32,7 @@ implementación).
 - [x] T013 [P] Codificar/decodificar la línea en el formato binario v3 (FR-025..FR-027, FR-026).
 - [x] T014 [P] Añadir `version_formato` y la línea a la copia JSON (FR-028).
 - [x] T015 Conectar la línea al controlador: crear al iniciar, registrar tras cada acción y exportar al guardar (FR-001, FR-025, FR-029).
-- [ ] T016 [BLOQUEADA A] Acordar con A `Juego.avanzar_hasta(t)` y `Juego.ejecutar_accion(accion, hasta=...)` (`contracts/interfaz-a-b-timeline.md`).
+- [x] T016 Acordar con A `Juego.avanzar_hasta(t)` y `Juego.ejecutar_accion(accion, hasta=...)` (`contracts/interfaz-a-b-timeline.md`). — *Resuelta con la entrega de A (2026-11-15); prueba en `tests/test_interfaz_a_b.py`.*
 
 **Checkpoint**: línea, checkpoints y persistencia listos para las historias.
 
@@ -78,9 +78,9 @@ la partida.
 
 ## Phase 6: US4 — Varios eventos en el mismo instante (P1)
 
-- [ ] T030 [P] [US4] Prueba `AC-005-03` con varios eventos en t (FR-002, FR-032).
-- [ ] T031 [US4] Integrar `avanzar_hasta(t)` para detenerse después de todos los eventos ≤ t (FR-002, FR-003).
-- [ ] T032 [US4] Garantizar que una decisión en t muestra el estado justo antes (FR-003).
+- [x] T030 [P] [US4] Prueba `AC-005-03` con varios eventos en t (FR-002, FR-032). — *Resuelta con la entrega de A (2026-11-15); prueba en `tests/test_interfaz_a_b.py`.*
+- [x] T031 [US4] Integrar `avanzar_hasta(t)` para detenerse después de todos los eventos ≤ t (FR-002, FR-003). — *Resuelta con la entrega de A (2026-11-15); prueba en `tests/test_interfaz_a_b.py`.*
+- [x] T032 [US4] Garantizar que una decisión en t muestra el estado justo antes (FR-003). — *Resuelta con la entrega de A (2026-11-15); prueba en `tests/test_interfaz_a_b.py`.*
 
 ---
 
@@ -117,7 +117,7 @@ la partida.
 ## Phase 10: Polish y cierre
 
 - [x] T048 [P] Actualizar `README.md` con `historia`, `--hasta` y `--checkpoint-cada` (FR-004, FR-022).
-- [x] T049 [P] Añadir las secciones §5.5 y §5.6-B a `Decisiones_de_diseño.md` con la evidencia (FR-019, FR-021).
+- [x] T049 [P] Añadir las secciones §5.5 y §5.6-B a `DECISIONES.md` con la evidencia (FR-019, FR-021).
 - [x] T050 Auditar estructuras prohibidas en `timeline.py`, el bench y la persistencia (constitución I).
 - [x] T051 Ejecutar la suite completa, `--bench timeline` y guardar la evidencia en `docs/mediciones/p2_timeline.txt` (SC-002, SC-005, SC-006).
 - [x] T052 Auditoría de trazabilidad `AC-005-01..06` → tarea → código → prueba, y de `SC-001..SC-007` (SC-001..SC-007).
@@ -126,10 +126,10 @@ la partida.
 
 ## Dependencia externa — Persona A (Fase 6)
 
-- [ ] T053 [BLOQUEADA A] Sustituir el doble de conocimiento por `serializar_conocimiento` / `restaurar_conocimiento` de A (FR-030).
-- [ ] T054 [BLOQUEADA A] Integrar `avanzar_hasta` y el límite de `ejecutar_accion` en el modelo (FR-002).
+- [x] T053 Sustituir el doble de conocimiento por `serializar_conocimiento` / `restaurar_conocimiento` de A (FR-030). — *Resuelta con la entrega de A (2026-11-15); prueba en `tests/test_interfaz_a_b.py`.*
+- [x] T054 Integrar `avanzar_hasta` y el límite de `ejecutar_accion` en el modelo (FR-002). — *Resuelta con la entrega de A (2026-11-15); prueba en `tests/test_interfaz_a_b.py`.*
 - [x] T055 Mostrar `historia` en consola y ventana (V) y parsear el comando (FR-004).
-- [ ] T056 [BLOQUEADA A] Verificar el caso cruzado: pergamino con antorcha revierte el mapa conocido y `historia` coincide (FR-011, FR-030).
+- [x] T056 Verificar el caso cruzado: pergamino con antorcha revierte el mapa conocido y `historia` coincide (FR-011, FR-030). — *Resuelta con la entrega de A (2026-11-15); prueba en `tests/test_interfaz_a_b.py`.*
 
 ---
 

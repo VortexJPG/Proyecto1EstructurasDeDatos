@@ -6,9 +6,25 @@ Proyecto de Estructuras de Datos — II Ciclo 2026. Juego de mazmorra dirigido p
 
 | Documento | Qué tiene |
 |---|---|
-| [Decisiones_de_diseño.md](Decisiones_de_diseño.md) | Documento de Decisiones de Diseño (§8): qué estructura de datos usamos para cada problema, por qué y con qué mediciones |
-| [PROMPTS_LLM.md](PROMPTS_LLM.md) | Bitácora de uso de LLM (§10.3) |
+| [DECISIONES.md](DECISIONES.md) | Documento de Decisiones de Diseño (P1 §8 y P2 §7.1): qué estructura de datos usamos para cada problema, por qué y con qué mediciones |
+| [PROMPTS_LLM.md](PROMPTS_LLM.md) | Bitácora de uso de LLM (§10.3), incluidos los comandos de spec-kit con texto propio |
 | [PLAN_DE_TRABAJO.md](PLAN_DE_TRABAJO.md) | División del trabajo entre los integrantes y registro de los cambios grandes |
+| [.specify/memory/constitution.md](.specify/memory/constitution.md) | Constitución del proyecto (principios que siguen todas las specs) |
+| [specs/](specs/) | Una carpeta por capacidad con `spec.md`, `plan.md`, `research.md`, `tasks.md`: 001 terreno y cazador, 002 invalidación de rutas, 003 niebla e «ir a» (Persona A); 004 resolubilidad, 005 línea de tiempo (Persona B) |
+| [docs/mediciones/](docs/mediciones/) | Salidas guardadas de `--bench` que respaldan el Documento de Decisiones |
+
+## Desarrollo con spec-kit (Parte II)
+
+- **Versión:** GitHub spec-kit **v1.3.2** (la misma para todo el grupo).
+- **Agentes:** opencode (Persona B, specs 004 y 005) y Claude Code (Persona A, specs 001, 002 y 003). Los comandos `/speckit.*` instalados en el repositorio son los de opencode (`.opencode/commands/`); la Persona A siguió las mismas plantillas de `.specify/templates/`.
+- **Instalación** (solo para volver a generar los archivos de spec-kit; el juego no la necesita):
+
+  ```bash
+  uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@v1.3.2
+  specify init --here --ai opencode
+  ```
+
+- **Flujo por capacidad:** `/speckit.specify` → `/speckit.clarify` → `/speckit.plan` → `/speckit.tasks` → `/speckit.analyze` → `/speckit.implement`. Cada requisito tiene un id estable (`FR-xxx`), cada caso del Apéndice B es un escenario `AC-00N-xx` y cada prueba cita el requisito que ejercita.
 
 > **Estado:** jugable en la terminal y en una ventana (`--gui`). Por defecto usa la API del curso; con `--offline` juega sin red con los datos de `datos_ejemplo/`.
 
@@ -40,12 +56,18 @@ python main.py --offline DIRECTORIO     # sin red, con otro paquete de respuesta
 python main.py --replay ARCHIVO.log     # reproducir una partida sin interacción
 python main.py --replay ARCHIVO.log --hasta 1200  # historia en el instante 1200, sin vista
 python main.py --checkpoint-cada 25     # punto de control cada 25 acciones (defecto: 50)
+python main.py --offline datos_ejemplo_p2 --cripta cripta-06  # cripta de referencia de la Parte II, sin red
 python main.py --verificar cripta-05    # verificar resolubilidad sin iniciar partida
 python main.py --cripta cripta-05 --forzar  # iniciar aunque no sea resoluble
 python main.py --bench                  # mediciones por subsistema + frecuencia de operaciones
 python main.py --bench resolubilidad    # incremental vs. repetido por llave
 python main.py --bench timeline         # historia: tiempo y memoria para varios K
 python main.py --bench agenda           # solo las mediciones que contienen "agenda"
+python main.py --bench cazador          # ruta del cazador: 1 vs. muchos, rango, compartido vs. individual
+python main.py --bench invalidacion     # reutilizar vs. recalcular, puertas estables e inestables
+python main.py --bench ciclo            # ciclo entre decisiones (incluye la cripta de referencia, límite 20 ms)
+python main.py --bench mapa_conocido    # consultas y exploración del mapa conocido
+python main.py --bench ir_a             # paso de «ir a» con el mapa completo (límite 5 ms)
 python main.py --cache-size 25          # fichas de catálogo en memoria
 python main.py --datos DIRECTORIO       # dónde guardar caché, partidas, logs y puntajes
 ```
@@ -64,7 +86,7 @@ Escribe la letra y presiona Enter:
 | `T` | esperar |
 | `I` | ver el inventario |
 
-También hay comandos con palabras: `sig` y `ant` (mover el cursor del inventario), `ordenar peso|valor|nombre`, `retroceder`, `historia <t>|#k`, `guardar`, `cargar`, `puntajes`, `ayuda` y `salir`.
+También hay comandos con palabras: `sig` y `ant` (mover el cursor del inventario), `ordenar peso|valor|nombre`, `retroceder`, `mapa` (mapa conocido), `ir a <sala>` (viaje automático), `historia <t>|#k`, `guardar`, `cargar`, `puntajes`, `ayuda` y `salir`.
 
 ### En la ventana (`--gui`)
 
@@ -77,6 +99,8 @@ Las mismas letras, sin Enter. Cuando hay que elegir (por ejemplo, a qué rata at
 | `I` | cambiar el orden del inventario: real, peso, valor, nombre |
 | `Z` | usar un pergamino de retroceso |
 | `V` | ver la historia: escribe `120` o `#4` y Enter |
+| `M` | ver el mapa conocido |
+| `G` | «ir a»: escribe el número de una sala explorada y Enter |
 | `F5` / `F9` | guardar / cargar la partida |
 | `P` | tabla de puntajes |
 | `L` | ver la bitácora completa (los últimos 20 mensajes) |
@@ -86,6 +110,15 @@ Las mismas letras, sin Enter. Cuando hay que elegir (por ejemplo, a qué rata at
 Los sprites están dibujados en el código (`cripta/vista/sprites.py`): cada uno es una cuadrícula de 16 x 16 caracteres, uno por pixel. No usan imágenes ni recursos de terceros.
 
 **Turnos en pantalla:** después de cada acción, la bitácora separa lo que hiciste (**Tu turno**) de todo lo que pasó hasta tu siguiente decisión (**Turno de los enemigos**). Por dentro, el juego sigue el reloj virtual del enunciado: un enemigo rápido puede actuar más de una vez en el turno de los enemigos.
+
+## Terreno, cazadores, niebla de guerra e «ir a» (Parte II, Persona A)
+
+- **Terreno:** cada salida tiene un costo (100 si el servicio no lo trae). Moverse cuesta ese costo para todos los actores: `max(1, costo * 100 // velocidad)`. La sala actual muestra el costo de cada salida.
+- **Cazador:** enemigo que, en su turno, ataca si comparte sala con el jugador. Si no, calcula la ruta más barata hasta él por salidas abiertas; si no hay ruta o cuesta más que su `rango`, espera, y si no, avanza una sala (empate: la vecina de menor id). En pantalla aparece como `[cazador, rango N]` (en la ventana, con una "C" morada).
+- **Niebla de guerra:** solo se muestran las salas exploradas (con nombre, salidas, costos y la puerta como se vio la última vez). Una sala avistada aparece como "sala sin explorar". Con la antorcha encendida, al entrar a una sala también quedan exploradas sus vecinas, sin despertar a sus enemigos ni activar sus trampas. Lo que se sabe del mapa se guarda con la partida, se deshace con el pergamino y aparece en `historia`.
+- **`mapa`** (tecla `M`): salas exploradas, sus salidas y cuántas salas hay avistadas.
+- **`ir a <sala>`** (tecla `G`): viaja por la ruta más barata **que conoces**, sin abrir puertas. Se detiene al llegar, al entrar a una sala con enemigos, al recibir daño o si ya no hay ruta conocida, y te dice por qué. Cada paso es un movimiento normal: cuenta tiempo, va al `partida.log` (la orden queda como comentario `# ir a N`) y el pergamino deshace solo el último paso.
+- **Datos de la Parte II sin red:** `datos_ejemplo_p2/` tiene las respuestas reales de `cripta-05` (no resoluble) y `cripta-06` (la de referencia: 300 salas y 36 cazadores).
 
 ## Resolubilidad y llaves
 
@@ -120,15 +153,31 @@ cripta puede ganarse.
   `docs/mediciones/p2_timeline.txt`.
 - Guardar/cargar conserva la línea completa. Un archivo de la Parte I se rechaza
   como incompatible.
-- `historia <t>` con t **entre dos decisiones** se rechaza con un mensaje claro
-  hasta integrar `Juego.avanzar_hasta` de la Persona A; los instantes de
-  decisión y `historia #k` funcionan.
+- `historia <t>` con t **entre dos decisiones** re-simula la acción anterior
+  hasta t (después de todos los eventos con tiempo ≤ t).
 
 ## Pruebas
 
 ```bash
 python -m unittest discover -s tests -v
 ```
+
+Las pruebas de aceptación citan su requisito (`001/FR-012`, `AC-003-02`, ...). Por capacidad:
+
+| Spec | Pruebas |
+|---|---|
+| 001 terreno y cazador | `python -m unittest tests.test_terreno_cazador -v` |
+| 002 invalidación de rutas | `python -m unittest tests.test_invalidacion -v` |
+| 003 niebla de guerra e «ir a» | `python -m unittest tests.test_niebla -v` |
+| 004 resolubilidad y llaves | `python -m unittest tests.test_resolubilidad -v` |
+| 005 línea de tiempo | `python -m unittest tests.test_timeline -v` |
+| Contratos entre A y B | `python -m unittest tests.test_interfaz_a_b -v` |
+| Requisitos de medición y límites de §6.1 (A) | `python -m unittest tests.test_bench_rutas -v` |
+| Partidas al azar en las 6 criptas (robustez) | `python -m unittest tests.test_robustez -v` |
+
+Las pruebas de la ventana se saltan si `pygame-ce` no está instalado.
+
+Cada spec de la Persona A tiene su matriz de trazabilidad (requisito → escenario → tarea → código → prueba): [001](specs/001-terreno-cazador/trazabilidad.md), [002](specs/002-invalidacion-rutas/trazabilidad.md) y [003](specs/003-niebla-ir-a/trazabilidad.md).
 
 ## Archivos generados
 
@@ -154,6 +203,9 @@ cripta/
   controlador/       orquestación, precarga, replay, argumentos
   vista/             consola y ventana (sprites en sprites.py)
   bench/             --bench
-datos_ejemplo/       respuestas reales de las 4 criptas publicadas, para jugar y medir sin red
+datos_ejemplo/       respuestas reales de las 4 criptas de la Parte I, para jugar y medir sin red
+datos_ejemplo_p2/    respuestas reales de cripta-05 y cripta-06 (referencia de la Parte II)
+specs/               specs de spec-kit (spec, plan, research, tasks) de cada capacidad
+docs/mediciones/     salidas guardadas de --bench
 tests/               pruebas con unittest
 ```

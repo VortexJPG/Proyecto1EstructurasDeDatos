@@ -178,4 +178,4 @@ inválida y se informa; no se inventa un rango.
 | `PuertaFrontera` / `LlaveInobtenible` | FR-008, FR-022, FR-023 |
 | `PasoCiclo` | FR-009 |
 | `ResultadoVerificacion` | FR-005, FR-006, FR-008, FR-009, FR-010, FR-011, FR-013 |
-| Extensiones `costo`/`rango`/`cazador` | Spec 001 de A (IDs por coordinar) |
+| Extensiones `costo`/`rango`/`cazador` | Spec 001 de A (FR-001..FR-005 y FR-008..FR-013) |

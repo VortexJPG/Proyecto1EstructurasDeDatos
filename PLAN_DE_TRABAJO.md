@@ -186,7 +186,7 @@ Se unió el repositorio de Persona B (`ProjectoEstructurasDeDatos-main`) con la 
 
 ## Documento de Decisiones y mediciones (2026-10-15)
 
-- Documento de Decisiones (hoy `Decisiones_de_diseño.md`; antes era `DOCUMENTO_DE_DECISIONES.md`): una sección por cada problema de §4 (4.1 a 4.11), con números de `--bench`. **Los dos deben leerlo completo** (§9: cualquiera puede tener que explicar cualquier decisión).
+- Documento de Decisiones (hoy `DECISIONES.md`, como pide §7.2 de la Parte II; antes `Decisiones_de_diseño.md` y `DOCUMENTO_DE_DECISIONES.md`): una sección por cada problema de §4 (4.1 a 4.11), con números de `--bench`. **Los dos deben leerlo completo** (§9: cualquiera puede tener que explicar cualquier decisión).
 - `--bench` ahora también mide: frecuencia real de operaciones (`bench/frecuencias.py`, con el bot de `bench/bot.py`), LRU vs FIFO vs LFU, recuperar fichas de disco, precarga, guardado con estados reales y ordenamiento con claves costosas. `--bench FILTRO` corre solo una parte.
 - `datos_ejemplo/` tiene las respuestas reales de las 4 criptas publicadas (se descargaron una vez).
 - Cambios en el código de B que salieron de medir:
@@ -245,3 +245,51 @@ Se revisó todo el proyecto contra el enunciado. Cambios:
 
 **Falta (lo hacen los integrantes):** los prompts de Persona B en la bitácora, que Persona B repase todo para la defensa y subir el proyecto a GitHub.
 
+
+## Parte II — Persona A (2026-11-15)
+
+División de la Parte II: la Persona A tiene terreno y cazador (spec 001), invalidación de rutas (spec 002), niebla de guerra e «ir a» (spec 003), el harness de `--bench`, §5.1–§5.3 y §5.6-A del Documento de Decisiones. La Persona B tiene resolubilidad (004), línea de tiempo (005), servicio web y persistencia.
+
+**Specs (flujo de spec-kit):** `specs/001-terreno-cazador/`, `specs/002-invalidacion-rutas/` y `specs/003-niebla-ir-a/`, cada una con `spec.md` (y su *Clarifications*), `checklists/`, `plan.md`, `research.md`, `tasks.md` y, donde hace falta, `data-model.md` y `contracts/`. Hay 21 + 11 + 27 requisitos funcionales con id estable y los 13 casos del Apéndice B de A como escenarios `AC-001-xx`, `AC-002-01` y `AC-003-xx`.
+
+**Código nuevo (Persona A):**
+- `modelo/rutas.py`: `BuscadorRutas` (Dijkstra inverso acotado con `MonticuloMin` y arreglos con marcas de generación) y `RutasCazadores` (estrategias, caché e invalidación fina).
+- `modelo/conocimiento.py`: `ConocimientoMapa` (arreglos por posición, explorar, observar, serializar) y `MapaConocido` para la vista.
+- `bench/bench_rutas.py`: subsistemas `cazador`, `invalidacion`, `ciclo_p2`, `mapa_conocido`, `ir_a` y `agenda_p2`. Salida guardada en `docs/mediciones/p2_rutas.txt`.
+- Cambios en archivos de A: `mapa.py` (costo por pasaje, `Sala.indice`/`entradas`, `Puerta.indice`/`salas`, `Puerta.cerrada` como propiedad que avisa), `actores.py` (`CAZADOR` y `rango`), `comportamiento.py` (cazador y costo de la salida), `juego.py` (costo al moverse, rutas, conocimiento, `paso_hacia`, `avanzar_hasta`, `ejecutar_accion(hasta=)`), `efectos.py`, `historial.py` (`CambioCasilla`), vistas (costos, marca de cazador, `mapa`, `ir a`, teclas M y G), `bench/runner.py` (mediana/p95/máximo, columna de detalle, PASA/FALLA).
+
+**Cambios pequeños en archivos de la Persona B** (acordados en los contratos `003/contracts/interfaz-a-b-conocimiento.md` y en los de B; conviene que la Persona B los revise y que vayan en un commit aparte):
+- `adaptadores/guardado.py`: escribe y lee `EstadoGuardable.conocimiento` (binario y JSON, sigue siendo v3).
+- `modelo/guardable.py` [contrato]: campo `conocimiento`.
+- `modelo/timeline.py`: el resumen muestra las salas **exploradas** y las avistadas; `estado_en_tiempo` reconstruye un instante entre decisiones con `ejecutar_accion(hasta=t)` (antes lo rechazaba); `_avanzar_hasta` usa `Juego.avanzar_hasta`.
+- `adaptadores/bitacora_replay.py`: `comentario()` y la lectura ignora las líneas `#`.
+- `controlador/comandos.py` [contrato]: `MAPA` e `IR_A`. `controlador/controlador.py`: `ir_a()` y `ResultadoViaje`.
+- `controlador/precarga.py`: la reserva de 2 solicitudes ahora descuenta las solicitudes lanzadas que el hilo todavía no empezó. Antes, según el momento, se podían lanzar dos anticipadas y comerse la reserva.
+- `adaptadores/fuente_offline.py`: lee el contenido y el catálogo una sola vez (antes releía todos los JSON en cada consulta; en la referencia eran unos 120 ms por movimiento).
+- Tareas de B que esperaban a A, marcadas como resueltas con su prueba (`tests/test_interfaz_a_b.py`): 004/T048 y 005/T016, T030–T032, T053, T054 y T056.
+
+**Datos:** `datos_ejemplo_p2/` con las respuestas reales de `cripta-05` y `cripta-06` (descargadas del servicio el 2026-11-15). Va en una carpeta aparte porque tienen otra versión de catálogo que `datos_ejemplo/`.
+
+**Documentos:** `Decisiones_de_diseño.md` pasó a llamarse `DECISIONES.md` (§7.2). Se agregaron la metodología de la Parte II, §4.2 ampliado (lo pidió la revisión de la Parte I), §5.1, §5.2, §5.3 y §5.6-A. La constitución quedó revisada por A (v1.0.1; falta que B la apruebe). README con la versión de spec-kit, los agentes, los comandos nuevos y cómo correr las pruebas de aceptación.
+
+**Pruebas:** `test_terreno_cazador.py`, `test_invalidacion.py`, `test_niebla.py`, `test_interfaz_a_b.py` y `test_robustez.py` (partidas al azar en las 6 criptas). Pasaban 225 pruebas el 2026-11-15 (237 después del cierre del 2026-11-17).
+
+**Revisión de la Parte I:** el bug que el profesor no logró reproducir no se pudo identificar con certeza. Se jugaron 150 partidas al azar (con retroceso, guardar/cargar, `historia` e «ir a») y 24 sesiones de teclas al azar en la ventana, sin errores. Se arregló la condición de carrera del presupuesto en la precarga, que es justo el tipo de error que aparece en una partida y en otra no.
+
+### Cierre de la Persona A (2026-11-17)
+
+- **Auditoría de trazabilidad:** cada FR y NFR de 001, 002 y 003 tiene tarea y prueba que lo cita. Faltaban pruebas para los requisitos de medición: `tests/test_bench_rutas.py` las agrega con contadores deterministas y con los límites de §6.1 en la cripta de referencia. También faltaba la de 001/FR-018: una prueba recorre `cripta/` buscando ids reales de los paquetes offline. Hay una matriz por spec en `specs/00N-*/trazabilidad.md`, pensada para la defensa ("un requisito al azar").
+- **Revisión cruzada de lo de B** (la parte de A):
+  - Las specs 004 y 005 no nombran estructuras, clases ni módulos. ✔
+  - `bench/ingenuo.py` usaba `dict`, `set` y `sorted`, y además la comparación no era justa (el ingenuo con tablas hash contra el incremental con estructuras propias). Se reescribió con los mismos índices por posición que el verificador. Se volvió a medir: `docs/mediciones/p2_resolubilidad.txt` y la tabla de §5.4 en `DECISIONES.md`. Ahora el incremental gana desde K = 5. **Brandon debería revisar este cambio.**
+  - `bench/bench_timeline.py` tenía `"cripta-02"` escrito en el código. Ahora elige "la cripta más pequeña con al menos 20 salas" de `criptas.json`, que es la misma, así que sus números no cambian. En `bench/bench_rutas.py` se quitó `"cripta-06"`: la referencia es la cripta más grande del paquete.
+- **pygame-ce** quedó instalado en el Python del equipo: las 237 pruebas corren sin saltarse ninguna.
+- `python main.py --bench` completo corre sin errores y los cuatro límites de §6.1 dan PASA/OK.
+
+**Orden sugerido de commits** (§2.6: la spec antes que el código, y en commits separados):
+1. `docs(constitution)`: `.specify/memory/constitution.md` (v1.0.1).
+2. `spec(001)`, `spec(002)`, `spec(003)`: cada `spec.md` con su `checklists/`.
+3. `plan(001..003)`: `plan.md`, `research.md`, `data-model.md`, `contracts/`, `tasks.md` y `trazabilidad.md`.
+4. `feat`/`test`: el código y las pruebas de cada spec (001 → 002 → 003).
+5. `fix(precarga)`, `perf(offline)`, `bench(ingenuo)` y los demás cambios en archivos de B, aparte.
+6. `docs`: `DECISIONES.md` (con el renombre), README, PLAN_DE_TRABAJO, `docs/mediciones/p2_rutas.txt`, `datos_ejemplo_p2/` y PROMPTS_LLM.
