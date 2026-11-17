@@ -112,46 +112,91 @@ class Controlador:
 
         Devuelve 0 si la sesión termina normal y 3 si la cripta no es resoluble
         y no se pasó ``--forzar`` (en ese caso no se crea partida ni replay).
+
+        Si la cripta se eligió de la lista (sin ``--cripta``) y no es
+        resoluble, la vista muestra el reporte y se vuelve a la lista para
+        elegir otra: la partida no inicia (§3.5) pero la ventana ya no se cierra
+        sin explicar por qué. Con ``--cripta`` se sale con código 3 como antes.
         """
-        if self._cripta_id is None:
-            criptas = self.fuente.listar_criptas()
-            if not criptas:
-                raise ErrorFuenteDatos("listar_criptas", "no hay criptas disponibles")
+        elegida_de_lista = self._cripta_id is None
+        criptas = None
+        while True:
+            if self._cripta_id is None:
+                if criptas is None:  # la lista se pide una sola vez (cuenta en el presupuesto)
+                    criptas = self.fuente.listar_criptas()
+                    if not criptas:
+                        raise ErrorFuenteDatos("listar_criptas", "no hay criptas disponibles")
+                if self.vista is not None:
+                    self._cripta_id = self.vista.elegir_cripta(criptas)
+                else:
+                    self._cripta_id = criptas[0].id
+            resultado = self.verificar_cripta(self._cripta_id)
+            reporte = self.texto_resolubilidad()
             if self.vista is not None:
-                self._cripta_id = self.vista.elegir_cripta(criptas)
+                self.vista.mostrar_info(reporte)
             else:
-                self._cripta_id = criptas[0].id
-        resultado = self.verificar_cripta(self._cripta_id)
-        reporte = self.texto_resolubilidad()
-        if self.vista is not None:
-            self.vista.mostrar_info(reporte)
-        else:
-            print(reporte)
-        if not resultado.resoluble:
-            if not self.opciones.forzar:
+                print(reporte)
+            if resultado.resoluble:
+                break
+            if self.opciones.forzar:
+                if self.vista is not None:
+                    self.vista.mostrar_info(
+                        "ADVERTENCIA: la cripta no es resoluble; continúas porque se usó --forzar."
+                    )
+                break
+            if self.vista is None:
                 return 3
-            if self.vista is not None:
-                self.vista.mostrar_info(
-                    "ADVERTENCIA: la cripta no es resoluble; continúas porque se usó --forzar."
-                )
+            otra = elegida_de_lista
+            mostrar = getattr(self.vista, "mostrar_no_resoluble", None)
+            if mostrar is not None:
+                mostrar(reporte, otra)
+            if not otra:
+                return 3
+            self._cripta_id = None  # volver a la lista
         self.preparar_cripta(self._cripta_id)
         nombre = self.opciones.nombre_jugador
         if nombre is None:
             nombre = self.vista.pedir_nombre() if self.vista is not None else "Jugador"
-        self.iniciar_partida(nombre, self.opciones.semilla, True)
-        if self.vista is None:
+        while True:
+            self.iniciar_partida(nombre, self.opciones.semilla, True)
+            if self.vista is None:
+                self.finalizar()
+                return 0
+            self.vista.mostrar_info(f"Partida iniciada (semilla {self._semilla}).")
+            if self._ruta_log is not None:
+                self.vista.mostrar_info(f"Bitácora de replay: {self._ruta_log}")
+            self.vista.mostrar_estado(self._juego)
+            while self._juego is not None and not self._juego.esta_terminada():
+                comando = self.vista.pedir_comando(self._juego)
+                if not self.procesar_comando(comando):
+                    break
+            terminada = self._juego is not None and self._juego.esta_terminada()
             self.finalizar()
-            return 0
-        self.vista.mostrar_info(f"Partida iniciada (semilla {self._semilla}).")
-        if self._ruta_log is not None:
-            self.vista.mostrar_info(f"Bitácora de replay: {self._ruta_log}")
-        self.vista.mostrar_estado(self._juego)
-        while self._juego is not None and not self._juego.esta_terminada():
-            comando = self.vista.pedir_comando(self._juego)
-            if not self.procesar_comando(comando):
-                break
-        self.finalizar()
-        return 0
+            # Al ganar o morir, la vista ofrece "Reintentar" o "Salir". Si el
+            # jugador salió a mitad de partida, el programa termina como antes.
+            pedir = getattr(self.vista, "pedir_reintentar", None)
+            if not terminada or pedir is None or not pedir():
+                return 0
+            self.reiniciar_partida()
+
+    def reiniciar_partida(self) -> None:
+        """«Reintentar»: una partida nueva en la misma cripta, desde el principio.
+
+        Reutiliza los datos generales, el esqueleto y la caché de catálogo de la
+        partida anterior, y el contenido ya descargado sale de disco: casi no
+        gasta solicitudes del presupuesto (§5.1). El mapa se vuelve a construir
+        porque guarda el estado de la partida (enemigos, objetos, puertas).
+        """
+        if self._datos is None or self._esqueleto is None or self._catalogo is None:
+            raise RuntimeError("No hay una cripta preparada para reintentar")
+        self.cerrar_recursos()
+        if self._juego is not None:
+            self._juego.liberar_fijaciones()
+        self._juego = None
+        self._timeline = None
+        self._ruta_log = None
+        self._mapa = Mapa.construir(self._datos, self._esqueleto)
+        self._montar_precarga(self._datos.id)
 
     def procesar_comando(self, comando: ComandoUsuario) -> bool:
         """Ejecuta un comando. Devuelve False si la sesión debe terminar."""
@@ -261,9 +306,13 @@ class Controlador:
         self._catalogo = catalogo
         self._version_catalogo = self.fuente.version_catalogo()
         catalogo.validar_version(self._version_catalogo)
-        # precarga
+        self._montar_precarga(cripta_id)
+
+    def _montar_precarga(self, cripta_id: str) -> None:
+        """Precarga sobre el mapa actual y contenido de la sala inicial."""
+        catalogo = self._catalogo
         mapa = self._mapa
-        assert mapa is not None
+        assert mapa is not None and catalogo is not None
 
         def incorporar(contenido: ContenidoSala) -> None:
             mapa.incorporar_contenido(contenido, catalogo)

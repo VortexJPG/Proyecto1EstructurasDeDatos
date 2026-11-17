@@ -396,6 +396,19 @@ class VistaConsola(VistaBase):
             _imprimir(LINEA_SIMPLE)
             _imprimir(reporte_red)
 
+    def pedir_reintentar(self) -> bool:
+        """Al ganar o morir pregunta si se juega otra vez la misma cripta."""
+        while True:
+            try:
+                respuesta = self._leer("¿Qué quieres hacer? [R] Reintentar  [S] Salir: ").lower()
+            except EOFError:
+                return False
+            if respuesta in ("r", "reintentar"):
+                return True
+            if respuesta in ("s", "salir", ""):
+                return False
+            self.mostrar_error("Escribe R para reintentar o S para salir.")
+
     def mostrar_puntajes(self, registros: list[RegistroPuntaje]) -> None:
         _imprimir(LINEA_SIMPLE)
         if not registros:

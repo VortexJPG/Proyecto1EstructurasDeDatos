@@ -188,6 +188,22 @@ class VistaBase:
         """Muestra un resumen histórico (lo entrega el controlador)."""
         raise NotImplementedError
 
+    def pedir_reintentar(self) -> bool:
+        """Al ganar o morir: True = jugar otra vez la misma cripta, False = salir."""
+        return False
+
+    def mostrar_no_resoluble(self, reporte: str, elegir_otra: bool) -> None:
+        """La cripta no se puede ganar y no se usó --forzar (spec 004, FR-010 y FR-013).
+
+        La partida no inicia. ``elegir_otra`` dice si se vuelve a la lista de
+        criptas (True) o si el programa termina (False, cuando se pasó --cripta).
+        """
+        if elegir_otra:
+            self.mostrar_error("Esta cripta no se puede ganar (mira el reporte). Elige otra cripta, "
+                               "o úsala con --cripta <id> --forzar.")
+        else:
+            self.mostrar_error("Esta cripta no se puede ganar: la partida no inicia (usa --forzar para jugarla igual).")
+
     def mostrar_mapa(self, mapa: MapaConocido) -> None:
         """Muestra el mapa conocido (spec 003, FR-013)."""
         raise NotImplementedError

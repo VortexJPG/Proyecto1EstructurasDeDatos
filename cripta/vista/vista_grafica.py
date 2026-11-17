@@ -139,6 +139,7 @@ AYUDA: tuple[tuple[str, str], ...] = (
     ("P", "tabla de puntajes"),
     ("L", "ver la bitácora completa (los últimos 20 mensajes)"),
     ("F1", "ver esta ayuda"),
+    ("Fin de partida", "Reintentar (izquierda) o Salir (derecha)"),
     ("Esc", "salir"),
 )
 
@@ -256,6 +257,11 @@ class VistaGrafica(VistaBase):
         self._historia_resumen = None
         self._mapa_conocido = None  # MapaConocido de la última consulta (tecla M)
         self._fin: tuple[ResumenPartida, str] | None = None
+        # Pantalla final con botones (al ganar o morir): 0 = Reintentar, 1 = Salir.
+        self._fin_con_botones = False
+        self._fin_seleccion = 0
+        self._zonas_fin: list[pygame.Rect] = []
+        self._reintentar = False
         self._avisos: list[_Aviso] = []
         self._flotantes: list[_Flotante] = []
         self._muertes: list[tuple[int, int, int]] = []  # (x, y, inicio) de enemigos derrotados
@@ -318,6 +324,44 @@ class VistaGrafica(VistaBase):
             if elegida is not None:
                 self._pantalla_espera(f"Preparando {criptas[elegida].nombre}...")
                 return criptas[elegida].id
+
+    def mostrar_no_resoluble(self, reporte: str, elegir_otra: bool) -> None:
+        """Pantalla con el reporte de una cripta que no se puede ganar; espera una tecla.
+
+        Antes la ventana se cerraba de inmediato y el reporte solo quedaba en la
+        terminal de atrás (spec 004, FR-010 y FR-013: "se muestra el reporte").
+        """
+        print(reporte)
+        lineas = [linea for linea in reporte.splitlines() if linea.strip()]
+        pie = ("Cualquier tecla: volver a la lista de criptas" if elegir_otra
+               else "Cualquier tecla: salir (para jugarla igual usa --forzar)")
+        inicio = pygame.time.get_ticks()
+        while True:
+            evento = self._siguiente_evento()
+            if evento is None:
+                self._dibujar_reporte_no_resoluble(lineas, pie)
+                self._presentar()
+                continue
+            if evento.type == pygame.QUIT:
+                self._cerrar_ventana()
+            esperando = pygame.time.get_ticks() - inicio < self.espera_fin_ms
+            if evento.type in (pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN) and not esperando:
+                return
+
+    def _dibujar_reporte_no_resoluble(self, lineas: list[str], pie: str) -> None:
+        self._dibujar_portada("Esta cripta no se puede ganar")
+        caja = pygame.Rect(60, 260, ANCHO - 120, ALTO - 320)
+        self._caja(caja, "REPORTE DE RESOLUBILIDAD")
+        y = caja.y + 32
+        for linea in lineas:
+            color = ROJO_CLARO if linea.startswith("Veredicto") else TEXTO
+            for parte in self._partir(self._fuente_chica, linea, caja.width - 30):
+                if y > caja.bottom - 22:
+                    break
+                self._texto(parte, (caja.x + 14, y), color, self._fuente_chica)
+                y += 17
+        ancho = self._fuente.size(pie)[0]
+        self._texto(pie, ((ANCHO - ancho) // 2, ALTO - 40), DORADO, self._fuente)
 
     def pedir_nombre(self) -> str:
         """Pantalla para escribir el nombre (Enter acepta; vacío o Esc = "Jugador")."""
@@ -486,14 +530,23 @@ class VistaGrafica(VistaBase):
         self._capa = "puntajes"
 
     def mostrar_fin(self, juego: Juego, reporte_red: str) -> None:
-        """Pantalla de victoria o derrota; espera una tecla antes de cerrar."""
+        """Pantalla final.
+
+        Al ganar o morir tiene dos botones: «Reintentar» (izquierda) juega otra
+        vez la misma cripta y «Salir» (derecha) cierra el programa. Se eligen con
+        las flechas o A/D y Enter, con un clic, con R o con Esc. Si el jugador
+        salió a mitad de partida, basta cualquier tecla para cerrar.
+        """
         VistaConsola().mostrar_fin(juego, reporte_red)  # queda en la terminal al cerrar la ventana
+        self._reintentar = False
         if self._cerrada:
             return
         self._juego = juego
         self._menu = None
         self._capa = None
         self._fin = (juego.resumen(), reporte_red)
+        self._fin_con_botones = juego.esta_terminada()
+        self._fin_seleccion = 0
         inicio = pygame.time.get_ticks()
         while True:
             evento = self._siguiente_evento()
@@ -504,8 +557,57 @@ class VistaGrafica(VistaBase):
                 self._cerrada = True
                 return
             esperando = pygame.time.get_ticks() - inicio < self.espera_fin_ms
-            if evento.type in (pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN) and not esperando:
+            if not self._fin_con_botones:
+                if evento.type in (pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN) and not esperando:
+                    return
+                continue
+            if evento.type == pygame.MOUSEMOTION:
+                self._fin_seleccion = self._zona_en(self._zonas_fin, evento.pos, self._fin_seleccion)
+                continue
+            if esperando:
+                continue
+            elegida: int | None = None
+            if evento.type == pygame.KEYDOWN:
+                if evento.key in (pygame.K_LEFT, pygame.K_a):
+                    self._fin_seleccion = 0
+                elif evento.key in (pygame.K_RIGHT, pygame.K_d):
+                    self._fin_seleccion = 1
+                elif evento.key in (pygame.K_TAB, pygame.K_UP, pygame.K_DOWN):
+                    self._fin_seleccion = 1 - self._fin_seleccion
+                elif evento.key in TECLAS_ACEPTAR:
+                    elegida = self._fin_seleccion
+                elif evento.key == pygame.K_r:
+                    elegida = 0
+                elif evento.key in (pygame.K_ESCAPE, pygame.K_q):
+                    elegida = 1
+            elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
+                zona = self._zona_en(self._zonas_fin, evento.pos, -1)
+                if zona >= 0:
+                    elegida = zona
+            if elegida is not None:
+                self._reintentar = elegida == 0
                 return
+
+    def pedir_reintentar(self) -> bool:
+        """Lo que se eligió en la pantalla final. Si es reintentar, limpia la pantalla."""
+        if not self._reintentar or self._cerrada:
+            return False
+        self._reintentar = False
+        self._fin = None
+        self._fin_con_botones = False
+        self._menu = None
+        self._capa = None
+        self._sala_previa = None
+        self._vidas = TablaOrdenada()
+        self._enemigos_previos = []
+        self._destellos = TablaOrdenada()
+        self._avisos = []
+        self._flotantes = []
+        self._muertes = []
+        self._criterio = None
+        self._vista_ordenada = None
+        self._ultimo_comando = None
+        return True
 
     def cerrar(self) -> None:
         """Cierra la ventana (se puede llamar más de una vez)."""
@@ -1381,7 +1483,9 @@ class VistaGrafica(VistaBase):
 
     def _dibujar_ayuda(self) -> None:
         self._velo(self._pantalla.get_rect(), NEGRO, 170)
-        rect = pygame.Rect(ANCHO // 2 - 300, 70, 600, 470)
+        paso = 22
+        alto = 54 + paso * len(AYUDA) + 8 + 2 * 18 + 40  # el cuadro crece con la lista de teclas
+        rect = pygame.Rect(ANCHO // 2 - 360, max(10, (ALTO - alto) // 2), 720, alto)
         pygame.draw.rect(self._pantalla, CAJA, rect, border_radius=8)
         pygame.draw.rect(self._pantalla, DORADO, rect, 2, border_radius=8)
         self._texto("CONTROLES", (rect.x + 20, rect.y + 16), DORADO, self._fuente_titulo)
@@ -1389,7 +1493,7 @@ class VistaGrafica(VistaBase):
         for tecla, descripcion in AYUDA:
             self._texto(tecla, (rect.x + 24, y), DORADO, self._fuente_negrita)
             self._texto(descripcion, (rect.x + 190, y), TEXTO)
-            y += 24
+            y += paso
         notas = (
             "El tiempo solo avanza cuando haces algo. Después de tu turno",
             "actúan los enemigos, según su velocidad (el más rápido, más veces).",
@@ -1452,9 +1556,28 @@ class VistaGrafica(VistaBase):
             for renglon in self._partir(self._fuente_chica, linea, 700):
                 self._texto(renglon, (ANCHO // 2 - 350, y), TENUE, self._fuente_chica)
                 y += 16
-        texto = "Presiona cualquier tecla para cerrar"
-        ancho = self._fuente_negrita.size(texto)[0]
-        self._texto(texto, ((ANCHO - ancho) // 2, rect.bottom - 36), AZUL, self._fuente_negrita)
+        if not self._fin_con_botones:
+            texto = "Presiona cualquier tecla para cerrar"
+            ancho = self._fuente_negrita.size(texto)[0]
+            self._texto(texto, ((ANCHO - ancho) // 2, rect.bottom - 36), AZUL, self._fuente_negrita)
+            self._zonas_fin = []
+            return
+        # Botones: «Reintentar» a la izquierda y «Salir» a la derecha.
+        ancho_boton, alto_boton = 220, 48
+        y_boton = rect.bottom - 100
+        izquierda = pygame.Rect(ANCHO // 2 - 30 - ancho_boton, y_boton, ancho_boton, alto_boton)
+        derecha = pygame.Rect(ANCHO // 2 + 30, y_boton, ancho_boton, alto_boton)
+        self._zonas_fin = [izquierda, derecha]
+        for i, (zona, etiqueta, borde) in enumerate(((izquierda, "Reintentar", VERDE), (derecha, "Salir", ROJO))):
+            elegido = i == self._fin_seleccion
+            pygame.draw.rect(self._pantalla, borde if elegido else FONDO, zona, border_radius=6)
+            pygame.draw.rect(self._pantalla, borde, zona, 2, border_radius=6)
+            ancho = self._fuente_titulo.size(etiqueta)[0]
+            self._texto(etiqueta, (zona.centerx - ancho // 2, zona.y + 12), NEGRO if elegido else TEXTO,
+                        self._fuente_titulo)
+        texto = "Flechas o clic para elegir, Enter para aceptar  (R reintentar, Esc salir)"
+        ancho = self._fuente_chica.size(texto)[0]
+        self._texto(texto, ((ANCHO - ancho) // 2, rect.bottom - 34), TENUE, self._fuente_chica)
 
     def _dibujar_avisos(self, ahora: int) -> None:
         """Avisos cortos (errores en rojo) abajo de la sala; se borran solos."""
