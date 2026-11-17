@@ -7,7 +7,13 @@ mueve. Si no:
 - Rastreador: mira SOLO las salas vecinas por salidas abiertas y va a la de
   rastro más fresco con antigüedad < 400; empate → menor id de sala; si no
   hay, espera. No conoce el mapa ni busca rutas (§2.9).
-Atacar, moverse y esperar cuestan 100.
+- Cazador (Parte II, spec 001): calcula el costo mínimo d hasta la sala del
+  jugador por salidas abiertas; si no hay ruta o d > rango, espera; si no, se
+  mueve un paso por una ruta de costo d (desempate: vecina de menor id). La
+  ruta la calcula ``juego.rutas`` (modelo/rutas.py), compartida entre todos
+  los cazadores y reutilizada mientras sea válida (spec 002).
+Atacar y esperar cuestan 100. Moverse cuesta el ``costo`` de la salida que se
+cruza (Parte II, spec 001, FR-004/FR-005; 100 si la salida no lo declara).
 
 Determinismo: el errante arma sus candidatas SIEMPRE en el orden N, S, E, O
 y usa ``juego.azar`` (nunca el ``random`` global).
@@ -21,7 +27,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from cripta.constantes import COSTO_ATACAR, COSTO_ESPERAR, COSTO_MOVER
+from cripta.constantes import COSTO_ATACAR, COSTO_ESPERAR
 from cripta.modelo.actores import Comportamiento
 
 if TYPE_CHECKING:
@@ -45,6 +51,8 @@ class IAEnemigos:
             costo = self._actuar_guardian(enemigo)
         elif enemigo.comportamiento is Comportamiento.ERRANTE:
             costo = self._actuar_errante(enemigo)
+        elif enemigo.comportamiento is Comportamiento.CAZADOR:
+            costo = self._actuar_cazador(enemigo)
         else:
             costo = self._actuar_rastreador(enemigo)
         if not juego.esta_terminada() and enemigo.esta_vivo():
@@ -70,20 +78,29 @@ class IAEnemigos:
             return COSTO_ESPERAR
         elegida = candidatas[juego.azar.randrange(len(candidatas))]
         juego._mover_enemigo(enemigo, elegida.destino, elegida.direccion)
-        return COSTO_MOVER
+        return elegida.costo
 
     def _actuar_rastreador(self, enemigo: Enemigo) -> int:
         juego = self._juego
         destino = self.elegir_sala_por_rastro(enemigo.sala, juego.reloj)
         if destino is None:
             return COSTO_ESPERAR
-        direccion = ""
-        for salida in enemigo.sala.salidas_transitables():
+        usada = None
+        for salida in enemigo.sala.salidas_transitables():  # N, S, E, O
             if salida.destino is destino:
-                direccion = salida.direccion
+                usada = salida
                 break
-        juego._mover_enemigo(enemigo, destino, direccion)
-        return COSTO_MOVER
+        juego._mover_enemigo(enemigo, destino, usada.direccion)
+        return usada.costo
+
+    def _actuar_cazador(self, enemigo: Enemigo) -> int:
+        """Spec 001, FR-010..FR-013. La decisión no usa el azar (FR-017)."""
+        juego = self._juego
+        salida = juego.rutas.decidir(enemigo, juego.jugador.sala)
+        if salida is None:
+            return COSTO_ESPERAR  # sin ruta abierta o d > rango (FR-011)
+        juego._mover_enemigo(enemigo, salida.destino, salida.direccion)
+        return salida.costo  # FR-012
 
     def elegir_sala_por_rastro(self, sala: Sala, reloj: int) -> Sala | None:
         """Vecina accesible con el rastro vigente más fresco, o None. O(grado)."""

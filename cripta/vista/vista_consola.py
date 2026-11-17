@@ -38,8 +38,11 @@ from cripta.vista.base import (
     LINEA_MENSAJE,
     LINEA_TU_TURNO,
     VistaBase,
+    destino_conocido,
     direccion_desde_texto,
+    etiqueta_enemigo,
     lineas_bitacora,
+    lineas_mapa_conocido,
     nombre_direccion,
     tecla_de,
 )
@@ -47,6 +50,7 @@ from cripta.vista.base import (
 if TYPE_CHECKING:
     from cripta.adaptadores.puntajes import RegistroPuntaje
     from cripta.modelo.acciones import ResultadoAccion
+    from cripta.modelo.conocimiento import MapaConocido
     from cripta.modelo.datos import ResumenCripta
     from cripta.modelo.juego import Juego
     from cripta.modelo.objetos import InstanciaObjeto
@@ -55,7 +59,7 @@ ANCHO = 64
 LINEA_DOBLE = "=" * ANCHO
 LINEA_SIMPLE = "-" * ANCHO
 
-TECLAS = "W/A/S/D moverse | Q atacar | E recoger | R abrir | F objeto | T esperar | I inventario"
+TECLAS = "W/A/S/D moverse | Q atacar | E recoger | R abrir | F objeto | T esperar | I inventario | mapa | ir a N"
 
 AYUDA = """\
 Controles (escribe la letra y presiona Enter; no importan mayúsculas):
@@ -71,6 +75,9 @@ Controles (escribe la letra y presiona Enter; no importan mayúsculas):
   sig | ant            mover el cursor del inventario
   ordenar peso|valor|nombre   ver el inventario ordenado (no cambia el orden real)
   retroceder           usar un pergamino de retroceso
+  mapa                 ver el mapa conocido (salas exploradas, salidas, costos y avistadas)
+  ir a <sala>          viajar solo hasta una sala explorada por la ruta más barata que conoces
+                       (se detiene si hay enemigos, si recibes daño o si ya no hay ruta)
   historia <t>|#k      ver cómo estaba la partida en ese instante o antes de la acción k
   guardar [ruta] | cargar [ruta]   (sin ruta: datos_locales/partida_guardada.sav)
   puntajes             tabla de puntajes
@@ -159,6 +166,15 @@ class VistaConsola(VistaBase):
         direccion = direccion_desde_texto(verbo)
         if direccion is not None and argumento is None:
             return self._accion(TipoAccion.MOVER, direccion=direccion)
+        if verbo == "ir" and argumento is not None and argumento.lower() == "a":
+            # "ir a 12": viaje automático (spec 003). "ir norte" sigue siendo moverse.
+            destino = partes[2] if len(partes) > 2 else None
+            if destino is None:
+                self.mostrar_error("Uso: ir a <número de sala> (mira los números con 'mapa').")
+                return None
+            return ComandoUsuario(TipoComando.IR_A, argumento=destino)
+        if verbo in ("mapa", "m"):
+            return ComandoUsuario(TipoComando.MAPA)
         if verbo in ("mover", "ir"):
             direccion = direccion_desde_texto(argumento.lower()) if argumento else None
             if direccion is None:
@@ -240,7 +256,7 @@ class VistaConsola(VistaBase):
             if salida is None:
                 continue
             texto = (f"[{tecla_de(salida.direccion)}] {nombre_direccion(salida.direccion)} -> "
-                     f"{salida.destino.nombre} ({salida.destino.id})")
+                     f"{destino_conocido(juego, salida)}  costo {salida.costo}")
             if salida.puerta is not None:
                 if salida.puerta.cerrada:
                     llave = salida.puerta.llave
@@ -261,7 +277,7 @@ class VistaConsola(VistaBase):
             enemigo = enemigos[i]
             proxima = enemigo.tiempo_siguiente
             _imprimir(
-                f"  {i + 1}) {enemigo.etiqueta():<24} vida {enemigo.vida}/{enemigo.vida_max}"
+                f"  {i + 1}) {etiqueta_enemigo(enemigo):<24} vida {enemigo.vida}/{enemigo.vida_max}"
                 f"  atq {enemigo.ataque} def {enemigo.defensa} vel {enemigo.velocidad}"
                 f"  {'actúa en t=' + str(proxima) if proxima is not None else ''}"
             )
@@ -348,6 +364,12 @@ class VistaConsola(VistaBase):
         _imprimir()
         _imprimir(formatear_resumen(resumen))
         _imprimir()
+
+    def mostrar_mapa(self, mapa: MapaConocido) -> None:
+        _imprimir(LINEA_SIMPLE)
+        for linea in lineas_mapa_conocido(mapa):
+            _imprimir(linea)
+        _imprimir(LINEA_SIMPLE)
 
     def mostrar_error(self, texto: str) -> None:
         _imprimir(f"(!) {texto}")

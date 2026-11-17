@@ -18,13 +18,27 @@ guarda solo el último instante en que el jugador estuvo allí, y
 rastros viejos exigiría un evento de caducidad por cada sala visitada (más
 trabajo para la agenda y más cambios que revertir) sin cambiar ninguna
 decisión del juego.
+
+Parte II (spec 001 y 002):
+- COSTO por pasaje: cada salida tiene ``costo`` (100 si no se declara). Los dos
+  sentidos de un pasaje comparten el costo; si los dos lo declaran distinto,
+  vale el primero en el orden del esqueleto (clarify de la spec 001). Un costo
+  que no sea entero >= 1 hace inválido el esqueleto (FR-003).
+- ``Sala.indice`` (posición en el esqueleto) y ``Puerta.indice`` permiten
+  guardar distancias y conocimiento en arreglos, sin dict (§6.2).
+- ``Sala.entradas``: salidas de otras salas que llegan a esta. Las usa la
+  búsqueda de rutas en sentido inverso (desde el jugador hacia los cazadores).
+- ``Puerta.cerrada`` es una propiedad: TODA asignación (abrir, cierre
+  automático, retroceso, carga) avisa a ``Mapa.al_cambiar_puerta``. Así la
+  caché de rutas de los cazadores se invalida sin depender de que cada regla
+  se acuerde de avisar (spec 002, research R3).
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING, Callable, Iterator
 
-from cripta.constantes import ANTIGUEDAD_MAXIMA_RASTRO, DIRECCIONES, indice_direccion
+from cripta.constantes import ANTIGUEDAD_MAXIMA_RASTRO, COSTO_MOVER, DIRECCIONES, indice_direccion
 from cripta.estructuras.lista_doble import ListaDoble
 from cripta.estructuras.tabla_ordenada import TablaOrdenada
 from cripta.modelo.actores import Enemigo
@@ -44,19 +58,37 @@ class Puerta:
     """Estado VIVO de una puerta (el esqueleto solo trae el estado inicial)."""
 
     id: str
-    cerrada: bool
     llave: str | None  # id de tipo de la llave que la abre
     cierre_automatico: int | None  # unidades hasta cerrarse tras abrirla
     evento_cierre: Evento | None
     cerrada_inicial: bool  # para reiniciar el mapa al cargar una partida
+    indice: int  # posición de creación (arreglos de conocimiento, spec 003)
+    salas: tuple[Sala, Sala] | None  # las dos salas que conecta (spec 002)
 
     def __init__(self, id: str, cerrada: bool, llave: str | None, cierre_automatico: int | None) -> None:
         self.id = id
-        self.cerrada = cerrada
+        self._cerrada = cerrada
         self.llave = llave
         self.cierre_automatico = cierre_automatico
         self.evento_cierre = None
         self.cerrada_inicial = cerrada
+        self.indice = 0
+        self.salas = None
+        self._mapa: Mapa | None = None
+
+    @property
+    def cerrada(self) -> bool:
+        return self._cerrada
+
+    @cerrada.setter
+    def cerrada(self, valor: bool) -> None:
+        """Cambia el estado y avisa al mapa (también en retroceso y carga)."""
+        if valor == self._cerrada:
+            return
+        self._cerrada = valor
+        mapa = self._mapa
+        if mapa is not None and mapa.al_cambiar_puerta is not None:
+            mapa.al_cambiar_puerta(self)
 
     def __repr__(self) -> str:
         return f"Puerta({self.id!r}, cerrada={self.cerrada})"
@@ -66,13 +98,24 @@ class Salida:
     """Salida de una sala en una dirección."""
 
     direccion: str
+    origen: Sala | None  # sala dueña de la salida (búsqueda inversa, spec 001)
     destino: Sala
     puerta: Puerta | None  # None = paso libre, nunca se cierra
+    costo: int  # costo de tránsito (>= 1; 100 si no se declara)
 
-    def __init__(self, direccion: str, destino: Sala, puerta: Puerta | None) -> None:
+    def __init__(
+        self,
+        direccion: str,
+        destino: Sala,
+        puerta: Puerta | None,
+        origen: Sala | None = None,
+        costo: int = COSTO_MOVER,
+    ) -> None:
         self.direccion = direccion
         self.destino = destino
         self.puerta = puerta
+        self.origen = origen
+        self.costo = costo
 
     def es_transitable(self) -> bool:
         """True si no hay puerta o está abierta."""
@@ -92,9 +135,14 @@ class Sala:
     objetos_suelo: ListaDoble[InstanciaObjeto]
     trampas: list[InstanciaTrampa]
 
+    indice: int  # posición en el esqueleto (0..V-1)
+    entradas: list[Salida]  # salidas de otras salas que llegan aquí
+
     def __init__(self, id: int, nombre: str) -> None:
         self.id = id
         self.nombre = nombre
+        self.indice = 0
+        self.entradas = []
         self.salidas = [None] * len(DIRECCIONES)
         self.rastro = None
         self.contenido_cargado = False
@@ -160,7 +208,11 @@ class Mapa:
         # declara sus salas. La TablaOrdenada queda ordenada por id, que no
         # tiene por qué ser el mismo orden.
         self._orden: list[Sala] = []
+        # Puertas en orden de creación (Puerta.indice = posición aquí).
+        self.lista_puertas: list[Puerta] = []
         self.llave_salida = ""
+        # Oyente de cambios de puertas (lo registra el Juego: caché de rutas).
+        self.al_cambiar_puerta: Callable[[Puerta], None] | None = None
 
     @staticmethod
     def construir(datos: DatosCripta, salas: list[DatosSala]) -> Mapa:
@@ -178,6 +230,7 @@ class Mapa:
             if mapa.salas.contiene(datos_sala.id):
                 raise ValueError(f"El esqueleto trae dos veces la sala {datos_sala.id}")
             sala = Sala(datos_sala.id, datos_sala.nombre)
+            sala.indice = len(mapa._orden)
             mapa.salas.insertar(sala.id, sala)
             mapa._orden.append(sala)
             por_direccion: list[DatosSalida | None] = [None] * len(DIRECCIONES)
@@ -198,7 +251,10 @@ class Mapa:
                         f"La salida {datos_salida.direccion} de la sala {sala.id} lleva a la sala "
                         f"{datos_salida.sala_destino}, que no existe en el esqueleto"
                     )
-                sala.salidas[i] = Salida(datos_salida.direccion, destino, None)
+                _validar_costo(datos_salida, sala.id)
+                nueva = Salida(datos_salida.direccion, destino, None, sala)
+                sala.salidas[i] = nueva
+                destino.entradas.append(nueva)
 
         # 3) Puertas compartidas entre los dos sentidos de cada pasaje.
         for sala in mapa._orden:
@@ -222,7 +278,34 @@ class Mapa:
                 salida.puerta = puerta
                 if j >= 0:
                     salida.destino.salidas[j].puerta = puerta
+                puerta.indice = len(mapa.lista_puertas)
+                puerta.salas = (sala, salida.destino)
+                puerta._mapa = mapa
+                mapa.lista_puertas.append(puerta)
                 mapa.puertas.insertar(puerta.id, puerta)
+
+        # 4) Costo por pasaje (spec 001, FR-001/FR-002): se recorre en el orden
+        #    del esqueleto; la primera salida de cada pasaje fija el costo de
+        #    las dos. El regreso de una salida con puerta es la que comparte la
+        #    puerta; si no tiene puerta, se busca igual que para las puertas.
+        fijado: TablaOrdenada[int, list[bool]] = TablaOrdenada()
+        for sala in mapa._orden:
+            fijado.insertar(sala.id, [False] * len(DIRECCIONES))
+        for sala in mapa._orden:
+            marcas = fijado.obtener(sala.id)
+            for i in range(len(DIRECCIONES)):
+                salida = sala.salidas[i]
+                if salida is None or marcas[i]:
+                    continue
+                ida = declaradas.obtener(sala.id)[i]
+                j = Mapa._indice_regreso_costo(salida, fijado.obtener(salida.destino.id))
+                vuelta = declaradas.obtener(salida.destino.id)[j] if j >= 0 else None
+                costo = _primero_no_nulo(_campo(ida, "costo"), _campo(vuelta, "costo"))
+                salida.costo = COSTO_MOVER if costo is None else costo
+                marcas[i] = True
+                if j >= 0:
+                    salida.destino.salidas[j].costo = salida.costo
+                    fijado.obtener(salida.destino.id)[j] = True
 
         mapa.sala_inicial = mapa._sala_declarada(datos.sala_inicial, "sala_inicial")
         mapa.sala_salida = mapa._sala_declarada(datos.sala_salida, "sala_salida")
@@ -309,6 +392,36 @@ class Mapa:
         return sala
 
     @staticmethod
+    def _indice_regreso_costo(salida: Salida, fijadas_destino: list[bool]) -> int:
+        """Posición de la salida de regreso de ``salida`` para compartir el costo (o -1).
+
+        Con puerta: la salida del destino que comparte esa puerta. Sin puerta:
+        la opuesta si vuelve al origen; si no, la primera en N, S, E, O que
+        vuelva al origen, no tenga puerta y no tenga aún su costo fijado.
+        """
+        destino = salida.destino
+        origen = salida.origen
+        if salida.puerta is not None:
+            for j in range(len(DIRECCIONES)):
+                candidata = destino.salidas[j]
+                if candidata is not None and candidata is not salida and candidata.puerta is salida.puerta:
+                    return j
+            return -1
+        opuesta = indice_direccion(_OPUESTA[indice_direccion(salida.direccion)])
+        orden = [opuesta] + [j for j in range(len(DIRECCIONES)) if j != opuesta]
+        for j in orden:
+            candidata = destino.salidas[j]
+            if (
+                candidata is not None
+                and candidata is not salida
+                and candidata.destino is origen
+                and candidata.puerta is None
+                and not fijadas_destino[j]
+            ):
+                return j
+        return -1
+
+    @staticmethod
     def _indice_regreso(destino: Sala, origen: Sala, indice_ida: int) -> int:
         """Posición de la salida de ``destino`` que regresa a ``origen`` (o -1).
 
@@ -327,6 +440,18 @@ class Mapa:
             if candidata is not None and candidata.destino is origen and candidata.puerta is None:
                 return j
         return -1
+
+
+def _validar_costo(datos_salida: DatosSalida, sala_id: int) -> None:
+    """FR-003: un costo declarado debe ser un entero >= 1 (si no, esqueleto inválido)."""
+    costo = datos_salida.costo
+    if costo is None:
+        return
+    if isinstance(costo, bool) or not isinstance(costo, int) or costo < 1:
+        raise ValueError(
+            f"Esqueleto inválido: la salida {datos_salida.direccion} de la sala {sala_id} "
+            f"tiene costo {costo!r} (debe ser un entero >= 1)"
+        )
 
 
 def _declara_puerta(datos_salida: DatosSalida | None) -> bool:

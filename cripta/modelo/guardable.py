@@ -158,5 +158,10 @@ class EstadoGuardable:
     # No se revierte con el retroceso; guardarlo hace que una partida cargada
     # genere los mismos ids que la partida original (lo necesita el replay).
     objetos_generados: int = 0
+    # Conocimiento del mapa del jugador (Parte II, spec 003): un dígito por sala
+    # en orden del esqueleto (0 desconocida, 1 avistada, 2 explorada), "|" y un
+    # dígito por puerta (0 sin observar, 1 abierta, 2 cerrada). Lo producen
+    # ``Juego.serializar_conocimiento`` / ``ConocimientoMapa.serializar``.
+    conocimiento: str = ""
     # Línea de tiempo (Parte II). None en checkpoints internos y en archivos P1.
     linea: LineaGuardable | None = None

@@ -40,6 +40,7 @@ class Comportamiento(Enum):
     GUARDIAN = "guardián"
     ERRANTE = "errante"
     RASTREADOR = "rastreador"
+    CAZADOR = "cazador"  # Parte II (spec 001): ruta más barata hacia el jugador
 
     @staticmethod
     def desde_texto(texto: str) -> Comportamiento:
@@ -54,6 +55,8 @@ class Comportamiento(Enum):
             return Comportamiento.ERRANTE
         if normalizado == "rastreador":
             return Comportamiento.RASTREADOR
+        if normalizado == "cazador":
+            return Comportamiento.CAZADOR
         raise ValueError(f"Comportamiento de enemigo desconocido: {texto!r}")
 
 
@@ -197,6 +200,7 @@ class Enemigo(Actor):
     comportamiento: Comportamiento
     activo: bool  # se activa cuando el jugador entra a su sala (§2.4)
     suelta: list[str]  # ids de tipo que deja en el suelo al morir
+    rango: int  # solo cazadores (spec 001, FR-008): alcance en unidades de costo; 0 en los demás
     regeneracion_por_pulso: int  # 0 = no regenera (§2.10)
     veneno_por_ataque: int  # 0 = sus ataques no envenenan (§2.10)
     nodo_en_sala: NodoDoble[Enemigo] | None  # para sacarlo de su sala en O(1)
@@ -229,6 +233,15 @@ class Enemigo(Actor):
             self.comportamiento = Comportamiento.desde_texto(ficha.comportamiento)
         else:
             self.comportamiento = Comportamiento.GUARDIAN
+        self.rango = 0
+        if self.comportamiento is Comportamiento.CAZADOR:
+            # FR-008: un cazador sin rango válido es una ficha inválida (no se inventa).
+            rango = ficha.rango
+            if isinstance(rango, bool) or not isinstance(rango, int) or rango < 1:
+                raise ValueError(
+                    f"Ficha inválida: el cazador {ficha.id!r} necesita un rango entero >= 1 (trae {rango!r})"
+                )
+            self.rango = rango
         self.activo = False
         self.suelta = list(ficha.suelta)
         self.regeneracion_por_pulso = ficha.regeneracion if ficha.regeneracion is not None else 0

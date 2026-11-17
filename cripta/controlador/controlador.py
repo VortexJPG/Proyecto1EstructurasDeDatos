@@ -37,14 +37,14 @@ from cripta.adaptadores.guardado import GuardadoBinario, GuardadoJSON
 from cripta.adaptadores.puntajes import RegistroPuntaje, TablaPuntajes
 from cripta.controlador.comandos import ComandoUsuario, TipoComando
 from cripta.controlador.precarga import PlanificadorPrecarga
-from cripta.modelo.acciones import TipoAccion
+from cripta.modelo.acciones import Accion, TipoAccion
 from cripta.modelo.juego import Juego
 from cripta.modelo.mapa import Mapa
 from cripta.modelo.timeline import ErrorReconstruccion, K_POR_DEFECTO, LineaTiempo, ResumenHistorico
 from cripta.modelo.verificacion import ResultadoVerificacion, Verificador, formatear_resultado
 
 if TYPE_CHECKING:
-    from cripta.modelo.acciones import Accion, ResultadoAccion
+    from cripta.modelo.acciones import ResultadoAccion
     from cripta.modelo.datos import ContenidoSala, DatosCripta, DatosSala, UbicacionLlave
     from cripta.modelo.guardable import EstadoGuardable
     from cripta.vista.vista_consola import VistaConsola
@@ -61,6 +61,16 @@ class OpcionesEjecucion:
     nombre_jugador: str | None = None
     forzar: bool = False  # iniciar aunque la cripta no sea resoluble
     checkpoint_cada: int = K_POR_DEFECTO  # acciones entre puntos de control
+
+
+@dataclass(slots=True)
+class ResultadoViaje:
+    """Resultado de «ir a» (spec 003 de A, FR-022, FR-026)."""
+
+    aceptado: bool  # False: se rechazó sin consumir tiempo
+    destino: int | None
+    pasos: int
+    motivo: str
 
 
 class Controlador:
@@ -165,6 +175,18 @@ class Controlador:
                 else:
                     vista.mostrar_resultado(resultado)
             return True
+        if tipo is TipoComando.IR_A:
+            try:
+                viaje = self.ir_a(comando.argumento or "")
+            except ErrorFuenteDatos as exc:
+                if vista is not None:
+                    vista.mostrar_error(f"No se pudo completar el viaje: {exc}")
+                return True
+            if vista is not None:
+                if viaje.pasos > 0:
+                    vista.mostrar_estado(self._juego)
+                vista.mostrar_viaje(viaje)
+            return True
         if vista is None:
             return tipo is not TipoComando.SALIR
         if tipo is TipoComando.INVENTARIO_SIGUIENTE:
@@ -181,6 +203,8 @@ class Controlador:
                 vista.mostrar_inventario(juego, juego.vista_inventario(criterio), criterio)
             except ValueError as exc:
                 vista.mostrar_error(str(exc))
+        elif tipo is TipoComando.MAPA:
+            vista.mostrar_mapa(juego.mapa_conocido())
         elif tipo is TipoComando.HISTORIA:
             try:
                 resumen = self.consultar_historia(comando.argumento or "")
@@ -397,6 +421,64 @@ class Controlador:
                 self._escritor.registrar(accion)
         self._despues_de_accion()
         return resultado
+
+    def ir_a(self, argumento: str) -> ResultadoViaje:
+        """Viaje automático a una sala explorada (spec 003 de A, FR-017..FR-027).
+
+        Cada paso es un ``MOVER`` normal por ``ejecutar_accion``: trae el
+        contenido de la sala destino (precarga), entra a la línea de tiempo y al
+        ``partida.log`` como una acción más, y el pergamino revierte solo el
+        último. La orden queda como comentario en el log. La ruta se recalcula
+        antes de cada paso con el conocimiento vigente (``Juego.paso_hacia``).
+        Se detiene si: termina la partida, llega, entra a una sala con enemigos,
+        recibe daño, no queda ruta conocida o un paso es rechazado.
+        """
+        juego = self._juego
+        if juego is None:
+            raise RuntimeError("No hay una partida en curso")
+        texto = (argumento or "").strip()
+        try:
+            sala_id = int(texto)
+        except ValueError:
+            return ResultadoViaje(False, None, 0, f"Uso: ir a <número de sala> (no se entiende {texto!r}).")
+        validacion = juego.validar_ir_a(sala_id)
+        if not validacion.aceptada:
+            return ResultadoViaje(False, sala_id, 0, validacion.motivo)
+        if self._escritor is not None:
+            self._escritor.comentario(f"ir a {sala_id}")
+        pasos = 0
+        tope = 4 * len(juego.mapa)  # red de seguridad: la ruta conocida siempre se acorta
+        while True:
+            juego = self._juego
+            if pasos >= tope:
+                return ResultadoViaje(True, sala_id, pasos, "El viaje se detuvo: demasiados pasos.")
+            if juego is None or juego.esta_terminada():
+                return ResultadoViaje(True, sala_id, pasos, "La partida terminó durante el viaje.")
+            salida = juego.paso_hacia(sala_id)
+            if salida is None:
+                return ResultadoViaje(
+                    True, sala_id, pasos,
+                    "Ya no hay una ruta conocida (puertas recordadas cerradas o sin observar).",
+                )
+            vida_antes = juego.jugador.vida
+            resultado = self.ejecutar_accion(Accion(TipoAccion.MOVER, direccion=salida.direccion))
+            if not resultado.aceptada:
+                return ResultadoViaje(True, sala_id, pasos, f"El paso fue rechazado: {resultado.motivo}")
+            pasos += 1
+            juego = self._juego
+            if juego.esta_terminada():
+                return ResultadoViaje(True, sala_id, pasos, "La partida terminó durante el viaje.")
+            notas: list[str] = []
+            if juego.enemigos_en_sala():
+                notas.append("hay enemigos en la sala")
+            if juego.jugador.vida < vida_antes:
+                notas.append(f"recibiste daño (vida {juego.jugador.vida}/{juego.jugador.vida_max})")
+            if juego.jugador.sala.id == sala_id:
+                extra = f" ({'; '.join(notas)})" if notas else ""
+                return ResultadoViaje(True, sala_id, pasos, f"Llegaste a la sala {sala_id}{extra}.")
+            if notas:
+                texto_notas = "; ".join(notas)
+                return ResultadoViaje(True, sala_id, pasos, f"El viaje se detuvo: {texto_notas}.")
 
     def consultar_historia(self, argumento: str) -> ResumenHistorico:
         """Consulta ``historia <t>`` o ``historia #k`` sin tocar la partida."""

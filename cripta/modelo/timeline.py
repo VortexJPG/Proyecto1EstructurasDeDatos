@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING
 
 from cripta.estructuras.tabla_ordenada import ConjuntoOrdenado
 from cripta.modelo.acciones import Accion, TipoAccion
+from cripta.modelo.conocimiento import AVISTADA
 from cripta.modelo.datos import ContenidoSala, DatosCripta, DatosSala
 from cripta.modelo.guardable import (
     EstadoGuardable,
@@ -117,8 +118,9 @@ class ResumenHistorico:
     inventario: list[ObjetoResumen] = field(default_factory=list)
     efectos: list[EfectoResumen] = field(default_factory=list)
     enemigos: list[EnemigoResumen] = field(default_factory=list)
-    mapa_conocido: list[int] = field(default_factory=list)
+    mapa_conocido: list[int] = field(default_factory=list)  # salas EXPLORADAS (spec 003)
     terminada: str | None = None
+    avistadas: int = 0  # salas avistadas en ese instante (spec 003, FR-016)
 
 
 class LineaTiempo:
@@ -212,22 +214,34 @@ class LineaTiempo:
         return juego
 
     def estado_en_tiempo(self, tiempo: int, reloj_actual: int) -> Juego:
-        """Estado en ``tiempo``.
+        """Estado en ``tiempo`` (después de todos los eventos con tiempo <= t).
 
-        Para instantes entre dos decisiones hace falta ``Juego.avanzar_hasta``
-        (interfaz con A). Si la re-simulación ya se pasó del instante, se
-        informa en vez de devolver un estado incorrecto.
+        Sea m la cantidad de acciones que empezaron antes de t. Si t coincide
+        con la decisión siguiente, es el estado justo antes de esa decisión. Si
+        cae ENTRE la decisión m y la siguiente, se reconstruye el estado antes
+        de la acción m y se re-simula esa acción deteniendo el reloj en t
+        (``Juego.ejecutar_accion(..., hasta=t)``, interfaz de A). En los dos
+        casos se aplican como máximo K acciones desde un punto de control.
         """
         if tiempo < 0 or tiempo > reloj_actual:
             raise ValueError(f"Instante fuera de rango: {tiempo} (reloj actual {reloj_actual})")
         acciones = self._acciones_hasta(tiempo)
-        juego = self.estado_en_accion(acciones)
-        if juego.reloj > tiempo:
+        if acciones < len(self.acciones):
+            siguiente_decision = self.acciones[acciones].tiempo
+        else:
+            siguiente_decision = reloj_actual
+        if acciones == 0 or tiempo >= siguiente_decision:
+            juego = self.estado_en_accion(acciones)
+            if juego.reloj < tiempo:
+                self._avanzar_hasta(juego, tiempo)
+            return juego
+        juego = self.estado_en_accion(acciones - 1)
+        self._aplicar_contenidos(juego, acciones - 1)
+        resultado = juego.ejecutar_accion(self.acciones[acciones - 1].accion, hasta=tiempo)
+        if not resultado.aceptada:
             raise ErrorReconstruccion(
-                "el instante cae entre decisiones; hace falta Juego.avanzar_hasta (interfaz A)"
+                f"la acción {acciones} no se pudo re-simular: {resultado.motivo}"
             )
-        if juego.reloj < tiempo:
-            self._avanzar_hasta(juego, tiempo)
         return juego
 
     def _checkpoint_cercano(self, acciones: int) -> PuntoControl:
@@ -275,19 +289,8 @@ class LineaTiempo:
 
     @staticmethod
     def _avanzar_hasta(juego: Juego, tiempo: int) -> None:
-        """Avanza eventos hasta ``tiempo`` (soporte temporal mientras llega A)."""
-        from cripta.modelo.eventos import TipoEvento
-
-        while not juego.esta_terminada():
-            evento = juego.agenda.ver_siguiente()
-            if evento is None or evento.tiempo > tiempo:
-                return
-            if evento.tipo is TipoEvento.TURNO_JUGADOR:
-                juego._asignar(juego, "reloj", evento.tiempo)
-                return
-            juego.agenda.extraer_siguiente()
-            juego._asignar(juego, "reloj", evento.tiempo)
-            juego._despachar(evento)
+        """Avanza eventos hasta ``tiempo`` con la operación de A (``Juego.avanzar_hasta``)."""
+        juego.avanzar_hasta(tiempo)
 
     # --- resumen --------------------------------------------------------------
 
@@ -318,8 +321,9 @@ class LineaTiempo:
                 )
                 for enemigo in jugador.sala.enemigos
             ],
-            mapa_conocido=[sala.id for sala in juego.mapa if sala.visitada],
+            mapa_conocido=[sala.id for sala in juego.mapa if juego.conocimiento.explorada(sala)],
             terminada=None if not juego.esta_terminada() else juego.estado.value,
+            avistadas=juego.conocimiento.contar(AVISTADA),
         )
 
     @staticmethod
@@ -426,7 +430,10 @@ def formatear_resumen(resumen: ResumenHistorico) -> str:
     else:
         lineas.append("Enemigos en la sala: ninguno")
     if resumen.mapa_conocido:
-        lineas.append("Mapa conocido: salas " + ", ".join(str(s) for s in resumen.mapa_conocido))
+        lineas.append(
+            "Mapa conocido: salas exploradas " + ", ".join(str(s) for s in resumen.mapa_conocido)
+            + f" | avistadas: {resumen.avistadas}"
+        )
     else:
         lineas.append("Mapa conocido: (ninguna sala)")
     if resumen.terminada:

@@ -4,6 +4,10 @@
 después una línea por acción aceptada (``Accion.a_linea()``), que se agrega
 al final y se escribe a disco enseguida (si el programa se cae, el log sirve
 igual). Cada partida crea su propio archivo.
+
+Parte II (spec 003 de A, FR-024): las líneas que empiezan con ``#`` son
+comentarios (p. ej. ``# ir a 12`` antes de los pasos de un viaje) y la
+reproducción las ignora. Los logs de la Parte I se siguen leyendo igual.
 """
 
 from __future__ import annotations
@@ -86,6 +90,12 @@ class EscritorReplay:
         self._archivo.write(accion.a_linea() + "\n")
         self._archivo.flush()
 
+    def comentario(self, texto: str) -> None:
+        """Línea de comentario para depurar (no es una acción): ``# texto``."""
+        limpio = " ".join(texto.split())  # un comentario nunca ocupa más de una línea
+        self._archivo.write("# " + limpio + "\n")
+        self._archivo.flush()
+
     def cerrar(self) -> None:
         self._archivo.close()
 
@@ -114,5 +124,6 @@ class LectorReplay:
         while i < len(self._lineas) and self._lineas[i].strip() == "":
             i += 1
         for line in self._lineas[i:]:
-            if line.strip():
+            texto = line.strip()
+            if texto and not texto.startswith("#"):
                 yield Accion.desde_linea(line)

@@ -21,6 +21,8 @@ class TipoComando(Enum):
     VER_INVENTARIO = "ver_inventario"
     VISTA_ORDENADA = "vista_ordenada"  # argumento: "peso" | "valor" | "nombre"
     HISTORIA = "historia"  # argumento: "120" o "#4"
+    MAPA = "mapa"  # ver el mapa conocido (spec 003 de A, FR-013)
+    IR_A = "ir_a"  # argumento: id de la sala destino como texto (spec 003, FR-017)
     GUARDAR = "guardar"  # argumento: ruta
     CARGAR = "cargar"  # argumento: ruta
     PUNTAJES = "puntajes"

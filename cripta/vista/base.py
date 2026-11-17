@@ -9,6 +9,11 @@ no depende de eso, y cada vista implementa ``_preguntar``, ``mostrar_error`` y
 ``mostrar_info``.
 
 La vista NUNCA modifica el modelo: solo lee el estado y devuelve comandos.
+
+Parte II (spec 001 y 003 de A): la vista muestra el costo de cada salida y
+marca a los cazadores (FR-019/FR-020 de 001). Del mapa solo muestra lo que el
+jugador conoce (FR-012 de 003): el destino de una salida se nombra solo si
+está explorado; si no, "sala sin explorar".
 """
 
 from __future__ import annotations
@@ -17,10 +22,14 @@ from typing import TYPE_CHECKING, Callable, TypeVar
 
 from cripta.controlador.comandos import ComandoUsuario, TipoComando
 from cripta.modelo.acciones import Accion, TipoAccion
+from cripta.modelo.actores import Comportamiento
 from cripta.modelo.objetos import ClaseObjeto
 from cripta.modelo.puertos import FichaNoDisponible
 
 if TYPE_CHECKING:
+    from cripta.controlador.controlador import ResultadoViaje
+    from cripta.modelo.actores import Enemigo
+    from cripta.modelo.conocimiento import MapaConocido
     from cripta.modelo.datos import Ficha
     from cripta.modelo.juego import Juego
     from cripta.modelo.mapa import Salida
@@ -67,6 +76,49 @@ def tecla_de(direccion: str) -> str:
         if letra == direccion:
             return tecla
     return direccion
+
+
+def destino_conocido(juego: Juego, salida: Salida) -> str:
+    """Destino de una salida según el conocimiento (spec 003, FR-005/FR-006/FR-012)."""
+    destino = salida.destino
+    if juego.conocimiento.explorada(destino):
+        return f"{destino.nombre} ({destino.id})"
+    return "sala sin explorar"
+
+
+def etiqueta_enemigo(enemigo: Enemigo) -> str:
+    """"Sabueso óseo #1 [cazador, rango 600]" (spec 001, FR-020)."""
+    if enemigo.comportamiento is Comportamiento.CAZADOR:
+        return f"{enemigo.etiqueta()} [cazador, rango {enemigo.rango}]"
+    return enemigo.etiqueta()
+
+
+def es_cazador(enemigo: Enemigo) -> bool:
+    return enemigo.comportamiento is Comportamiento.CAZADOR
+
+
+def lineas_mapa_conocido(mapa: MapaConocido) -> list[str]:
+    """Texto del mapa conocido (spec 003, FR-013), igual en la consola y en la ventana."""
+    lineas = [f"Mapa conocido: {len(mapa.exploradas)} salas exploradas, {mapa.avistadas} avistadas"]
+    for sala in mapa.exploradas:
+        marca = "  <- estás aquí" if sala.actual else ""
+        lineas.append(f"  Sala {sala.id}: {sala.nombre}{marca}")
+        for salida in sala.salidas:
+            if salida.destino_id is not None:
+                destino = f"sala {salida.destino_id} ({salida.destino_nombre})"
+            else:
+                destino = "sala sin explorar"
+            puerta = "" if salida.puerta == "sin puerta" else f"  [puerta {salida.puerta}]"
+            lineas.append(f"      {nombre_direccion(salida.direccion):<6} -> {destino}  costo {salida.costo}{puerta}")
+    return lineas
+
+
+def texto_viaje(viaje: ResultadoViaje) -> str:
+    """Resumen de «ir a» (spec 003, FR-026)."""
+    if not viaje.aceptado:
+        return viaje.motivo
+    pasos = "1 paso" if viaje.pasos == 1 else f"{viaje.pasos} pasos"
+    return f"Ir a la sala {viaje.destino}: {pasos}. {viaje.motivo}"
 
 
 def puertas_cerradas(juego: Juego) -> list[Salida]:
@@ -136,6 +188,17 @@ class VistaBase:
         """Muestra un resumen histórico (lo entrega el controlador)."""
         raise NotImplementedError
 
+    def mostrar_mapa(self, mapa: MapaConocido) -> None:
+        """Muestra el mapa conocido (spec 003, FR-013)."""
+        raise NotImplementedError
+
+    def mostrar_viaje(self, viaje: ResultadoViaje) -> None:
+        """Muestra cuántos pasos dio «ir a» y por qué se detuvo (FR-026)."""
+        if viaje.aceptado:
+            self.mostrar_info(texto_viaje(viaje))
+        else:
+            self.mostrar_error(texto_viaje(viaje))
+
     # --- común ----------------------------------------------------------------------
 
     @staticmethod
@@ -170,7 +233,7 @@ class VistaBase:
         """Q [k]: sin k, el único enemigo de la sala o se pregunta a cuál."""
         enemigo = self._elegir_de_lista(
             juego.enemigos_en_sala(), argumento, "¿A quién atacas?", "No hay enemigos en la sala.",
-            lambda e: f"{e.etiqueta()} (vida {e.vida}/{e.vida_max})",
+            lambda e: f"{etiqueta_enemigo(e)} (vida {e.vida}/{e.vida_max})",
             lambda e: e.id,
         )
         return self._accion(TipoAccion.ATACAR, objetivo=enemigo.id) if enemigo is not None else None
@@ -200,7 +263,7 @@ class VistaBase:
             return self._accion(TipoAccion.ABRIR, direccion=cerradas[0].direccion)
         indice = self._preguntar(
             "¿Qué puerta abres?",
-            [f"[{tecla_de(s.direccion)}] {nombre_direccion(s.direccion)} -> {s.destino.nombre}" for s in cerradas],
+            [f"[{tecla_de(s.direccion)}] {nombre_direccion(s.direccion)} -> {destino_conocido(juego, s)}" for s in cerradas],
             [s.direccion for s in cerradas],
         )
         return self._accion(TipoAccion.ABRIR, direccion=cerradas[indice].direccion) if indice is not None else None

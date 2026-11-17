@@ -74,6 +74,25 @@ class CambioAtributo(Cambio):
         setattr(self.objeto, self.atributo, self.valor_anterior)
 
 
+class CambioCasilla(Cambio):
+    """``arreglo[indice]`` valía ``valor_anterior`` (conocimiento del mapa, spec 003).
+
+    El conocimiento del jugador vive en arreglos de enteros; explorar o
+    observar una puerta cambia casillas sueltas. Guardar solo la casilla y su
+    valor anterior hace que revertir la exploración de N salas cueste O(N).
+    """
+
+    __slots__ = ("arreglo", "indice", "valor_anterior")
+
+    def __init__(self, arreglo: list, indice: int, valor_anterior: Any) -> None:
+        self.arreglo = arreglo
+        self.indice = indice
+        self.valor_anterior = valor_anterior
+
+    def revertir(self, juego: Juego) -> None:
+        self.arreglo[self.indice] = self.valor_anterior
+
+
 class CambioEventoProgramado(Cambio):
     """Se programó ``evento``; revertir lo anula (``Agenda.deshacer_programado``)."""
 

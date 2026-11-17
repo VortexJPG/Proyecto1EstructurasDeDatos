@@ -281,6 +281,7 @@ class GestorEfectos:
         juego = self._juego
         juego._asignar(puerta, "cerrada", True)
         juego._asignar(puerta, "evento_cierre", None)
+        juego.observar_si_presente(puerta)  # spec 003, FR-007: si el jugador la está viendo
         for salida in juego.jugador.sala.salidas:
             if salida is not None and salida.puerta is puerta:
                 juego._mensaje(f"La puerta {salida.direccion} se cierra sola.")

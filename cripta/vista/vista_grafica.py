@@ -54,8 +54,12 @@ from cripta.vista.base import (
     LINEA_SIN_NOVEDADES,
     LINEA_TU_TURNO,
     VistaBase,
+    destino_conocido,
     detalles_ficha,
+    es_cazador,
+    etiqueta_enemigo,
     lineas_bitacora,
+    lineas_mapa_conocido,
     nombre_direccion,
     tecla_de,
 )
@@ -128,6 +132,9 @@ AYUDA: tuple[tuple[str, str], ...] = (
     ("Arriba / Abajo", "mover el cursor del inventario"),
     ("I", "ordenar el inventario (peso, valor, nombre)"),
     ("Z", "usar un pergamino de retroceso"),
+    ("M", "ver el mapa conocido (salas exploradas, costos, avistadas)"),
+    ("G", "ir a una sala explorada (viaje automático)"),
+    ("V", "historia: cómo estaba la partida en un instante o acción"),
     ("F5 / F9", "guardar / cargar la partida"),
     ("P", "tabla de puntajes"),
     ("L", "ver la bitácora completa (los últimos 20 mensajes)"),
@@ -247,6 +254,7 @@ class VistaGrafica(VistaBase):
         self._capa: str | None = None  # "ayuda" | "puntajes" | "bitacora": se cierra con cualquier tecla
         self._puntajes: list[RegistroPuntaje] = []
         self._historia_resumen = None
+        self._mapa_conocido = None  # MapaConocido de la última consulta (tecla M)
         self._fin: tuple[ResumenPartida, str] | None = None
         self._avisos: list[_Aviso] = []
         self._flotantes: list[_Flotante] = []
@@ -365,6 +373,34 @@ class VistaGrafica(VistaBase):
         finally:
             pygame.key.stop_text_input()
 
+    def _pedir_sala(self) -> str | None:
+        """Entrada de texto para ``ir a <sala>`` (spec 003): solo dígitos."""
+        texto = ""
+        pygame.key.start_text_input()
+        try:
+            while True:
+                evento = self._siguiente_evento()
+                if evento is None:
+                    self._mostrar_cuadro()
+                    self._dibujar_prompt_texto("Ir a: escribe el número de una sala explorada (mira el mapa con M)", texto)
+                    self._presentar()
+                    continue
+                if evento.type == pygame.QUIT:
+                    self._cerrar_ventana()
+                elif evento.type == pygame.TEXTINPUT:
+                    for caracter in evento.text:
+                        if caracter.isdigit() and len(texto) < 8:
+                            texto += caracter
+                elif evento.type == pygame.KEYDOWN:
+                    if evento.key == pygame.K_BACKSPACE:
+                        texto = texto[:-1]
+                    elif evento.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+                        return texto or None
+                    elif evento.key == pygame.K_ESCAPE:
+                        return None
+        finally:
+            pygame.key.stop_text_input()
+
     def pedir_comando(self, juego: Juego) -> ComandoUsuario:
         """Espera una tecla con sentido y la devuelve como comando (el reloj no avanza)."""
         self._juego = juego
@@ -435,6 +471,10 @@ class VistaGrafica(VistaBase):
         self._historia_resumen = resumen
         self._capa = "historia"
 
+    def mostrar_mapa(self, mapa) -> None:
+        self._mapa_conocido = mapa
+        self._capa = "mapa"
+
     def mostrar_error(self, texto: str) -> None:
         self._agregar_aviso(texto, True)
 
@@ -497,6 +537,11 @@ class VistaGrafica(VistaBase):
         if tecla == pygame.K_v:
             texto = self._pedir_historia()
             return ComandoUsuario(TipoComando.HISTORIA, argumento=texto) if texto else None
+        if tecla == pygame.K_m:
+            return ComandoUsuario(TipoComando.MAPA)
+        if tecla == pygame.K_g:
+            texto = self._pedir_sala()
+            return ComandoUsuario(TipoComando.IR_A, argumento=texto) if texto else None
         if tecla == pygame.K_i:
             siguiente = ORDENES[(ORDENES.index(self._criterio) + 1) % len(ORDENES)]
             if siguiente is None:
@@ -851,6 +896,36 @@ class VistaGrafica(VistaBase):
         self._texto(texto or "_", (rect.x + 12, rect.y + 40), DORADO, self._fuente_titulo)
         self._texto("Enter acepta; Esc cancela", (rect.x + 12, rect.bottom - 22), TENUE, self._fuente_chica)
 
+    def _dibujar_prompt_texto(self, titulo: str, texto: str) -> None:
+        rect = pygame.Rect(ANCHO // 2 - 280, ALTO // 2 - 48, 560, 96)
+        pygame.draw.rect(self._pantalla, CAJA, rect, border_radius=6)
+        pygame.draw.rect(self._pantalla, DORADO, rect, 2, border_radius=6)
+        self._texto(self._recortar(self._fuente_chica, titulo, rect.width - 24), (rect.x + 12, rect.y + 10),
+                    TEXTO, self._fuente_chica)
+        self._texto(texto or "_", (rect.x + 12, rect.y + 40), DORADO, self._fuente_titulo)
+        self._texto("Enter acepta; Esc cancela", (rect.x + 12, rect.bottom - 22), TENUE, self._fuente_chica)
+
+    def _dibujar_mapa(self) -> None:
+        """Mapa conocido (tecla M): mismo texto que la consola (spec 003, FR-013)."""
+        mapa = self._mapa_conocido
+        if mapa is None:
+            return
+        capa = pygame.Surface((ANCHO, ALTO), pygame.SRCALPHA)
+        capa.fill((0, 0, 0, 215))
+        self._pantalla.blit(capa, (0, 0))
+        lineas = lineas_mapa_conocido(mapa)
+        y = 40
+        for i, linea in enumerate(lineas):
+            fuente = self._fuente_titulo if i == 0 else self._fuente_chica
+            color = DORADO if i == 0 else (TEXTO if linea.startswith("  Sala") else TENUE)
+            self._texto(self._recortar(fuente, linea, ANCHO - 100), (50, y), color, fuente)
+            y += 28 if i == 0 else 16
+            if y > ALTO - 50:
+                self._texto("(hay más salas: usa el comando 'mapa' en la terminal para verlas todas)",
+                            (50, y), TENUE, self._fuente_chica)
+                break
+        self._texto("Cualquier tecla para volver", (50, ALTO - 28), TENUE, self._fuente_chica)
+
     def _dibujar_historia(self) -> None:
         resumen = self._historia_resumen
         if resumen is None:
@@ -895,6 +970,8 @@ class VistaGrafica(VistaBase):
             self._dibujar_bitacora_completa()
         elif self._capa == "historia":
             self._dibujar_historia()
+        elif self._capa == "mapa":
+            self._dibujar_mapa()
         if self._fin is not None:
             self._dibujar_fin(*self._fin)
         self._presentar()
@@ -977,9 +1054,12 @@ class VistaGrafica(VistaBase):
             pantalla.blit(imagen, (x, y + self._salto(ahora, i + 1)))
             self._barra(x + 6, y - 4, LADO - 12, 5, enemigo.vida, enemigo.vida_max)
             if enemigo.numero > 0:
-                etiqueta = f"#{enemigo.numero}"
+                # Los cazadores llevan una "C" y otro color (spec 001, FR-020).
+                cazador = es_cazador(enemigo)
+                etiqueta = f"#{enemigo.numero}{' C' if cazador else ''}"
                 ancho = self._fuente_chica.size(etiqueta)[0]
-                self._texto(etiqueta, (x + (LADO - ancho) // 2, y + LADO - 4), TEXTO, self._fuente_chica)
+                self._texto(etiqueta, (x + (LADO - ancho) // 2, y + LADO - 4), MORADO if cazador else TEXTO,
+                            self._fuente_chica)
             self._marcables.append((enemigo.id, x, y))
 
         # Jugador.
@@ -1069,7 +1149,8 @@ class VistaGrafica(VistaBase):
                 continue
             hay = True
             self._insignia(tecla_de(salida.direccion), (caja.x + 22, y + 8))
-            texto = f"{nombre_direccion(salida.direccion)}: {salida.destino.nombre}"
+            # Destino según el conocimiento (spec 003) y costo de la salida (spec 001).
+            texto = f"{nombre_direccion(salida.direccion)}: {destino_conocido(juego, salida)} · {salida.costo}"
             puerta = salida.puerta
             if puerta is not None and not puerta.cerrada:
                 texto += " (abierta)"
@@ -1100,7 +1181,8 @@ class VistaGrafica(VistaBase):
             ancho_vida = self._fuente_chica.size(vida)[0]
             fraccion = enemigo.vida / enemigo.vida_max if enemigo.vida_max > 0 else 0
             color = VERDE if fraccion > 0.5 else DORADO if fraccion > 0.25 else ROJO
-            self._texto(self._recortar(self._fuente, enemigo.etiqueta(), caja.width - 30 - ancho_vida), (x, y), ROJO_CLARO)
+            self._texto(self._recortar(self._fuente, etiqueta_enemigo(enemigo), caja.width - 30 - ancho_vida), (x, y),
+                        MORADO if es_cazador(enemigo) else ROJO_CLARO)
             self._texto(vida, (caja.right - 10 - ancho_vida, y + 1), color, self._fuente_chica)
             y += 18
         for objeto in sala.objetos_suelo:

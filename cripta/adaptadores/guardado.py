@@ -4,7 +4,8 @@
     [ENCABEZADO]  "CRPT" | versión del formato (u16 = 3) | cantidad de salas (u32)
                   | posición del índice (u64)
     [GLOBAL]      largo (u64) + versiones, semilla, azar, reloj, secuencia,
-                  jugador, efectos, eventos, objetos_generados y LÍNEA DE TIEMPO
+                  jugador, efectos, eventos, objetos_generados, CONOCIMIENTO
+                  del mapa (spec 003 de A, texto) y LÍNEA DE TIEMPO
     [SALAS]       un bloque por sala, ordenados por id
     [ÍNDICE]      (id de sala u32, posición u64, largo u32) ordenado por id
 Los textos se escriben como largo (u32) + bytes UTF-8.
@@ -226,6 +227,7 @@ class GuardadoBinario:
             _txt(buf, ev.tipo)
             _txt(buf, ev.objetivo)
         buf.write(struct.pack("<q", estado.objetos_generados))
+        _txt(buf, estado.conocimiento)  # niebla de guerra (spec 003, contrato A↔B)
         if estado.linea is None:
             buf.write(b"\x00")
         else:
@@ -301,6 +303,7 @@ class GuardadoBinario:
             objetivo = _leer_txt(buf)
             eventos.append(RegistroEvento(tiempo=tiempo, secuencia=secuencia, tipo=tipo, objetivo=objetivo))
         (objetos_generados,) = struct.unpack("<q", buf.read(8))
+        conocimiento = _leer_txt(buf)
         (tiene_linea,) = struct.unpack("<B", buf.read(1))
         linea = self._decodificar_linea(buf) if tiene_linea else None
         # estado_azar se guarda como texto; intentar parsear JSON a tuple si procede
@@ -327,6 +330,7 @@ class GuardadoBinario:
             efectos=efectos,
             eventos=eventos,
             objetos_generados=objetos_generados,
+            conocimiento=conocimiento,
             linea=linea,
         )
 
@@ -587,6 +591,7 @@ class GuardadoJSON:
                 for ev in estado.eventos
             ],
             "objetos_generados": estado.objetos_generados,
+            "conocimiento": estado.conocimiento,
             "linea": self._linea_a_dict(estado.linea) if estado.linea is not None else None,
         }
 
@@ -738,5 +743,6 @@ class GuardadoJSON:
             efectos=efectos,
             eventos=eventos,
             objetos_generados=d.get("objetos_generados", 0),
+            conocimiento=str(d.get("conocimiento", "")),
             linea=linea,
         )

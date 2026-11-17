@@ -42,6 +42,20 @@ una partida, ``_reconciliar_fijaciones`` las recalcula a partir del estado.
 
 §5.2: con la cripta cargada, resolver el ciclo entre dos decisiones del
 jugador debe tomar < 20 ms (medido en bench_modelo).
+
+Parte II (Persona A):
+- Terreno (spec 001): moverse cuesta el ``costo`` de la salida, para todos los
+  actores. Los cazadores deciden con ``self.rutas`` (``RutasCazadores``), cuya
+  caché se invalida sola cuando cambia una puerta (``Mapa.al_cambiar_puerta``)
+  o cuando el jugador cambia de sala (spec 002).
+- Niebla de guerra (spec 003): ``self.conocimiento`` guarda qué salas conoce
+  el jugador y cómo recuerda cada puerta. Se actualiza al iniciar, al entrar a
+  una sala (y a sus vecinas con la antorcha encendida) y cuando cambia una
+  puerta de la sala donde está. Cada cambio de casilla se registra
+  (``CambioCasilla``) para que el pergamino lo revierta, y el conocimiento va en
+  ``EstadoGuardable.conocimiento`` (guardado y puntos de control).
+- «ir a» (spec 003): ``paso_hacia`` calcula el siguiente paso con el mismo
+  motor de rutas que el cazador, pero solo con el conocimiento del jugador.
 """
 
 from __future__ import annotations
@@ -59,7 +73,6 @@ from cripta.constantes import (
     COSTO_ATACAR,
     COSTO_EQUIPAR,
     COSTO_ESPERAR,
-    COSTO_MOVER,
     COSTO_RECOGER,
     COSTO_SOLTAR,
     COSTO_USAR,
@@ -73,6 +86,7 @@ from cripta.estructuras.tabla_ordenada import TablaOrdenada
 from cripta.modelo.acciones import Accion, ResultadoAccion, TipoAccion
 from cripta.modelo.actores import Actor, Enemigo, Jugador
 from cripta.modelo.comportamiento import IAEnemigos
+from cripta.modelo.conocimiento import ConocimientoMapa, MapaConocido
 from cripta.modelo.efectos import Efecto, GestorEfectos, TipoEfecto, ranura_de
 from cripta.modelo.eventos import Agenda, Evento, TipoEvento
 from cripta.modelo.guardable import (
@@ -88,6 +102,7 @@ from cripta.modelo.guardable import (
 )
 from cripta.modelo.historial import (
     CambioAtributo,
+    CambioCasilla,
     CambioEstadoAzar,
     CambioEventoCancelado,
     CambioEventoExtraido,
@@ -101,11 +116,12 @@ from cripta.modelo.inventario import Inventario
 from cripta.modelo.mensajes import BitacoraMensajes
 from cripta.modelo.objetos import ClaseObjeto, InstanciaObjeto, InstanciaTrampa, id_objeto_soltado
 from cripta.modelo.puertos import FichaNoDisponible
+from cripta.modelo.rutas import SIN_LIMITE, BuscadorRutas, EstrategiaCazador, RutasCazadores
 
 if TYPE_CHECKING:
     from cripta.estructuras.lista_doble import NodoDoble
     from cripta.modelo.datos import DatosCripta
-    from cripta.modelo.mapa import Mapa, Sala
+    from cripta.modelo.mapa import Mapa, Puerta, Sala, Salida
     from cripta.modelo.puertos import ProveedorFichas
 
 # Criterios aceptados por ``vista_inventario``.
@@ -171,6 +187,7 @@ class Juego:
         fichas: ProveedorFichas,
         semilla: int,
         nombre_jugador: str,
+        estrategia_cazador: EstrategiaCazador = EstrategiaCazador.COMPARTIDA,
     ) -> None:
         self.datos = datos
         self.mapa = mapa
@@ -186,6 +203,13 @@ class Juego:
         self.jugador = Jugador(nombre_jugador, datos.jugador, mapa.sala_inicial, Inventario(datos.inventario_max))
         self.estado = EstadoPartida.EN_CURSO
         self.objetos_generados = 0
+        # Rutas de los cazadores (spec 001/002). La caché se entera sola de los
+        # cambios de puertas: el mapa avisa en cada asignación de ``cerrada``.
+        self.rutas = RutasCazadores(mapa, estrategia_cazador)
+        mapa.al_cambiar_puerta = self.rutas.puerta_cambio
+        # Conocimiento del jugador (spec 003) y buscador propio de «ir a».
+        self.conocimiento = ConocimientoMapa(mapa)
+        self._buscador_conocido: BuscadorRutas | None = None
         # Siguiente "#n" por tipo de enemigo (solo para mostrar).
         self._numeros_por_tipo: TablaOrdenada[str, int] = TablaOrdenada()
         # Cuántas referencias tiene fijadas el modelo de cada tipo de ficha.
@@ -225,13 +249,20 @@ class Juego:
         self.jugador.evento_turno = self._programar(0, TipoEvento.TURNO_JUGADOR, self.jugador)
         sala.rastro = 0
         sala.visitada = True
+        self._revelar(sala)  # spec 003, FR-002: la sala inicial está explorada desde t=0
         self._fijar_sala(sala)
         self._mensaje(f"{self.jugador.nombre} entra a la cripta. Estás en {sala.nombre}.")
         self._activar_enemigos(sala)
         self._avanzar_hasta_decision()
 
-    def ejecutar_accion(self, accion: Accion) -> ResultadoAccion:
-        """Ejecuta una decisión del jugador y avanza hasta la siguiente (ver flujo arriba)."""
+    def ejecutar_accion(self, accion: Accion, hasta: int | None = None) -> ResultadoAccion:
+        """Ejecuta una decisión del jugador y avanza hasta la siguiente (ver flujo arriba).
+
+        Con ``hasta`` (contrato A↔B de la línea de tiempo) los eventos se
+        ejecutan solo hasta ese instante: sirve para reconstruir un instante que
+        cae entre dos decisiones. El juego queda a mitad del ciclo y solo se usa
+        para leerlo.
+        """
         if accion.tipo is TipoAccion.RETROCEDER:
             return self.usar_pergamino()
         resultado = self._validar(accion)
@@ -254,7 +285,10 @@ class Juego:
                     self._entrar_a_sala(jugador.sala)
             # Lo que sigue (hasta la próxima decisión) es el "turno de los enemigos".
             self.marca_enemigos = self.mensajes.total
-            self._avanzar_hasta_decision()
+            if hasta is None:
+                self._avanzar_hasta_decision()
+            else:
+                self.avanzar_hasta(max(hasta, self.reloj))
         except Exception:
             # La acción es atómica: se deshace lo que alcanzó a hacer.
             self.historial.descartar_abierto(self)
@@ -363,6 +397,73 @@ class Juego:
                 self.fichas.liberar(tipo_id)
         self._fijadas = TablaOrdenada()
 
+    # --- Parte II: conocimiento, «ir a» y avance acotado (Persona A) ---------------
+
+    def mapa_conocido(self) -> MapaConocido:
+        """Lo que el jugador sabe del mapa, para la vista y ``historia`` (spec 003, FR-013)."""
+        return self.conocimiento.mapa_conocido(self.jugador.sala)
+
+    def serializar_conocimiento(self) -> str:
+        """Contrato A↔B (005/interfaz-a-b-timeline §2)."""
+        return self.conocimiento.serializar()
+
+    def restaurar_conocimiento(self, datos: str) -> None:
+        self.conocimiento.restaurar(datos)
+
+    def validar_ir_a(self, sala_id: int) -> ResultadoAccion:
+        """Rechazos de «ir a» que no consumen tiempo (spec 003, FR-018)."""
+        if not self._iniciado or self.esta_terminada():
+            return self._rechazo("La partida no está en curso.")
+        sala = self.mapa.salas.obtener(sala_id)
+        if sala is None or not self.conocimiento.explorada(sala):
+            return self._rechazo(f"No conoces la sala {sala_id}: solo puedes ir a salas exploradas.")
+        if sala is self.jugador.sala:
+            return self._rechazo(f"Ya estás en la sala {sala_id}.")
+        return ResultadoAccion(aceptada=True)
+
+    def paso_hacia(self, sala_id: int) -> Salida | None:
+        """Primera salida de la ruta más barata CONOCIDA hacia ``sala_id`` (FR-019, FR-021).
+
+        Usa el mismo motor que el cazador (búsqueda inversa desde el destino y
+        desempate por menor id), con el filtro del conocimiento: solo salas
+        exploradas y puertas recordadas abiertas. Se detiene en cuanto llega a
+        la sala del jugador. None si no hay ruta conocida.
+        """
+        destino = self.mapa.salas.obtener(sala_id)
+        if destino is None or not self.conocimiento.explorada(destino):
+            return None
+        buscador = self._buscador_conocido
+        if buscador is None:
+            buscador = self._buscador_conocido = BuscadorRutas(self.mapa)
+        filtro = self.conocimiento.transitable_conocida
+        origen = self.jugador.sala
+        buscador.calcular(destino, SIN_LIMITE, filtro, parar_en=origen)
+        return buscador.primer_paso(origen, filtro)
+
+    def avanzar_hasta(self, tiempo: int) -> None:
+        """Ejecuta los eventos con tiempo <= ``tiempo`` sin tomar la decisión pendiente.
+
+        Contrato A↔B (005/interfaz-a-b-timeline §1): se detiene en el
+        TURNO_JUGADOR (no lo consume) o cuando termina la partida. No cambia
+        ninguna regla, solo el punto de parada. Lo usa la línea de tiempo para
+        instantes que caen entre dos decisiones.
+        """
+        if tiempo < self.reloj:
+            raise ValueError(f"avanzar_hasta({tiempo}) es anterior al reloj actual ({self.reloj})")
+        agenda = self.agenda
+        while self.estado is EstadoPartida.EN_CURSO:
+            evento = agenda.ver_siguiente()
+            if evento is None or evento.tiempo > tiempo:
+                return
+            if evento.tipo is TipoEvento.TURNO_JUGADOR:
+                self._asignar(self, "reloj", evento.tiempo)
+                return
+            agenda.extraer_siguiente()
+            if self.historial.grabando:
+                self.historial.registrar(CambioEventoExtraido(evento))
+            self._asignar(self, "reloj", evento.tiempo)
+            self._despachar(evento)
+
     # =========================================================================
     # Guardar / cargar (§4.10)
     # =========================================================================
@@ -431,10 +532,17 @@ class Juego:
             efectos=efectos,
             eventos=eventos,
             objetos_generados=self.objetos_generados,
+            conocimiento=self.conocimiento.serializar(),
         )
 
     @staticmethod
-    def desde_estado(estado: EstadoGuardable, datos: DatosCripta, mapa: Mapa, fichas: ProveedorFichas) -> Juego:
+    def desde_estado(
+        estado: EstadoGuardable,
+        datos: DatosCripta,
+        mapa: Mapa,
+        fichas: ProveedorFichas,
+        estrategia_cazador: EstrategiaCazador = EstrategiaCazador.COMPARTIDA,
+    ) -> Juego:
         """Reconstruye una partida guardada.
 
         ``mapa`` es el construido con el esqueleto (se le borra cualquier
@@ -447,7 +555,7 @@ class Juego:
                 f"pero los datos cargados son de {datos.id} versión {datos.version}"
             )
         mapa.reiniciar_contenido()
-        juego = Juego(datos, mapa, fichas, estado.semilla, estado.jugador.nombre)
+        juego = Juego(datos, mapa, fichas, estado.semilla, estado.jugador.nombre, estrategia_cazador)
         juego.azar.setstate(_como_estado_azar(estado.estado_azar))
         juego.reloj = estado.reloj
         trampas: TablaOrdenada[str, InstanciaTrampa] = TablaOrdenada()
@@ -538,6 +646,14 @@ class Juego:
             raise ValueError("Partida guardada inconsistente: el jugador no tiene turno programado")
 
         juego.objetos_generados = estado.objetos_generados
+        # Conocimiento del jugador (spec 003, FR-014). Un estado sin este campo
+        # (no debería existir en v3) conserva al menos las salas visitadas.
+        if estado.conocimiento:
+            juego.conocimiento.restaurar(estado.conocimiento)
+        else:
+            for sala in mapa:
+                if sala.visitada:
+                    juego.conocimiento.explorar(sala, _asignar_directo)
         juego._iniciado = True
         juego._reconciliar_fijaciones()
         juego._mensaje(f"Partida cargada en t={juego.reloj}.")
@@ -707,7 +823,7 @@ class Juego:
         self._liberar_sala(origen)
         self._asignar(jugador, "sala", destino)
         self._mensaje(f"Vas al {nombre_direccion(direccion)} y entras a {destino.nombre}.")
-        return COSTO_MOVER
+        return origen.salida(direccion).costo  # spec 001, FR-004: el costo de la salida
 
     def _abrir(self, direccion: str) -> int:
         """La llave no se consume; si la puerta tiene cierre automático, se programa."""
@@ -719,6 +835,7 @@ class Juego:
         if puerta.cierre_automatico is not None:
             texto += f" Se cerrará sola en {puerta.cierre_automatico}."
         self._mensaje(texto)
+        self.conocimiento.observar(puerta, self._asignar_casilla)  # spec 003, FR-007
         self.efectos.programar_cierre(puerta)
         return COSTO_ABRIR
 
@@ -842,6 +959,7 @@ class Juego:
         """
         if not sala.visitada:
             self._asignar(sala, "visitada", True)
+        self._revelar(sala)
         self._activar_enemigos(sala)
         for trampa in sala.trampas:
             if self.esta_terminada():
@@ -849,6 +967,29 @@ class Juego:
             if trampa.armada:
                 self.efectos.activar_trampa(trampa, self.jugador)
         self._verificar_fin()
+
+    def _revelar(self, sala: Sala) -> None:
+        """Niebla de guerra al entrar (spec 003, FR-003, FR-007, FR-010, FR-011).
+
+        Explora la sala y observa sus puertas. Con la antorcha encendida explora
+        también todas las vecinas (por cualquier salida); eso solo cambia el
+        conocimiento: no activa enemigos ni trampas ni pide contenido.
+        """
+        conocimiento = self.conocimiento
+        asignar = self._asignar_casilla
+        conocimiento.explorar(sala, asignar)
+        conocimiento.observar_sala(sala, asignar)
+        if self.jugador.antorcha is not None:
+            for salida in sala.salidas:
+                if salida is not None:
+                    conocimiento.explorar(salida.destino, asignar)
+
+    def observar_si_presente(self, puerta: Puerta) -> None:
+        """El jugador ve una puerta que cambió si está en una de sus dos salas (FR-007)."""
+        salas = puerta.salas
+        sala = self.jugador.sala
+        if salas is not None and (salas[0] is sala or salas[1] is sala):
+            self.conocimiento.observar(puerta, self._asignar_casilla)
 
     def _activar_enemigos(self, sala: Sala) -> None:
         """Orden ascendente de id de instancia; primera acción con costo 100 (§2.4)."""
@@ -922,6 +1063,15 @@ class Juego:
         if self.historial.grabando:
             self.historial.registrar(CambioAtributo(objeto, atributo, anterior))
         setattr(objeto, atributo, valor)
+
+    def _asignar_casilla(self, arreglo: list, indice: int, valor: int) -> None:
+        """``arreglo[indice] = valor`` + registro de ``CambioCasilla`` (conocimiento)."""
+        anterior = arreglo[indice]
+        if anterior == valor:
+            return
+        if self.historial.grabando:
+            self.historial.registrar(CambioCasilla(arreglo, indice, anterior))
+        arreglo[indice] = valor
 
     def _mensaje(self, texto: str) -> None:
         self.mensajes.agregar(self.reloj, texto)
@@ -1127,6 +1277,11 @@ def _normalizar_direccion(direccion: str | None) -> str:
 
 def _numero(valor: int | None) -> int:
     return valor if valor is not None else 0
+
+
+def _asignar_directo(arreglo: list, indice: int, valor: int) -> None:
+    """Asignación sin registro (para reconstruir estado al cargar)."""
+    arreglo[indice] = valor
 
 
 def _sumar_uno(tabla: TablaOrdenada[str, int], clave: str) -> None:
