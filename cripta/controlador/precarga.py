@@ -132,6 +132,12 @@ class PlanificadorPrecarga:
                 if c is not None:
                     self._incorporar_contenido([c])
         remaining = self.fuente.solicitudes_restantes()
+        if remaining is not None:
+            # Las solicitudes lanzadas que el hilo todavía no empezó aún no se
+            # descontaron del presupuesto: se restan aquí para que la reserva no
+            # dependa de si el hilo alcanzó a correr (antes, según el momento,
+            # se podían lanzar dos anticipadas y comerse la reserva).
+            remaining -= sum(1 for pendiente in self._pendientes if not _terminada(pendiente))
         if de_red:
             if remaining is not None and remaining <= RESERVA_SOLICITUDES:
                 # Lo que queda del presupuesto es la reserva para lo obligatorio
@@ -259,3 +265,9 @@ class PlanificadorPrecarga:
     def _lanzar_solicitud(self, salas: list[int]) -> None:
         future = self._executor.submit(self.fuente.contenido, self.cripta_id, salas)
         self._pendientes.append(SolicitudPendiente(salas=list(salas), futuro=future))
+
+
+def _terminada(pendiente: SolicitudPendiente) -> bool:
+    """True si la solicitud ya terminó (y por lo tanto ya se descontó del presupuesto)."""
+    hecho = getattr(pendiente.futuro, "done", None)
+    return bool(hecho()) if callable(hecho) else True
