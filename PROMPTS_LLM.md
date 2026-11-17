@@ -750,3 +750,14 @@ Cada entrada: fecha aproximada, herramienta o modelo, prompt textual y para qué
   > Haz la prueba con la API real: valida el contrato de Swagger, `/llaves`, `costo` y cazador; juega una partida real, guarda/carga y reproduce el log en línea y sin red.
 
 - **Uso:** ejecutar la prueba de aceptación contra el servicio: Swagger 1.1.0; criptas 02–06 con versiones, presupuestos y llaves; `/llaves` con llaves de enemigos; `costo` en salidas y cazadores con `rango`; `--verificar` en línea; partida real de 80 acciones (9/25 solicitudes, 0 errores); guardar/cargar con conocimiento y línea; replay en línea y offline idéntico; `--hasta` y costo de salida. Evidencia en `docs/mediciones/p2_api_real.txt` y `p2_api_real_cripta05.log`; prueba opt-in `tests/test_api_real.py`. Suite 245/245 (2 pruebas de red saltadas por defecto).
+
+### 66
+
+- **Fecha:** 2026-11-17
+- **Integrante:** Brandon
+- **Herramienta / modelo:** opencode (DeepSeek V4.1 Flash)
+- **Prompt:**
+
+  > Prueba todo el proyecto, verifica todos los requerimientos y repórtame el estado.
+
+- **Uso:** ejecutar la verificación integral: suite completa (249, 2 de red opt-in), prueba real de la API (2/2), `--bench` completo con los cuatro límites en PASA/OK, cobertura de FR/NFR/AC de las specs 001–005, tareas sin pendientes, `--verificar` offline de las seis criptas y revisión de trazabilidad. Se citaron los IDs de los 10 casos del Apéndice B en las pruebas de B y se añadió `tests/test_trazabilidad_b.py` como guardia. Evidencia final en `docs/mediciones/p2_verificacion_final.txt`.

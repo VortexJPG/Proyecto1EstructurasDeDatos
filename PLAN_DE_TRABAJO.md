@@ -323,6 +323,12 @@ División de la Parte II: la Persona A tiene terreno y cazador (spec 001), inval
   salida 200 → reloj 200. Evidencia: `docs/mediciones/p2_api_real.txt` y
   `p2_api_real_cripta05.log`; prueba opt-in `tests/test_api_real.py`.
 
+- **Auditoría final (2026-11-17):** 249 pruebas (2 de red opt-in), `--bench`
+  completo sin FALLA y todos los requisitos FR/NFR de 001–005 con tarea y
+  prueba que los cita. Los 10 casos del Apéndice B de la Persona B están
+  citados en las pruebas; las tareas de 001–005 no tienen pendientes.
+  `--verificar` offline: 01–04 y 06 resolubles, 05 no resoluble.
+
 **Orden sugerido de commits** (§2.6: la spec antes que el código, y en commits separados):
 1. `docs(constitution)`: `.specify/memory/constitution.md` (v1.0.1).
 2. `spec(001)`, `spec(002)`, `spec(003)`: cada `spec.md` con su `checklists/`.

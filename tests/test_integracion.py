@@ -305,6 +305,7 @@ class PruebaCliVerificar(BaseIntegracion):
         return codigo, salida.getvalue(), crear
 
     def test_resoluble_sin_vista_ni_bitacora(self):
+        """FR-012/SC-006: --verificar no instancia la vista ni escribe bitácora."""
         codigo, texto, crear = self.ejecutar(True)
         self.assertEqual(codigo, 0)
         self.assertIn("RESOLUBLE", texto)
@@ -313,6 +314,7 @@ class PruebaCliVerificar(BaseIntegracion):
         self.assertFalse(os.path.exists(os.path.join(self.directorio, "replays")))
 
     def test_no_resoluble_sale_con_codigo_3(self):
+        """FR-012: --verificar sale con 3 si la cripta no es resoluble."""
         codigo, texto, crear = self.ejecutar(False)
         self.assertEqual(codigo, 3)
         self.assertIn("NO RESOLUBLE", texto)
@@ -382,6 +384,7 @@ class PruebaBloqueoInicio(BaseIntegracion):
         return codigo, vista
 
     def test_sin_forzar_no_inicia_ni_crea_replay(self):
+        """AC-004-04/FR-010: sin --forzar una cripta no resoluble no inicia."""
         codigo, vista = self.ejecutar(resoluble=False, forzar=False)
         self.assertEqual(codigo, 3)
         self.assertFalse(vista.pedido_comando)
@@ -389,6 +392,7 @@ class PruebaBloqueoInicio(BaseIntegracion):
         self.assertFalse(os.path.exists(os.path.join(self.directorio, "replays")))
 
     def test_con_forzar_inicia_y_muestra_advertencia(self):
+        """FR-011: --forzar inicia y conserva el reporte."""
         codigo, vista = self.ejecutar(resoluble=False, forzar=True)
         self.assertEqual(codigo, 0)
         self.assertTrue(vista.pedido_comando)

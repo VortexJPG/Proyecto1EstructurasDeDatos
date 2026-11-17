@@ -103,6 +103,7 @@ def _manual(datos, salas, llaves):
 
 class PruebaVerificador(unittest.TestCase):
     def test_resoluble(self):
+        """FR-003/FR-005: veredicto y condición estricta de sala_salida."""
         cripta = generar_cripta(7, salas=30, llaves=4)
         resultado = _verificar(cripta)
         self.assertTrue(resultado.resoluble)
@@ -111,6 +112,7 @@ class PruebaVerificador(unittest.TestCase):
         self.assertEqual(resultado.frontera, [])
 
     def test_no_resoluble_con_ciclo(self):
+        """AC-004-01: llave de salida detrás de su propia puerta; ciclo concreto."""
         cripta = generar_cripta(3, salas=20, llaves=3, resoluble=False)
         resultado = _verificar(cripta)
         self.assertFalse(resultado.resoluble)
@@ -126,6 +128,7 @@ class PruebaVerificador(unittest.TestCase):
         self.assertIn("Ciclo:", texto)
 
     def test_llave_de_enemigo(self):
+        """AC-004-02: llave en el campo suelta de un enemigo, ubicada en su sala inicial."""
         cripta = generar_cripta(9, salas=30, llaves=4, llave_en_enemigo=2)
         resultado = _verificar(cripta)
         self.assertTrue(resultado.resoluble)
@@ -146,6 +149,7 @@ class PruebaVerificador(unittest.TestCase):
         self.assertIn("no aparece", resultado.motivo)
 
     def test_salida_libre_no_basta(self):
+        """FR-005: llegar a sala_salida por una salida libre no satisface la condición."""
         salas = [
             DatosSala(1, "Uno", [DatosSalida("N", 2)]),
             DatosSala(2, "Dos", [DatosSalida("S", 1), DatosSalida("N", 3)]),
@@ -157,6 +161,7 @@ class PruebaVerificador(unittest.TestCase):
         self.assertEqual(resultado.llave_salida_obtenida, True)
 
     def test_puerta_exige_llave_no_listada(self):
+        """FR-022: puerta con llave ausente del listado se reporta como no obtenible."""
         salas = [
             DatosSala(1, "Uno", [DatosSalida("N", 2, cerrada=True, llave="itm_faltante")]),
             DatosSala(2, "Dos", [DatosSalida("S", 1)]),
@@ -167,6 +172,7 @@ class PruebaVerificador(unittest.TestCase):
         self.assertEqual(resultado.frontera[0].llave_requerida, "itm_faltante")
 
     def test_llave_duplicada(self):
+        """FR-024: una llave en varias ubicaciones vale si una es alcanzable."""
         salas = [
             DatosSala(1, "Uno", [DatosSalida("N", 2, cerrada=True, llave="itm_k")]),
             DatosSala(2, "Dos", [DatosSalida("S", 1),
@@ -192,6 +198,7 @@ class PruebaVerificador(unittest.TestCase):
         self.assertEqual(resultado.frontera[0].puerta_id, "p-1N-2")
 
     def test_ac_004_03_dos_corridas_mismo_orden(self):
+        """AC-004-03: dos ejecuciones con las mismas entradas producen el mismo orden."""
         cripta = generar_cripta(13, salas=40, llaves=5)
         primera = _verificar(cripta)
         segunda = _verificar(cripta)
@@ -200,6 +207,7 @@ class PruebaVerificador(unittest.TestCase):
         self.assertEqual(primera, segunda)
 
     def test_validez_del_orden(self):
+        """FR-006: cada llave aparece después de las necesarias para alcanzarla."""
         from cripta.bench.ingenuo import alcanzables
 
         for semilla in range(5):
@@ -221,6 +229,7 @@ class PruebaVerificador(unittest.TestCase):
             self.assertEqual(resultado.orden_llaves[-1], cripta.datos.llave_salida)
 
     def test_desempate_por_id(self):
+        """FR-007: desempate determinista por id de llave."""
         salas = [
             DatosSala(1, "Uno", [DatosSalida("N", 2, cerrada=True, llave="itm_b")]),
             DatosSala(2, "Salida", [DatosSalida("S", 1)]),
@@ -231,6 +240,7 @@ class PruebaVerificador(unittest.TestCase):
         self.assertEqual(resultado.orden_llaves, ["itm_a", "itm_b"])
 
     def test_coincide_con_el_oraculo(self):
+        """NFR-005/SC-005: mismo veredicto y llaves que el ingenuo."""
         for salas in (12, 20, 40):
             for llaves in (1, 2, 3, 5):
                 if salas < llaves + 2:

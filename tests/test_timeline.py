@@ -63,6 +63,7 @@ class PruebaLineaBase(BaseTimeline):
         self.assertEqual(linea.acciones[0].indice, 1)
 
     def test_reconstruccion_coincide_con_el_oraculo(self):
+        """FR-030/FR-031/FR-032, NFR-005 y SC-003: conocimiento, determinismo, eventos intermedios y oráculo."""
         controlador = self.controlador(k=3)
         jugar(controlador, 12, 3)
         linea = controlador._timeline
@@ -82,6 +83,7 @@ class PruebaLineaBase(BaseTimeline):
             controlador._timeline.estado_en_accion(99)
 
     def test_recorte_por_pergamino(self):
+        """AC-005-02 y FR-011..FR-014: el pergamino recorta acciones, checkpoints y renumera."""
         controlador = self.controlador(k=2, sub="p", cripta="cripta-01", vida=500)
         acciones = [
             Accion(TipoAccion.RECOGER, objetivo="o-1-0"),
@@ -110,6 +112,7 @@ class PruebaLineaBase(BaseTimeline):
 
 class PruebaPersistenciaLinea(BaseTimeline):
     def test_guardar_y_cargar_conserva_la_linea(self):
+        """FR-025/FR-029: guardar/cargar conserva la línea y permite seguir consultando."""
         controlador = self.controlador(k=4)
         jugar(controlador, 10, 3)
         ruta = os.path.join(self.directorio, "partida.sav")
@@ -123,6 +126,7 @@ class PruebaPersistenciaLinea(BaseTimeline):
         controlador.cerrar_recursos()
 
     def test_binario_y_json_coinciden_con_linea(self):
+        """FR-026/FR-028: formato v3 y copia JSON con la línea."""
         controlador = self.controlador(k=4)
         jugar(controlador, 6, 3)
         ruta = os.path.join(self.directorio, "partida.sav")
@@ -131,6 +135,7 @@ class PruebaPersistenciaLinea(BaseTimeline):
         controlador.cerrar_recursos()
 
     def test_p1_binario_se_rechaza(self):
+        """AC-005-06/FR-027: un archivo binario v2 de P1 se rechaza explícitamente."""
         ruta = os.path.join(self.directorio, "p1.sav")
         with open(ruta, "wb") as archivo:
             archivo.write(b"CRPT" + struct.pack("<H", 2))
@@ -139,6 +144,7 @@ class PruebaPersistenciaLinea(BaseTimeline):
         self.assertIn("Parte I", str(contexto.exception))
 
     def test_p1_json_se_rechaza(self):
+        """AC-005-06/FR-028: un JSON sin versión de formato se rechaza."""
         ruta = os.path.join(self.directorio, "p1.json")
         with open(ruta, "w", encoding="utf-8") as archivo:
             json.dump({"cripta_id": "x"}, archivo)
@@ -167,6 +173,7 @@ class _VistaHistoria:
 
 class PruebaComandoHistoria(BaseTimeline):
     def test_historia_por_accion(self):
+        """FR-004: historia #k devuelve el estado antes de la acción k."""
         controlador = self.controlador(k=3)
         jugar(controlador, 8, 3)
         resultado = controlador.consultar_historia("#3")
@@ -176,6 +183,7 @@ class PruebaComandoHistoria(BaseTimeline):
         self.assertEqual(resultado, esperado)
 
     def test_historia_en_instante_de_decision(self):
+        """FR-003: en una decisión se muestra el estado justo antes de tomarla."""
         controlador = self.controlador(k=3)
         jugar(controlador, 8, 3)
         instante = controlador._timeline.acciones[4].tiempo
@@ -186,6 +194,7 @@ class PruebaComandoHistoria(BaseTimeline):
         self.assertEqual(resultado, esperado)
 
     def test_historia_en_cero(self):
+        """FR-010: t=0 muestra el estado inicial."""
         controlador = self.controlador()
         jugar(controlador, 4, 3)
         resultado = controlador.consultar_historia("0")
@@ -193,6 +202,7 @@ class PruebaComandoHistoria(BaseTimeline):
         self.assertEqual(resultado.sala, 1)
 
     def test_rechazos(self):
+        """AC-005-01/FR-009: instantes futuros, negativos o acciones fuera de rango se rechazan."""
         controlador = self.controlador()
         jugar(controlador, 4, 3)
         acciones = len(controlador._timeline.acciones)
@@ -209,6 +219,7 @@ class PruebaComandoHistoria(BaseTimeline):
                 controlador.consultar_historia(argumento)
 
     def test_consulta_no_altera_nada(self):
+        """AC-005-04/FR-006..FR-008: no toca reloj, log ni historial de retroceso."""
         controlador = self.controlador(k=3, replay=True)
         jugar(controlador, 5, 3)
         ruta = controlador._ruta_log
@@ -275,6 +286,7 @@ class PruebaReplayHasta(BaseTimeline):
         self.assertEqual(reproductor.acciones_reproducidas, 0)
 
     def test_hasta_en_una_decision_coincide_con_la_linea(self):
+        """FR-022: --hasta imprime el mismo resumen que historia."""
         completo = self.reproductor("full")
         completo.ejecutar()
         linea = completo._controlador.timeline
@@ -286,6 +298,7 @@ class PruebaReplayHasta(BaseTimeline):
         self.assertEqual(parcial._resumen_historico, esperado)
 
     def test_hasta_despues_del_final(self):
+        """AC-005-05/FR-024: si el log termina antes, se muestra el final y el motivo."""
         reproductor = self.reproductor()
         reproductor.ejecutar(99999)
         self.assertIsNone(reproductor.error_hasta)

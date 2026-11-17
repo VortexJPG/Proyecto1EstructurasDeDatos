@@ -1,0 +1,23 @@
+Verificación final — 2026-11-17
+
+Suite normal: 249 tests, OK (2 de tests/test_api_real.py saltadas por defecto)
+Prueba API real (CRIPTA_API_REAL=1): 2/2 OK
+Bench completo: exit 0, sin FALLA
+  - ciclo de decisiones (referencia): 1.719 ms / 20 ms -> PASA
+  - paso de «ir a» (referencia): 0.156 ms / 5 ms -> PASA
+  - resolubilidad 300 salas: 0.519 ms / 200 ms -> OK
+  - consulta historia K=50: 0.571 ms / 50 ms -> OK
+Tareas:
+  001: 30/30, 002: 18/18, 003: 24/24, 004: 49/49, 005: 56/56
+Requisitos con cita en pruebas:
+  001: 21 FR, 4 NFR, 6 AC; 002: 11 FR, 3 NFR, 3 AC; 003: 27 FR, 5 NFR, 6 AC
+  004: 24 FR, 5 NFR, 4 AC; 005: 32 FR, 5 NFR, 6 AC
+--verificar offline:
+  01, 02, 03, 04, 06: RESOLUBLE (exit 0)
+  05: NO RESOLUBLE (exit 3)
+--verificar en línea:
+  02, 06: RESOLUBLE (exit 0); 05: NO RESOLUBLE (exit 3)
+Partida real cripta-05: 80 acciones, 9/25 solicitudes, 0 errores
+Replay en línea y offline: 80 acciones, reloj 8930, 10 derrotados, idéntico
+Constitución: 1.0.1 aprobada por A y B
+Decisiones: §5.4, §5.5 y §5.6-B presentes
