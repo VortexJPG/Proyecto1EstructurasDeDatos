@@ -1,0 +1,102 @@
+Mediciones de la Persona A, Parte II (specs 001, 002 y 003)
+Fecha: 2026-11-15  |  Python 3.14.6  |  Windows 11 AMD64  |  CPU: 32 hilos
+Comando: python main.py --bench <subsistema>  (semillas fijas; us/op = microsegundos por operación medida)
+
+=== --bench cazador
+Subsistema            Caso                                           n    reps       us/op  Detalle
+cazador               1 cazadores rango pequeño compartida        2500      40      42.570  ronda: mediana 0.045 ms, p95 0.071 ms, máx 0.132 ms | cálculos 33, reutilizados 7, salas examinadas/decisión 27.4
+cazador               1 cazadores rango pequeño individual        2500      40      10.870  ronda: mediana 0.008 ms, p95 0.022 ms, máx 0.032 ms | cálculos 40, reutilizados 0, salas examinadas/decisión 5.6
+cazador               1 cazadores rango grande compartida         2500      40    5301.168  ronda: mediana 5.243 ms, p95 5.573 ms, máx 6.101 ms | cálculos 40, reutilizados 0, salas examinadas/decisión 2500.0
+cazador               1 cazadores rango grande individual         2500      40    1754.133  ronda: mediana 2.072 ms, p95 2.553 ms, máx 3.204 ms | cálculos 40, reutilizados 0, salas examinadas/decisión 827.9
+cazador               10 cazadores rango pequeño compartida       2500     400       4.151  ronda: mediana 0.041 ms, p95 0.066 ms, máx 0.096 ms | cálculos 39, reutilizados 361, salas examinadas/decisión 2.4
+cazador               10 cazadores rango pequeño individual       2500     400      30.181  ronda: mediana 0.306 ms, p95 0.449 ms, máx 0.499 ms | cálculos 400, reutilizados 0, salas examinadas/decisión 22.3
+cazador               10 cazadores rango grande compartida        2500     400     568.612  ronda: mediana 5.452 ms, p95 6.691 ms, máx 6.946 ms | cálculos 40, reutilizados 360, salas examinadas/decisión 250.0
+cazador               10 cazadores rango grande individual        2500     400    3156.270  ronda: mediana 32.704 ms, p95 45.183 ms, máx 47.591 ms | cálculos 400, reutilizados 0, salas examinadas/decisión 1244.3
+cazador               50 cazadores rango pequeño compartida       2500    2000       1.335  ronda: mediana 0.062 ms, p95 0.110 ms, máx 0.113 ms | cálculos 40, reutilizados 1960, salas examinadas/decisión 0.5
+cazador               50 cazadores rango pequeño individual       2500    2000      36.541  ronda: mediana 1.678 ms, p95 2.959 ms, máx 4.595 ms | cálculos 2000, reutilizados 0, salas examinadas/decisión 25.0
+cazador               50 cazadores rango grande compartida        2500    2000     120.679  ronda: mediana 5.753 ms, p95 7.218 ms, máx 8.734 ms | cálculos 40, reutilizados 1960, salas examinadas/decisión 50.0
+cazador               50 cazadores rango grande individual        2500    2000    2831.888  ronda: mediana 140.711 ms, p95 171.146 ms, máx 177.809 ms | cálculos 2000, reutilizados 0, salas examinadas/decisión 1270.0
+cazador               rango 300 en 400 salas individual            400     200       7.440  ronda: mediana 0.007 ms, p95 0.010 ms, máx 0.029 ms | cálculos 200, reutilizados 0, salas examinadas/decisión 3.9
+cazador               rango 300 en 400 salas compartida            400     200      21.887  ronda: mediana 0.024 ms, p95 0.045 ms, máx 0.084 ms | cálculos 149, reutilizados 51, salas examinadas/decisión 13.5
+cazador               rango 300 en 2500 salas individual          2500     200       9.654  ronda: mediana 0.008 ms, p95 0.020 ms, máx 0.031 ms | cálculos 200, reutilizados 0, salas examinadas/decisión 5.6
+cazador               rango 300 en 2500 salas compartida          2500     200      36.915  ronda: mediana 0.044 ms, p95 0.058 ms, máx 0.088 ms | cálculos 154, reutilizados 46, salas examinadas/decisión 25.3
+cazador               rango 300 en 10000 salas individual        10000     200       6.433  ronda: mediana 0.006 ms, p95 0.010 ms, máx 0.026 ms | cálculos 200, reutilizados 0, salas examinadas/decisión 3.4
+cazador               rango 300 en 10000 salas compartida        10000     200      20.971  ronda: mediana 0.027 ms, p95 0.038 ms, máx 0.076 ms | cálculos 125, reutilizados 75, salas examinadas/decisión 13.6
+cazador               búsqueda completa montículo 400              400      10     803.080  0.80 ms por búsqueda
+cazador               búsqueda completa mínimo lineal (descartado) 400     400       3    4471.967  4.47 ms por búsqueda
+cazador               búsqueda completa montículo 2500            2500      10    8550.220  8.55 ms por búsqueda
+cazador               búsqueda completa mínimo lineal (descartado) 2500    2500       1  174337.400  174.34 ms por búsqueda
+cazador               búsqueda completa montículo 10000          10000      10   26309.700  26.31 ms por búsqueda
+
+=== --bench invalidacion
+Subsistema            Caso                                           n    reps       us/op  Detalle
+invalidacion          puertas estables compartida                 2500     120     203.112  mediana 0.179 ms, p95 0.341 ms, máx 0.753 ms | cálculos 1, reutilizados 2918, invalidaciones 0, salas examinadas 145
+invalidacion          puertas estables gruesa                     2500     120     199.630  mediana 0.179 ms, p95 0.300 ms, máx 0.645 ms | cálculos 1, reutilizados 2918, invalidaciones 0, salas examinadas 145
+invalidacion          puertas estables recalcular                 2500     120    6832.820  mediana 6.718 ms, p95 7.498 ms, máx 9.409 ms | cálculos 2919, reutilizados 0, invalidaciones 0, salas examinadas 423255
+invalidacion          puertas estables individual                 2500     120    7700.346  mediana 7.568 ms, p95 9.427 ms, máx 10.872 ms | cálculos 2919, reutilizados 0, invalidaciones 0, salas examinadas 418872
+invalidacion          puertas inestables (5/decisión) compartida    2500     120     333.747  mediana 0.265 ms, p95 0.685 ms, máx 0.806 ms | cálculos 41, reutilizados 2878, invalidaciones 40, salas examinadas 5530
+invalidacion          puertas inestables (5/decisión) gruesa      2500     120     532.208  mediana 0.476 ms, p95 0.796 ms, máx 0.896 ms | cálculos 120, reutilizados 2799, invalidaciones 119, salas examinadas 16356
+invalidacion          puertas inestables (5/decisión) recalcular    2500     120    6723.380  mediana 6.759 ms, p95 8.508 ms, máx 10.247 ms | cálculos 2919, reutilizados 0, invalidaciones 0, salas examinadas 398199
+invalidacion          puertas inestables (5/decisión) individual    2500     120    6272.663  mediana 6.226 ms, p95 7.768 ms, máx 8.252 ms | cálculos 2919, reutilizados 0, invalidaciones 0, salas examinadas 393816
+invalidacion          puertas inestables (20/decisión) compartida    2500     120     279.611  mediana 0.261 ms, p95 0.485 ms, máx 0.613 ms | cálculos 58, reutilizados 2861, invalidaciones 57, salas examinadas 5482
+invalidacion          puertas inestables (20/decisión) gruesa     2500     120     340.399  mediana 0.302 ms, p95 0.482 ms, máx 0.659 ms | cálculos 120, reutilizados 2799, invalidaciones 119, salas examinadas 9692
+invalidacion          puertas inestables (20/decisión) recalcular    2500     120    3560.315  mediana 2.777 ms, p95 7.256 ms, máx 9.212 ms | cálculos 2919, reutilizados 0, invalidaciones 0, salas examinadas 238231
+invalidacion          puertas inestables (20/decisión) individual    2500     120    3594.349  mediana 2.889 ms, p95 6.752 ms, máx 7.676 ms | cálculos 2919, reutilizados 0, invalidaciones 0, salas examinadas 233880
+invalidacion          puertas inestables lejos (20/decisión) compartida    2500     120     195.231  mediana 0.183 ms, p95 0.256 ms, máx 0.641 ms | cálculos 1, reutilizados 2918, invalidaciones 0, salas examinadas 145
+invalidacion          puertas inestables lejos (20/decisión) gruesa    2500     120     536.045  mediana 0.470 ms, p95 0.776 ms, máx 1.021 ms | cálculos 120, reutilizados 2799, invalidaciones 119, salas examinadas 17400
+invalidacion          puertas inestables lejos (20/decisión) recalcular    2500     120    7250.402  mediana 6.866 ms, p95 9.107 ms, máx 14.277 ms | cálculos 2919, reutilizados 0, invalidaciones 0, salas examinadas 423255
+invalidacion          puertas inestables lejos (20/decisión) individual    2500     120    7447.864  mediana 7.109 ms, p95 9.727 ms, máx 11.314 ms | cálculos 2919, reutilizados 0, invalidaciones 0, salas examinadas 418872
+invalidacion          referencia con bot compartida                300     250     852.410  mediana 0.707 ms, p95 1.720 ms, máx 2.866 ms | cálculos 248, reutilizados 10939, salas examinadas 18547
+invalidacion          referencia con bot gruesa                    300     250     812.146  mediana 0.665 ms, p95 1.623 ms, máx 3.017 ms | cálculos 248, reutilizados 10939, salas examinadas 18547
+invalidacion          referencia con bot recalcular                300     250    5250.684  mediana 4.327 ms, p95 11.266 ms, máx 16.210 ms | cálculos 11187, reutilizados 0, salas examinadas 837700
+invalidacion          referencia con bot individual                300     250    2841.177  mediana 2.391 ms, p95 6.780 ms, máx 7.999 ms | cálculos 11187, reutilizados 0, salas examinadas 387745
+
+=== --bench ciclo
+Subsistema            Caso                                           n    reps       us/op  Detalle
+ciclo                 salas=100 enemigos=50 peor=0.56 ms cambios/intervalo=332      50     200     419.926  
+ciclo                 salas=400 enemigos=200 peor=2.68 ms cambios/intervalo=1347     200     200    1779.746  
+ciclo                 salas=900 enemigos=500 peor=8.00 ms cambios/intervalo=3359     500     200    5034.257  
+ciclo_p2              referencia todos activos compartida          300     300     861.142  mediana 0.751 ms, p95 1.764 ms, máx 2.271 ms | 36 cazadores activos, cálculos 301, reutilizados 13466
+ciclo_p2              referencia todos activos recalcular          300     300    5757.600  mediana 4.543 ms, p95 11.930 ms, máx 21.475 ms | 36 cazadores activos, cálculos 13767, reutilizados 0
+ciclo_p2              referencia todos activos individual          300     300    2979.179  mediana 2.385 ms, p95 6.614 ms, máx 9.266 ms | 36 cazadores activos, cálculos 13767, reutilizados 0
+[límite] ciclo entre decisiones, cripta de referencia (peor caso): 2.271 ms (límite 20 ms) -> PASA
+
+=== --bench mapa_conocido
+Subsistema            Caso                                           n    reps       us/op  Detalle
+mapa_conocido         consulta arreglo 100 salas                   100   50000       0.027  
+mapa_conocido         consulta lista (descartada) 100 salas        100    2000       0.437  
+mapa_conocido         consulta tabla ordenada (descartada) 100 salas     100   50000       0.536  
+mapa_conocido         consulta arreglo 1000 salas                 1000   50000       0.027  
+mapa_conocido         consulta lista (descartada) 1000 salas      1000    2000       4.752  
+mapa_conocido         consulta tabla ordenada (descartada) 1000 salas    1000   50000       0.852  
+mapa_conocido         consulta arreglo 10000 salas               10000   50000       0.028  
+mapa_conocido         consulta lista (descartada) 10000 salas    10000    2000      45.996  
+mapa_conocido         consulta tabla ordenada (descartada) 10000 salas   10000   50000       1.160  
+mapa_conocido         explorar 5 salas con 400 conocidas           400    2000       1.492  5 casillas registradas por exploración
+mapa_conocido         explorar 5 salas con 10000 conocidas       10000    2000       1.552  5 casillas registradas por exploración
+mapa_conocido         registrar y revertir antorcha (5 salas)        5     300     139.602  mover con antorcha 25.9 us, pergamino 113.7 us (acción completa), 18.0 cambios registrados por acción
+
+=== --bench ir_a
+Subsistema            Caso                                           n    reps       us/op  Detalle
+ir_a                  paso con mapa completo referencia            300     300      83.860  peor 0.233 ms
+ir_a                  paso con mapa completo 2500 salas           2500     100    1998.424  peor 2.927 ms
+ir_a                  paso con mapa completo 10000 salas         10000     100    8717.661  peor 14.609 ms
+ir_a                  paso mínimo lineal (descartado) 2500 salas    2500       3  168874.267  peor 171.925 ms
+[límite] paso de «ir a», mapa completo de la referencia (peor caso): 0.233 ms (límite 5 ms) -> PASA
+
+=== --bench agenda
+Subsistema            Caso                                           n    reps       us/op  Detalle
+agenda                montículo + borrado perezoso, 100 eventos     100   20000       2.822  
+agenda                lista lineal (descartada), 100 eventos       100   20000      10.640  
+agenda                montículo + borrado perezoso, 500 eventos     500   20000       3.533  
+agenda                lista lineal (descartada), 500 eventos       500   20000      52.647  
+agenda                montículo + borrado perezoso, 2000 eventos    2000   20000       4.119  
+agenda                lista lineal (descartada), 2000 eventos     2000   20000     246.132  
+agenda_p2             montículo + borrado perezoso carga P2 n=100     100   20000       3.237  
+agenda_p2             lista lineal (descartada) carga P2 n=100     100   20000      11.370  
+agenda_p2             montículo + borrado perezoso carga P2 n=500     500   20000       3.976  
+agenda_p2             lista lineal (descartada) carga P2 n=500     500   20000      56.801  
+agenda_p2             montículo + borrado perezoso carga P2 n=2000    2000   20000       4.654  
+agenda_p2             lista lineal (descartada) carga P2 n=2000    2000   20000     249.285  
+agenda_p2             eventos pendientes en la referencia           77     200     884.940  promedio 76.0, máximo 77
+

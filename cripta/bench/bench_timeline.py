@@ -6,8 +6,10 @@ Evidencia para §5.5 / §6.3-B:
   puntos de control**;
 - memoria estimada: checkpoints + acciones;
 - partida sintética de ``CRIPTA_TIMELINE_ACCIONES`` acciones (5000 por defecto)
-  con la cripta publicada de ejemplo, sin red y con vida alta para que la
-  partida no termine.
+  con una cripta publicada de ejemplo, sin red y con vida alta para que la
+  partida no termine. La cripta se elige de ``datos_ejemplo/criptas.json``: la
+  más pequeña con al menos ``CRIPTA_TIMELINE_MIN_SALAS`` salas (20), sin ids
+  escritos en el código (constitución IV; ajuste de la revisión cruzada de A).
 
 Variables de entorno (NFR-004):
 
@@ -37,11 +39,29 @@ ACCIONES = int(os.environ.get("CRIPTA_TIMELINE_ACCIONES", "5000"))
 KS = [int(x) for x in os.environ.get("CRIPTA_TIMELINE_KS", "10,25,50,100").split(",") if x.strip()]
 CONSULTAS = int(os.environ.get("CRIPTA_TIMELINE_CONSULTAS", "25"))
 LIMITE_MS = float(os.environ.get("CRIPTA_LIMITE_HISTORIA_MS", "50"))
+MIN_SALAS = int(os.environ.get("CRIPTA_TIMELINE_MIN_SALAS", "20"))
 SEMILLA = 20261110
 SIN_PUNTOS = 10**9
 
 _DIRECTORIO = tempfile.mkdtemp(prefix="cripta_bench_tl_")
 _PARTIDAS: list[tuple[int, Controlador]] = []
+
+
+def _cripta_bench() -> str:
+    """La cripta más pequeña del paquete con al menos MIN_SALAS salas (o la más grande si ninguna llega)."""
+    criptas = FuenteOffline(DATOS_EJEMPLO).listar_criptas()
+    candidatas = [c for c in criptas if c.salas >= MIN_SALAS]
+    if candidatas:
+        elegida = candidatas[0]
+        for cripta in candidatas:
+            if cripta.salas < elegida.salas:
+                elegida = cripta
+        return elegida.id
+    elegida = criptas[0]
+    for cripta in criptas:
+        if cripta.salas > elegida.salas:
+            elegida = cripta
+    return elegida.id
 
 
 def _partida(k: int) -> Controlador:
@@ -57,7 +77,7 @@ def _partida(k: int) -> Controlador:
         ),
         None,
     )
-    controlador.preparar_cripta("cripta-02")
+    controlador.preparar_cripta(_cripta_bench())
     controlador._datos.jugador.vida_max = 10**9
     controlador.iniciar_partida("Bench", SEMILLA, registrar_replay=False)
     esperar = Accion(TipoAccion.ESPERAR)
