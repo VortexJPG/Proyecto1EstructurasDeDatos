@@ -225,6 +225,26 @@ class PruebaVentana(unittest.TestCase):
             self.vista._mostrar_cuadro()
         self.assertEqual(len(consultas), primeras)
 
+    def test_cripta_no_resoluble_muestra_el_reporte_y_vuelve_a_la_lista(self):
+        """AC-006-05 / 006/FR-009, FR-011 (y 004/FR-010, FR-013): la ventana muestra el reporte y deja elegir otra cripta."""
+        from cripta.adaptadores.fuente_offline import FuenteOffline
+        from cripta.controlador.controlador import Controlador, OpcionesEjecucion
+
+        paquete = os.path.join(os.path.dirname(__file__), "..", "datos_ejemplo_p2")
+        with tempfile.TemporaryDirectory() as carpeta:
+            opciones = OpcionesEjecucion(directorio_datos=carpeta, cache_size=25, offline=paquete, semilla=7)
+            controlador = Controlador(FuenteOffline(paquete), opciones, self.vista)
+            self.teclas(pygame.K_1)  # cripta-05: no se puede ganar
+            self.teclas(pygame.K_SPACE)  # cierra el reporte y vuelve a la lista
+            self.teclas(pygame.K_2)  # cripta-06
+            pygame.event.post(pygame.event.Event(pygame.TEXTINPUT, text="Ana"))
+            self.teclas(pygame.K_RETURN, pygame.K_ESCAPE, pygame.K_RETURN, pygame.K_SPACE)
+            with contextlib.redirect_stdout(io.StringIO()) as salida:
+                codigo = controlador.ejecutar_interactivo()
+            self.assertEqual(codigo, 0)
+            self.assertIn("NO RESOLUBLE", salida.getvalue())
+            self.assertEqual(controlador.juego.datos.id, "cripta-06")
+
     def test_partida_con_el_controlador(self):
         from cripta.adaptadores.fuente_offline import FuenteOffline
         from cripta.controlador.controlador import Controlador, OpcionesEjecucion

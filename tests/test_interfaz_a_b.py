@@ -72,6 +72,45 @@ class PruebaCostoYCazadorDesdeElServicio(unittest.TestCase):
             self.assertEqual(enemigo.rango, ficha.rango)
 
 
+class PruebaReporteAlIniciar(unittest.TestCase):
+    """004/contracts/interfaz-a-b.md §3 (vista de A): el reporte se muestra al iniciar (FR-013, FR-010)."""
+
+    @unittest.skipUnless(os.path.isdir(os.path.join(DATOS_P2, "cripta-05")), "falta datos_ejemplo_p2/")
+    def test_consola_no_resoluble_muestra_reporte_y_deja_elegir_otra(self):
+        """AC-006-05 / 006/FR-009: la terminal muestra el reporte y vuelve a la lista."""
+        import io
+        import tempfile
+        from contextlib import redirect_stdout
+        from cripta.controlador.controlador import Controlador, OpcionesEjecucion
+        from cripta.vista.vista_consola import VistaConsola
+
+        entradas = iter(["1", "2", "Ana", "salir"])  # cripta-05 (no resoluble), luego cripta-06
+        vista = VistaConsola()
+        vista._entrada = lambda mensaje="": next(entradas)
+        with tempfile.TemporaryDirectory() as carpeta:
+            controlador = Controlador(
+                FuenteOffline(DATOS_P2), OpcionesEjecucion(directorio_datos=carpeta, cache_size=25), vista)
+            texto = io.StringIO()
+            with redirect_stdout(texto):
+                codigo = controlador.ejecutar_interactivo()
+        salida = texto.getvalue()
+        self.assertEqual(codigo, 0)
+        self.assertIn("NO RESOLUBLE", salida)
+        self.assertIn("Esta cripta no se puede ganar", salida)
+        self.assertEqual(controlador.juego.datos.id, "cripta-06")
+
+    def test_con_cripta_fija_sigue_saliendo_con_codigo_3(self):
+        """AC-006-06 / 006/FR-010: con --cripta y sin --forzar no hay lista a la que volver: código 3 (AC-004-04)."""
+        import io
+        import tempfile
+        from contextlib import redirect_stdout
+        from cripta.controlador.aplicacion import main
+
+        with tempfile.TemporaryDirectory() as carpeta, redirect_stdout(io.StringIO()):
+            codigo = main(["--offline", DATOS_P2, "--cripta", "cripta-05", "--datos", carpeta, "--nombre", "A"])
+        self.assertEqual(codigo, 3)
+
+
 class PruebaAvanzarHasta(unittest.TestCase):
     """005/T016, T030..T032, T054 (AC-005-03): un instante entre decisiones."""
 
