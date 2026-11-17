@@ -1,10 +1,15 @@
 # Constitución del proyecto CRIPTA
 
 <!--
-  Borrador redactado por la Persona B a partir de la Parte II (§1.1 y §1.2)
-  porque `.specify/` se inicializó sin constitución. La Persona A debe
-  revisarlo y confirmarlo; cualquier cambio se hace con `/speckit.constitution`
-  y en un commit propio.
+  Sync Impact Report (1.0.0 -> 1.0.1, PATCH, 2026-11-15)
+  - Redactada por la Persona B (2026-11-09) y revisada por la Persona A.
+  - Principio I: la lista de estructuras permitidas se alinea con lo que usa
+    el proyecto (arreglos ordenados con búsqueda binaria propia en lugar de
+    "tablas hash propias", que el proyecto no usa desde la Parte I).
+  - Flujo, paso 6: el Documento de Decisiones se llama `DECISIONES.md`
+    (§7.2 de la Parte II).
+  - Sin cambios de reglas del juego: ninguna spec necesita corregirse.
+  - Pendiente: aprobación de la Persona B (Governance).
 -->
 
 ## Core Principles
@@ -16,8 +21,9 @@ Queda **prohibido** usar `dict` y `set` como índice, caché o tabla de búsqued
 Quedan prohibidos `heapq`, `bisect`, `collections` (`deque`, `OrderedDict`,
 `defaultdict`, `Counter`), `networkx` y cualquier biblioteca de grafos o de
 búsqueda de rutas. Se permiten arreglos, listas enlazadas propias (simples y
-dobles), pilas, colas propias, montículos y colas de prioridad, tablas hash
-propias y búsqueda binaria propia. `list` se usa solo como almacenamiento
+dobles), pilas, colas propias, montículos y colas de prioridad, y arreglos
+ordenados con búsqueda binaria propia (el reemplazo de `dict` del proyecto).
+`list` se usa solo como almacenamiento
 contiguo de bajo nivel. Cualquier plan o tarea que proponga una estructura
 prohibida debe rechazarse antes de implementar.
 
@@ -93,7 +99,7 @@ estructuras, clases ni módulos.
 5. Implementar una tarea a la vez, con su prueba, y medir mientras se
    implementa.
 6. Ejecutar `--bench`, guardar los resultados y actualizar el Documento de
-   Decisiones (`Decisiones_de_diseño.md`).
+   Decisiones (`DECISIONES.md`).
 7. Auditar la trazabilidad requisito → escenario → tarea → código → prueba.
 
 ## Governance
@@ -105,4 +111,4 @@ correspondiente. Si una enmienda cambia una regla del juego, se corrige primero
 la spec afectada. Todas las revisiones verifican el cumplimiento de estos
 principios; la complejidad añadida debe justificarse con mediciones.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-09 | **Last Amended**: 2026-11-09
+**Version**: 1.0.1 | **Ratified**: 2026-11-09 | **Last Amended**: 2026-11-15
